@@ -4,9 +4,9 @@ import scala.virtualization.lms.common._
 import java.io.{PrintWriter,StringWriter,FileOutputStream}
 
 trait Dsl extends ScalaOpsPkg with TupledFunctions with UncheckedOps with LiftPrimitives with LiftString with LiftVariables {
-  case class TopLevel[A,B](name: String, mA: Manifest[A], mB:Manifest[B], f: Rep[A] => Rep[B], pre: Rep[A] => Rep[Boolean], post: Rep[A] => Rep[B] => Rep[Boolean])
+  case class TopLevel[A,B](name: String, mA: Manifest[A], mB:Manifest[B], f: Rep[A] => Rep[B], pre: Rep[A] => Rep[Boolean], post: (Rep[A], Rep[B]) => Rep[Boolean])
   val rec = new scala.collection.mutable.HashMap[String,TopLevel[_,_]]
-  def toplevel[A:Manifest,B:Manifest](name: String)(f: Rep[A] => Rep[B])(pre: Rep[A] => Rep[Boolean])(post: Rep[A] => Rep[B] => Rep[Boolean]): Rep[A] => Rep[B] = {
+  def toplevel[A:Manifest,B:Manifest](name: String)(f: Rep[A] => Rep[B])(pre: Rep[A] => Rep[Boolean])(post: (Rep[A], Rep[B]) => Rep[Boolean]): Rep[A] => Rep[B] = {
     val g = (x: Rep[A]) => unchecked[B](name,"(",x,")")
     rec.getOrElseUpdate(name, TopLevel(name, manifest[A], manifest[B], f, pre, post))
     g
@@ -37,6 +37,7 @@ trait Impl extends Dsl with ScalaOpsPkgExp with TupledFunctionsRecursiveExp with
     def exprOf[A](e: Exp[A], m: Map[Sym[_], String] = Map()): String = e match {
       case Const(_) => quote(e)
       case Def(d) => d match {
+        case OrderingGT(a, b) => "("+exprOf(a)+">"+exprOf(b)+")"
         case _ => "TODO:Def"+d
       }
       case s@Sym(n) => m.get(s) match {
@@ -45,16 +46,16 @@ trait Impl extends Dsl with ScalaOpsPkgExp with TupledFunctionsRecursiveExp with
       }
     }
 
-    def emitVerify[A:Manifest, B:Manifest](f: Exp[A] => Exp[B], pre: Exp[A] => Exp[Boolean], post: Exp[A] => Exp[B] => Exp[Boolean], functionName: String, out: PrintWriter): Unit = {
+    def emitVerify[A:Manifest, B:Manifest](f: Exp[A] => Exp[B], pre: Exp[A] => Exp[Boolean], post: (Exp[A], Exp[B]) => Exp[Boolean], functionName: String, out: PrintWriter): Unit = {
       val s = fresh[A]
       val r = fresh[B]
       val body = reifyBlock(f(s))
       val preBody = reifyBlock(pre(s))
-      //val postBody = reifyBlock(post(s)(r))
+      //val postBody = reifyBlock(post(s, r)) -- NPE why???
       val sB = remap(manifest[B])
       withStream(out) {
         val preStr = exprOfBlock("requires", preBody)
-        val postStr = ""
+        val postStr = ""//exprOfBlock("ensures", postBody, Map(r -> "\\result"))
         if (!preStr.isEmpty || !postStr.isEmpty) {
           stream.println("/*@")
           stream.println(preStr)
