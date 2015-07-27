@@ -27,12 +27,41 @@ trait Impl extends Dsl with ScalaOpsPkgExp with TupledFunctionsRecursiveExp with
         case _ => super.isPrimitiveType(tpe)
       }
     }
+    def exprOfBlock(kw: String, e: Block[Boolean], m: Map[Sym[_], String] = Map()): String = {
+      val r = exprOf(e.res, m)
+      r match {
+        case "true" => ""
+        case _ => kw + " " + r + ";"
+      }
+    }
+    def exprOf[A](e: Exp[A], m: Map[Sym[_], String] = Map()): String = e match {
+      case Const(_) => quote(e)
+      case Def(d) => d match {
+        case _ => "TODO:Def"+d
+      }
+      case s@Sym(n) => m.get(s) match {
+        case Some(v) => v
+        case None => quote(e)
+      }
+    }
+
     def emitVerify[A:Manifest, B:Manifest](f: Exp[A] => Exp[B], pre: Exp[A] => Exp[Boolean], post: Exp[A] => Exp[B] => Exp[Boolean], functionName: String, out: PrintWriter): Unit = {
       val s = fresh[A]
-      val args = List(s)
+      val r = fresh[B]
       val body = reifyBlock(f(s))
+      val preBody = reifyBlock(pre(s))
+      //val postBody = reifyBlock(post(s)(r))
       val sB = remap(manifest[B])
       withStream(out) {
+        val preStr = exprOfBlock("requires", preBody)
+        val postStr = ""
+        if (!preStr.isEmpty || !postStr.isEmpty) {
+          stream.println("/*@")
+          stream.println(preStr)
+          stream.println(postStr)
+          stream.println("*/")
+        }
+
         stream.println(sB+" "+functionName+"("+remapWithRef(s.tp)+" "+quote(s)+") {")
         emitBlock(body)
 
