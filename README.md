@@ -1,5 +1,15 @@
 # lms-verify
-verification without regret
 
-## some non-obvious installation steps
-* Once `frama-c` and its dependencies are installed, do `why3 config --detect` to configure the solvers.
+An early experiment using staging (via [LMS](http://github.com/TiarkRompf/virtualization-lms-core)) to generate first-order verifiable C code from its higher-level counterpart.
+
+## C Verification
+
+The generated C code is verified using frama-c wp as follows:
+
+```frama-c -wp -wp-rte <file.c>```
+
+All the files in the `src/out` directory should verify with this command, except those ending with `_bad.c`.
+
+* [frama-c wp manual (PDF)](http://frama-c.com/download/frama-c-wp-manual.pdf)
+* [acsl tutorial (PDF)](http://frama-c.com/download/acsl-tutorial.pdf)
+* [frama-c installation](http://frama-c.com/install-sodium-20150201.html) -- after installation, do `why3 config --detect` to configure the solvers -- without this extra step, examples that discharge to a backend will fail to verify!
