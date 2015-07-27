@@ -24,8 +24,7 @@ trait Impl extends Dsl with ScalaOpsPkgExp with TupledFunctionsRecursiveExp with
   val codegen = new CCodeGenPkg with CGenVariables with CGenTupledFunctions with CGenUncheckedOps {
     override def remap[A](m: Manifest[A]): String = {
       val tpe = super.remap(m)
-      if (tpe.startsWith("int")) "int"
-      else if (tpe.startsWith("uint")) "uint"
+      if (tpe.startsWith("int") || tpe.startsWith("uint") || tpe=="bool") "int"
       else tpe
     }
     override def isPrimitiveType(tpe: String): Boolean = {
