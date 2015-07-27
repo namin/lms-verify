@@ -4,9 +4,9 @@ import scala.virtualization.lms.common._
 import java.io.{PrintWriter,StringWriter,FileOutputStream}
 
 trait Dsl extends ScalaOpsPkg with TupledFunctions with UncheckedOps with LiftPrimitives with LiftString with LiftVariables {
-  case class TopLevel[A,B](name: String, mA: Manifest[A], mB:Manifest[B], f: Rep[A] => Rep[B], pre: Rep[A] => Rep[Boolean], post: (Rep[A], Rep[B]) => Rep[Boolean])
+  case class TopLevel[A,B](name: String, mA: Manifest[A], mB:Manifest[B], f: Rep[A] => Rep[B], pre: Rep[A] => Rep[Boolean], post: Rep[A] => Rep[B] => Rep[Boolean])
   val rec = new scala.collection.mutable.HashMap[String,TopLevel[_,_]]
-  def toplevel[A:Manifest,B:Manifest](name: String)(f: Rep[A] => Rep[B])(pre: Rep[A] => Rep[Boolean])(post: (Rep[A], Rep[B]) => Rep[Boolean]): Rep[A] => Rep[B] = {
+  def toplevel[A:Manifest,B:Manifest](name: String)(f: Rep[A] => Rep[B])(pre: Rep[A] => Rep[Boolean])(post: Rep[A] => Rep[B] => Rep[Boolean]): Rep[A] => Rep[B] = {
     val g = (x: Rep[A]) => unchecked[B](name,"(",x,")")
     rec.getOrElseUpdate(name, TopLevel(name, manifest[A], manifest[B], f, pre, post))
     g
@@ -49,12 +49,12 @@ trait Impl extends Dsl with ScalaOpsPkgExp with TupledFunctionsRecursiveExp with
       }
     }
 
-    def emitVerify[A:Manifest, B:Manifest](f: Exp[A] => Exp[B], pre: Exp[A] => Exp[Boolean], post: (Exp[A], Exp[B]) => Exp[Boolean], functionName: String, out: PrintWriter): Unit = {
+    def emitVerify[A:Manifest, B:Manifest](f: Exp[A] => Exp[B], pre: Exp[A] => Exp[Boolean], post: Exp[A] => Exp[B] => Exp[Boolean], functionName: String, out: PrintWriter): Unit = {
       val s = fresh[A]
       val r = fresh[B]
       val body = reifyBlock(f(s))
       val preBody = reifyBlock(pre(s))
-      val postBody = reifyBlock(post(s, r))
+      val postBody = reifyBlock(post(s)(r))
       val sB = remap(manifest[B])
       withStream(out) {
         val preStr = exprOfBlock("requires", preBody)
@@ -83,7 +83,7 @@ trait Impl extends Dsl with ScalaOpsPkgExp with TupledFunctionsRecursiveExp with
     rec.foreach { case (k,x) =>
       //stream.println("/* FILE: " + x.name + ".c */")
       //for ((_,v) <- rec) codegen.emitForwardDef(mtype(v.mA)::Nil, v.name, stream)(mtype(v.mB))
-      codegen.emitVerify(x.f, x.pre, x.post.asInstanceOf[(Exp[_], Exp[_]) => Exp[Boolean]], x.name, stream)(mtype(x.mA), mtype(x.mB))
+      codegen.emitVerify(x.f, x.pre, x.post.asInstanceOf[Exp[_] => Exp[_] => Exp[Boolean]], x.name, stream)(mtype(x.mA), mtype(x.mB))
     }
   }
   lazy val code: String = {
