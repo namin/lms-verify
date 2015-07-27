@@ -34,11 +34,14 @@ trait Impl extends Dsl with ScalaOpsPkgExp with TupledFunctionsRecursiveExp with
         case _ => kw + " " + r + ";"
       }
     }
-    def exprOf[A](e: Exp[A], m: Map[Sym[_], String] = Map()): String = e match {
+    def exprOf[A](e: Exp[A], m: Map[Sym[_], String]): String = e match {
       case Const(_) => quote(e)
       case Def(d) => d match {
-        case OrderingGT(a, b) => "("+exprOf(a)+">"+exprOf(b)+")"
-        case _ => "TODO:Def"+d
+        case OrderingGT(a, b) => "("+exprOf(a, m)+">"+exprOf(b, m)+")"
+        case OrderingLTEQ(a, b) => "("+exprOf(a, m)+"<="+exprOf(b, m)+")"
+        case OrderingLT(a, b) => "("+exprOf(a, m)+"<"+exprOf(b, m)+")"
+        case BooleanAnd(a, b) => "("+exprOf(a, m)+" && "+exprOf(b, m)+")"
+        case _ => "TODO:Def:"+d
       }
       case s@Sym(n) => m.get(s) match {
         case Some(v) => v
@@ -51,11 +54,11 @@ trait Impl extends Dsl with ScalaOpsPkgExp with TupledFunctionsRecursiveExp with
       val r = fresh[B]
       val body = reifyBlock(f(s))
       val preBody = reifyBlock(pre(s))
-      //val postBody = reifyBlock(post(s, r)) -- NPE why???
+      val postBody = reifyBlock(post(s, r))
       val sB = remap(manifest[B])
       withStream(out) {
         val preStr = exprOfBlock("requires", preBody)
-        val postStr = ""//exprOfBlock("ensures", postBody, Map(r -> "\\result"))
+        val postStr = exprOfBlock("ensures", postBody, Map(r -> "\\result"))
         if (!preStr.isEmpty || !postStr.isEmpty) {
           stream.println("/*@")
           stream.println(preStr)
@@ -80,7 +83,7 @@ trait Impl extends Dsl with ScalaOpsPkgExp with TupledFunctionsRecursiveExp with
     rec.foreach { case (k,x) =>
       //stream.println("/* FILE: " + x.name + ".c */")
       //for ((_,v) <- rec) codegen.emitForwardDef(mtype(v.mA)::Nil, v.name, stream)(mtype(v.mB))
-      codegen.emitVerify(x.f, x.pre, null, x.name, stream)(mtype(x.mA), mtype(x.mB))
+      codegen.emitVerify(x.f, x.pre, x.post.asInstanceOf[(Exp[_], Exp[_]) => Exp[Boolean]], x.name, stream)(mtype(x.mA), mtype(x.mB))
     }
   }
   lazy val code: String = {
