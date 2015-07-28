@@ -1,5 +1,6 @@
 /*@
 requires (x0>=0);
+assigns \nothing;
 ensures (\result==(x0+x1));
 */
 int plus(int  x0, int  x1) {

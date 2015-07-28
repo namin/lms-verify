@@ -31,8 +31,7 @@ class CoreTests extends TestSuite {
       val pick_index = toplevel("pick_index",
         { n: Rep[Int] => 0 },
         { n: Rep[Int] => n > 0 },
-        { n: Rep[Int] => result: Rep[Int] => 0 <= result && result < n},
-        assignsNothing=true)
+        { n: Rep[Int] => result: Rep[Int] => 0 <= result && result < n})
 
       toplevel("pick_element",
         { (p: Rep[Array[Int]], n: Rep[Int]) =>
@@ -40,14 +39,12 @@ class CoreTests extends TestSuite {
           p(i) },
         { (p: Rep[Array[Int]], n: Rep[Int]) =>
           n > 0 && validArray(p, n) },
-        { (p: Rep[Array[Int]], n: Rep[Int]) => result: Rep[Int] => unit(true) },
-        assignsNothing=true)
+        { (p: Rep[Array[Int]], n: Rep[Int]) => result: Rep[Int] => unit(true) })
 
       toplevel("pick_first",
         { p: Rep[Array[Int]] => p(0) },
         { p: Rep[Array[Int]] => valid(p) },
-        { p: Rep[Array[Int]] => result: Rep[Int] => result==p(0) },
-        assignsNothing=true)
+        { p: Rep[Array[Int]] => result: Rep[Int] => result==p(0) })
     }
     check("2", (new Ex2 with Impl).code)
   }
@@ -61,8 +58,7 @@ class CoreTests extends TestSuite {
       toplevel("picker_"+name,
         { n: Rep[Int] => f(n) },
         { n: Rep[Int] => n > 0 },
-        { n: Rep[Int] => result: Rep[Int] => 0 <= result && result < n},
-        assignsNothing=true)
+        { n: Rep[Int] => result: Rep[Int] => 0 <= result && result < n})
       }
 
       def gen_pick(name: String, f: Rep[Int] => Rep[Int]) = {
@@ -72,8 +68,7 @@ class CoreTests extends TestSuite {
           p(i) },
         { (p: Rep[Array[Int]], n: Rep[Int]) =>
           n > 0 && validArray(p, n) },
-        { (p: Rep[Array[Int]], n: Rep[Int]) => result: Rep[Int] => unit(true) },
-        assignsNothing=true)
+        { (p: Rep[Array[Int]], n: Rep[Int]) => result: Rep[Int] => unit(true) })
       }
 
       gen_pick("first_element", gen_picker("first", first))

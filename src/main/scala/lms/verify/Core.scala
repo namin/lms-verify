@@ -4,18 +4,16 @@ import scala.virtualization.lms.common._
 import java.io.{PrintWriter,StringWriter,FileOutputStream}
 
 trait VerifyOps extends Base with UncheckedOps {
-  case class TopLevel[B](name: String, mAs: List[Manifest[_]], mB:Manifest[B], f: List[Rep[_]] => Rep[B], pre: List[Rep[_]] => Rep[Boolean], post: List[Rep[_]] => Rep[B] => Rep[Boolean], assignsNothing: Boolean)
+  case class TopLevel[B](name: String, mAs: List[Manifest[_]], mB:Manifest[B], f: List[Rep[_]] => Rep[B], pre: List[Rep[_]] => Rep[Boolean], post: List[Rep[_]] => Rep[B] => Rep[Boolean])
   val rec = new scala.collection.mutable.LinkedHashMap[String,TopLevel[_]]
-  def toplevel[A:Manifest,B:Manifest](name: String, f: Rep[A] => Rep[B], pre: Rep[A] => Rep[Boolean], post: Rep[A] => Rep[B] => Rep[Boolean]): Rep[A] => Rep[B] = toplevel(name, f, pre, post, false)
-  def toplevel[A:Manifest,B:Manifest](name: String, f: Rep[A] => Rep[B], pre: Rep[A] => Rep[Boolean], post: Rep[A] => Rep[B] => Rep[Boolean], assignsNothing: Boolean): Rep[A] => Rep[B] = {
+  def toplevel[A:Manifest,B:Manifest](name: String, f: Rep[A] => Rep[B], pre: Rep[A] => Rep[Boolean], post: Rep[A] => Rep[B] => Rep[Boolean]): Rep[A] => Rep[B] = {
     val g = (x: Rep[A]) => unchecked[B](name,"(",x,")")
-    rec.getOrElseUpdate(name, TopLevel(name, List(manifest[A]), manifest[B], xs => f(xs.head.asInstanceOf[Rep[A]]), xs => pre(xs.head.asInstanceOf[Rep[A]]), (xs: List[Rep[_]]) => (r: Rep[B]) => post(xs.head.asInstanceOf[Rep[A]])(r), assignsNothing))
+    rec.getOrElseUpdate(name, TopLevel(name, List(manifest[A]), manifest[B], xs => f(xs.head.asInstanceOf[Rep[A]]), xs => pre(xs.head.asInstanceOf[Rep[A]]), (xs: List[Rep[_]]) => (r: Rep[B]) => post(xs.head.asInstanceOf[Rep[A]])(r)))
     g
   }
-  def toplevel[A1:Manifest,A2:Manifest,B:Manifest](name: String, f: (Rep[A1], Rep[A2]) => Rep[B], pre: (Rep[A1], Rep[A2]) => Rep[Boolean], post: (Rep[A1], Rep[A2]) => Rep[B] => Rep[Boolean]): (Rep[A1], Rep[A2]) => Rep[B] = toplevel(name, f, pre, post, false)
-  def toplevel[A1:Manifest,A2:Manifest,B:Manifest](name: String, f: (Rep[A1], Rep[A2]) => Rep[B], pre: (Rep[A1], Rep[A2]) => Rep[Boolean], post: (Rep[A1], Rep[A2]) => Rep[B] => Rep[Boolean], assignsNothing: Boolean): (Rep[A1], Rep[A2]) => Rep[B] = {
+  def toplevel[A1:Manifest,A2:Manifest,B:Manifest](name: String, f: (Rep[A1], Rep[A2]) => Rep[B], pre: (Rep[A1], Rep[A2]) => Rep[Boolean], post: (Rep[A1], Rep[A2]) => Rep[B] => Rep[Boolean]): (Rep[A1], Rep[A2]) => Rep[B] = {
     val g = (x1: Rep[A1], x2: Rep[A2]) => unchecked[B](name,"(",x1,",",x2,")")
-    rec.getOrElseUpdate(name, TopLevel(name, List(manifest[A1], manifest[A2]), manifest[B], xs => f(xs.head.asInstanceOf[Rep[A1]], xs.tail.head.asInstanceOf[Rep[A2]]), xs => pre(xs.head.asInstanceOf[Rep[A1]], xs.tail.head.asInstanceOf[Rep[A2]]), (xs: List[Rep[_]]) => (r: Rep[B]) => post(xs.head.asInstanceOf[Rep[A1]], xs.tail.head.asInstanceOf[Rep[A2]])(r), assignsNothing))
+    rec.getOrElseUpdate(name, TopLevel(name, List(manifest[A1], manifest[A2]), manifest[B], xs => f(xs.head.asInstanceOf[Rep[A1]], xs.tail.head.asInstanceOf[Rep[A2]]), xs => pre(xs.head.asInstanceOf[Rep[A1]], xs.tail.head.asInstanceOf[Rep[A2]]), (xs: List[Rep[_]]) => (r: Rep[B]) => post(xs.head.asInstanceOf[Rep[A1]], xs.tail.head.asInstanceOf[Rep[A2]])(r)))
     g
   }
 
@@ -100,13 +98,18 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       }
     }
 
-    def emitVerify[B](f: List[Exp[_]] => Exp[B], pre: List[Exp[_]] => Exp[Boolean], post: List[Exp[_]] => Exp[B] => Exp[Boolean], assignsNothing: Boolean, functionName: String, out: PrintWriter)(mAs: List[Manifest[_]], mB: Manifest[B]): Unit = {
+    def emitVerify[B](f: List[Exp[_]] => Exp[B], pre: List[Exp[_]] => Exp[Boolean], post: List[Exp[_]] => Exp[B] => Exp[Boolean], functionName: String, out: PrintWriter)(mAs: List[Manifest[_]], mB: Manifest[B]): Unit = {
       val args = mAs.map(fresh(_))
       val r = fresh[B](mB)
       val body = reifyBlock(f(args))(mB)
       val preBody = reifyBlock(pre(args))
       val postBody = reifyBlock(post(args)(r))
       val sB = remap(mB)
+      val y = getBlockResult(body)
+      val assignsNothing = y match {
+        case Def(Reflect(_, _, _::_)) => false
+        case _ => true
+      }
       withStream(out) {
         val preStr = exprOfBlock("requires", preBody)
         val postStr = exprOfBlock("ensures", postBody, Map(r -> "\\result"))
@@ -121,7 +124,6 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
         stream.println(sB+" "+functionName+"("+(args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")+") {")
         emitBlock(body)
 
-        val y = getBlockResult(body)
         if (remap(y.tp) != "void")
           stream.println("return " + quote(y) + ";")
 
@@ -135,7 +137,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
     rec.foreach { case (k,x) =>
       //stream.println("/* FILE: " + x.name + ".c */")
       //for ((_,v) <- rec) codegen.emitForwardDef(mtype(v.mA)::Nil, v.name, stream)(mtype(v.mB))
-      codegen.emitVerify(x.f, x.pre, x.post.asInstanceOf[List[Exp[_]] => Exp[_] => Exp[Boolean]], x.assignsNothing, x.name, stream)(x.mAs, mtype(x.mB))
+      codegen.emitVerify(x.f, x.pre, x.post.asInstanceOf[List[Exp[_]] => Exp[_] => Exp[Boolean]], x.name, stream)(x.mAs, mtype(x.mB))
     }
   }
   lazy val code: String = {

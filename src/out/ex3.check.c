@@ -1,4 +1,5 @@
 /*@
+assigns \nothing;
 ensures (\result==(x0*x0));
 */
 int square(int  x0) {
@@ -14,6 +15,7 @@ int pow4(int  x4) {
   return x7;
 }
 /*@
+assigns \nothing;
 ensures (\result==(((x13*x13)*x13)*x13));
 */
 int pow4b(int  x13) {

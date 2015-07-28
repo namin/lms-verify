@@ -1,4 +1,5 @@
 /*@
+assigns \nothing;
 ensures (\result>x0);
 */
 int inc(int  x0) {
