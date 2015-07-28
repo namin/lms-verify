@@ -106,8 +106,8 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       val postBody = reifyBlock(post(args)(r))
       val sB = remap(mB)
       val y = getBlockResult(body)
-      val assignsNothing = y match {
-        case Def(Reflect(_, _, _::_)) => false
+      val assignsNothing = getBlockResultFull(body) match {
+        case Def(Reify(_, s, _)) => s.mayWrite.isEmpty && s.mstWrite.isEmpty
         case _ => true
       }
       withStream(out) {

@@ -7,6 +7,7 @@ int square(int  x0) {
   return x2;
 }
 /*@
+assigns \nothing;
 ensures (\result==(((x4*x4)*x4)*x4));
 */
 int pow4(int  x4) {
