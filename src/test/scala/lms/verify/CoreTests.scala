@@ -52,6 +52,33 @@ class CoreTests extends TestSuite {
     check("2", (new Ex2 with Impl).code)
   }
 
+  test("2b") {
+    trait Ex2b extends Dsl {
+      val pick_index = toplevel("pick_index",
+        { n: Rep[Int] => 0 },
+        { n: Rep[Int] => n > 0 },
+        { n: Rep[Int] => result: Rep[Int] => 0 <= result && result < n},
+        assignsNothing=true)
+
+      val first = { n: Rep[Int] => unit(0) }
+
+      def gen_pick(name: String, f: Rep[Int] => Rep[Int]) = {
+      toplevel("pick_"+name,
+        { (p: Rep[Array[Int]], n: Rep[Int]) =>
+          val i = f(n)
+          p(i) },
+        { (p: Rep[Array[Int]], n: Rep[Int]) =>
+          n > 0 && validArray(p, n) },
+        { (p: Rep[Array[Int]], n: Rep[Int]) => result: Rep[Int] => unit(true) },
+        assignsNothing=true)
+      }
+
+      gen_pick("element", pick_index)
+      gen_pick("first", first)
+    }
+    check("2b", (new Ex2b with Impl).code)
+  }
+
   test("3") {
     trait Ex3 extends Dsl {
       val square = toplevel("square",
