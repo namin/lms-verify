@@ -28,10 +28,26 @@ class CoreTests extends TestSuite {
   
   test("2") {
     trait Ex2 extends Dsl {
-      toplevel("pick_index",
+      val pick_index = toplevel("pick_index",
         { n: Rep[Int] => 0 },
         { n: Rep[Int] => n > 0 },
-        { n: Rep[Int] => result: Rep[Int] => 0 <= result && result < n})
+        { n: Rep[Int] => result: Rep[Int] => 0 <= result && result < n},
+        assignsNothing=true)
+
+      toplevel("pick_element",
+        { (p: Rep[Array[Int]], n: Rep[Int]) =>
+          val i = pick_index(n)
+          p(i) },
+        { (p: Rep[Array[Int]], n: Rep[Int]) =>
+          n > 0 && validArray(p, n) },
+        { (p: Rep[Array[Int]], n: Rep[Int]) => result: Rep[Int] => unit(true) },
+        assignsNothing=true)
+
+      toplevel("pick_first",
+        { p: Rep[Array[Int]] => p(0) },
+        { p: Rep[Array[Int]] => valid(p) },
+        { p: Rep[Array[Int]] => result: Rep[Int] => result==p(0) },
+        assignsNothing=true)
     }
     check("2", (new Ex2 with Impl).code)
   }
