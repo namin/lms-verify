@@ -114,4 +114,19 @@ class CoreTests extends TestSuite {
     }
     check("4", (new Ex4 with Impl).code)
   }
+
+  test("5") {
+    trait Ex5 extends Dsl {
+      toplevel("array_swap",
+        { p: Rep[Array[Int]] =>
+          reflectMutableSym(p)
+          val tmp = p(0)
+          p(0) = p(1)
+          p(1) = tmp
+        },
+        { p: Rep[Array[Int]] => validArray(p, 2) },
+        { p: Rep[Array[Int]] => result: Rep[Unit] => p(0)==old(p(1)) && p(1)==old(p(0)) })
+    }
+    check("5", (new Ex5 with Impl).code)
+  }
 }

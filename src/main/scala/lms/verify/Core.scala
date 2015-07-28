@@ -21,14 +21,24 @@ trait VerifyOps extends Base with UncheckedOps {
 
   def validArray[A](p: Rep[Array[A]], n: Rep[Int]): Rep[Boolean]
   def valid[A](p: Rep[A]): Rep[Boolean]
+  def old[A:Manifest](v: Rep[A]): Rep[A]
+
+  def reflectMutableSym[A](v: Rep[A]): Rep[A]
 }
 
-trait VerifyOpsExp extends VerifyOps with BaseExp {
+trait VerifyOpsExp extends VerifyOps with EffectExp {
   case class ValidArray[A](p: Rep[Array[A]], n: Rep[Int]) extends Def[Boolean]
   case class Valid[A](p: Rep[A]) extends Def[Boolean]
+  case class Old[A:Manifest](v: Rep[A]) extends Def[A]
 
   def validArray[A](p: Rep[Array[A]], n: Rep[Int]): Rep[Boolean] = ValidArray(p, n)
   def valid[A](p: Rep[A]): Rep[Boolean] = Valid(p)
+  def old[A:Manifest](v: Rep[A]): Rep[A] = Old(v)
+
+  def reflectMutableSym[A](v: Rep[A]): Rep[A] = {
+    super.reflectMutableSym(v.asInstanceOf[Sym[A]])
+    v
+  }
 }
 
 trait Dsl extends VerifyOps with ScalaOpsPkg with TupledFunctions with UncheckedOps with LiftPrimitives with LiftString with LiftVariables
@@ -55,23 +65,27 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
         case _ => kw + " " + r + ";"
       }
     }
+    def exprOfDef[A](d: Def[A], m: Map[Sym[_], String]): String = d match {
+      case Old(v) => "\\old("+exprOf(v, m)+")"
+      case Valid(p) => "\\valid("+exprOf(p, m)+")"
+      case ValidArray(p,n) => "\\valid("+exprOf(p, m)+"+ (0.."+exprOf(n, m)+"-1))"
+      case Equal(a, b) => "("+exprOf(a, m)+"=="+exprOf(b, m)+")"
+      case OrderingGTEQ(a, b) => "("+exprOf(a, m)+">="+exprOf(b, m)+")"
+      case OrderingGT(a, b) => "("+exprOf(a, m)+">"+exprOf(b, m)+")"
+      case OrderingLTEQ(a, b) => "("+exprOf(a, m)+"<="+exprOf(b, m)+")"
+      case OrderingLT(a, b) => "("+exprOf(a, m)+"<"+exprOf(b, m)+")"
+      case BooleanAnd(a, b) => "("+exprOf(a, m)+" && "+exprOf(b, m)+")"
+      case BooleanOr(a, b) => "("+exprOf(a, m)+" || "+exprOf(b, m)+")"
+      case IntPlus(a, b) => "("+exprOf(a, m)+"+"+exprOf(b, m)+")"
+      case IntTimes(a, b) => "("+exprOf(a, m)+"*"+exprOf(b, m)+")"
+      case ArrayApply(p, i) => exprOf(p, m)+"["+exprOf(i, m)+"]"
+      case Reify(r, _, _) => exprOf(r, m)
+      case Reflect(r, _, _) => exprOfDef(r, m)
+      case _ => "TODO:Def:"+d
+    }
     def exprOf[A](e: Exp[A], m: Map[Sym[_], String]): String = e match {
       case Const(_) => quote(e)
-      case Def(d) => d match {
-        case Valid(p) => "\\valid("+exprOf(p, m)+")"
-        case ValidArray(p,n) => "\\valid("+exprOf(p, m)+"+ (0.."+exprOf(n, m)+"-1))"
-        case Equal(a, b) => "("+exprOf(a, m)+"=="+exprOf(b, m)+")"
-        case OrderingGTEQ(a, b) => "("+exprOf(a, m)+">="+exprOf(b, m)+")"
-        case OrderingGT(a, b) => "("+exprOf(a, m)+">"+exprOf(b, m)+")"
-        case OrderingLTEQ(a, b) => "("+exprOf(a, m)+"<="+exprOf(b, m)+")"
-        case OrderingLT(a, b) => "("+exprOf(a, m)+"<"+exprOf(b, m)+")"
-        case BooleanAnd(a, b) => "("+exprOf(a, m)+" && "+exprOf(b, m)+")"
-        case BooleanOr(a, b) => "("+exprOf(a, m)+" || "+exprOf(b, m)+")"
-        case IntPlus(a, b) => "("+exprOf(a, m)+"+"+exprOf(b, m)+")"
-        case IntTimes(a, b) => "("+exprOf(a, m)+"*"+exprOf(b, m)+")"
-        case ArrayApply(p, i) => exprOf(p, m)+"["+exprOf(i, m)+"]"
-        case _ => "TODO:Def:"+d
-      }
+      case Def(d) => exprOfDef(d, m)
       case s@Sym(n) => m.get(s) match {
         case Some(v) => v
         case None => quote(e)
@@ -81,7 +95,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
     override def emitNode(sym: Sym[Any], rhs: Def[Any]) = {
       rhs match {
         case ArrayApply(x,n) => emitValDef(sym, quote(x) + "[" + quote(n) + "]")
-        case ArrayUpdate(x,n,y) => stream.println(quote(x) + "[" + quote(n) + "] =" + quote(y) + ";")
+        case ArrayUpdate(x,n,y) => stream.println(quote(x) + "[" + quote(n) + "] = " + quote(y) + ";")
         case _ => super.emitNode(sym, rhs)
       }
     }
@@ -97,11 +111,11 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
         val preStr = exprOfBlock("requires", preBody)
         val postStr = exprOfBlock("ensures", postBody, Map(r -> "\\result"))
         if (!preStr.isEmpty || assignsNothing || !postStr.isEmpty) {
-          stream.println("/*@")
-          stream.println(preStr)
-          if (assignsNothing) stream.println("assigns \\nothing;")
-          stream.println(postStr)
-          stream.println("*/")
+         stream.println("/*@")
+         stream.println(preStr)
+         if (assignsNothing) stream.println("assigns \\nothing;")
+         stream.println(postStr)
+         stream.println("*/")
         }
 
         stream.println(sB+" "+functionName+"("+(args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")+") {")
