@@ -36,4 +36,24 @@ class CoreTests extends TestSuite {
     check("2", (new Ex2 with Impl).code)
   }
 
+  test("3") {
+    trait Ex3 extends Dsl {
+      val square = toplevel("square",
+        { x: Rep[Int] => x*x },
+        { x: Rep[Int] => unit(true) },
+        { x: Rep[Int] => result: Rep[Int] => result==x*x})
+
+      toplevel("pow4",
+        { x: Rep[Int] => square(square(x)) },
+        { x: Rep[Int] => unit(true) },
+        { x: Rep[Int] => result: Rep[Int] => result==x*x*x*x})
+
+      toplevel("pow4b",
+        { x: Rep[Int] => square(x)*square(x) },
+        { x: Rep[Int] => unit(true) },
+        { x: Rep[Int] => result: Rep[Int] => result==x*x*x*x})
+    }
+    check("3", (new Ex3 with Impl).code)
+  }
+
 }
