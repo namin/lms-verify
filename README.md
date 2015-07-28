@@ -12,4 +12,5 @@ All the files in the `src/out` directory should verify with this command, except
 
 * [frama-c wp manual (PDF)](http://frama-c.com/download/frama-c-wp-manual.pdf)
 * [acsl tutorial (PDF)](http://frama-c.com/download/acsl-tutorial.pdf)
+* [acsl implementation in frama-c (PDF)](http://frama-c.com/download/acsl-implementation-Sodium-20150201.pdf)
 * [frama-c installation](http://frama-c.com/install-sodium-20150201.html) -- after installation, do `why3 config --detect` to configure the solvers -- without this extra step, examples that discharge to a backend will fail to verify!
