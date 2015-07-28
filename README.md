@@ -8,7 +8,7 @@ The generated C code is verified using frama-c wp as follows:
 
 ```frama-c -wp -wp-rte <file.c>```
 
-All the files in the `src/out` directory should verify with this command, except those ending with `_bad.c`.
+All the files in the `src/out` directory should verify with this command, except those ending with `_bad.c` and except some `_overflow` goals.
 
 * [frama-c wp manual (PDF)](http://frama-c.com/download/frama-c-wp-manual.pdf)
 * [acsl tutorial (PDF)](http://frama-c.com/download/acsl-tutorial.pdf)
