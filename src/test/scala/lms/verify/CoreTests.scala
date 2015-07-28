@@ -77,9 +77,9 @@ class CoreTests extends TestSuite {
       }
 
       gen_pick("first_element", gen_picker("first", first))
-      gen_pick("first", first)
+      gen_pick("first_directly", first)
       gen_pick("last_element", gen_picker("last", last))
-      gen_pick("last", last)
+      gen_pick("last_directly", last)
     }
     check("2b", (new Ex2b with Impl).code)
   }
