@@ -3,7 +3,7 @@ requires (x0>0);
 assigns \nothing;
 ensures ((0<=\result) && (\result<x0));
 */
-int pick_first(int  x0) {
+int picker_first(int  x0) {
   return 0;
 }
 /*@
@@ -11,7 +11,7 @@ requires ((x7>0) && \valid(x6+ (0..x7-1)));
 assigns \nothing;
 */
 int pick_first_element(int  * x6, int  x7) {
-  int x9 = pick_first(x7);
+  int x9 = picker_first(x7);
   int x10 = x6[x9];
   return x10;
 }
@@ -28,7 +28,7 @@ requires (x22>0);
 assigns \nothing;
 ensures ((0<=\result) && (\result<x22));
 */
-int pick_last(int  x22) {
+int picker_last(int  x22) {
   int x24 = x22 - 1;
   return x24;
 }
@@ -37,7 +37,7 @@ requires ((x30>0) && \valid(x29+ (0..x30-1)));
 assigns \nothing;
 */
 int pick_last_element(int  * x29, int  x30) {
-  int x32 = pick_last(x30);
+  int x32 = picker_last(x30);
   int x33 = x29[x32];
   return x33;
 }

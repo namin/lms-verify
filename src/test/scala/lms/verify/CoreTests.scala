@@ -58,7 +58,7 @@ class CoreTests extends TestSuite {
       val last =  { n: Rep[Int] => n-1 }
 
       def gen_picker(name: String, f: Rep[Int] => Rep[Int]) = {
-      toplevel("pick_"+name,
+      toplevel("picker_"+name,
         { n: Rep[Int] => f(n) },
         { n: Rep[Int] => n > 0 },
         { n: Rep[Int] => result: Rep[Int] => 0 <= result && result < n},
