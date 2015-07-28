@@ -56,4 +56,14 @@ class CoreTests extends TestSuite {
     check("3", (new Ex3 with Impl).code)
   }
 
+  test("4") {
+    trait Ex4 extends Dsl {
+      lazy val plus: (Rep[Int],Rep[Int]) => Rep[Int] = toplevel("plus",
+        { (a: Rep[Int], b: Rep[Int]) => if (a==0) b else plus(a-1,b+1) },
+        { (a: Rep[Int], b: Rep[Int]) => a>=0 },
+        { (a: Rep[Int], b: Rep[Int]) => result: Rep[Int] => result==a+b})
+      plus
+    }
+    check("4", (new Ex4 with Impl).code)
+  }
 }

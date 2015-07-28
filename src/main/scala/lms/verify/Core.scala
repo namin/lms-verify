@@ -50,6 +50,7 @@ trait Impl extends Dsl with ScalaOpsPkgExp with TupledFunctionsRecursiveExp with
         case OrderingLT(a, b) => "("+exprOf(a, m)+"<"+exprOf(b, m)+")"
         case BooleanAnd(a, b) => "("+exprOf(a, m)+" && "+exprOf(b, m)+")"
         case BooleanOr(a, b) => "("+exprOf(a, m)+" || "+exprOf(b, m)+")"
+        case IntPlus(a, b) => "("+exprOf(a, m)+"+"+exprOf(b, m)+")"
         case IntTimes(a, b) => "("+exprOf(a, m)+"*"+exprOf(b, m)+")"
         case _ => "TODO:Def:"+d
       }
