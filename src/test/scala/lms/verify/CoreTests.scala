@@ -54,13 +54,16 @@ class CoreTests extends TestSuite {
 
   test("2b") {
     trait Ex2b extends Dsl {
-      val pick_index = toplevel("pick_index",
-        { n: Rep[Int] => 0 },
+      val first = { n: Rep[Int] => unit(0) }
+      val last =  { n: Rep[Int] => n-1 }
+
+      def gen_picker(name: String, f: Rep[Int] => Rep[Int]) = {
+      toplevel("pick_"+name,
+        { n: Rep[Int] => f(n) },
         { n: Rep[Int] => n > 0 },
         { n: Rep[Int] => result: Rep[Int] => 0 <= result && result < n},
         assignsNothing=true)
-
-      val first = { n: Rep[Int] => unit(0) }
+      }
 
       def gen_pick(name: String, f: Rep[Int] => Rep[Int]) = {
       toplevel("pick_"+name,
@@ -73,8 +76,10 @@ class CoreTests extends TestSuite {
         assignsNothing=true)
       }
 
-      gen_pick("element", pick_index)
+      gen_pick("first_element", gen_picker("first", first))
       gen_pick("first", first)
+      gen_pick("last_element", gen_picker("last", last))
+      gen_pick("last", last)
     }
     check("2b", (new Ex2b with Impl).code)
   }
