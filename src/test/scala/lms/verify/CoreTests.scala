@@ -114,7 +114,7 @@ class CoreTests extends TestSuite {
     trait Ex5 extends Dsl {
       toplevel("array_swap",
         { p: Rep[Array[Int]] =>
-          reflectMutableSym(p)
+          reflectMutableInput(p)
           val tmp = p(0)
           p(0) = p(1)
           p(1) = tmp

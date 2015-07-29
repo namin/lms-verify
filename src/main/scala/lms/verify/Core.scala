@@ -21,7 +21,7 @@ trait VerifyOps extends Base with UncheckedOps {
   def valid[A](p: Rep[A]): Rep[Boolean]
   def old[A:Manifest](v: Rep[A]): Rep[A]
 
-  def reflectMutableSym[A](v: Rep[A]): Rep[A]
+  def reflectMutableInput[A](v: Rep[A]): Rep[A]
 }
 
 trait VerifyOpsExp extends VerifyOps with EffectExp {
@@ -33,10 +33,8 @@ trait VerifyOpsExp extends VerifyOps with EffectExp {
   def valid[A](p: Rep[A]): Rep[Boolean] = Valid(p)
   def old[A:Manifest](v: Rep[A]): Rep[A] = Old(v)
 
-  def reflectMutableSym[A](v: Rep[A]): Rep[A] = {
-    super.reflectMutableSym(v.asInstanceOf[Sym[A]])
-    v
-  }
+  def reflectMutableInput[A](v: Rep[A]): Rep[A] =
+    reflectMutableSym(v.asInstanceOf[Sym[A]])
 }
 
 trait Dsl extends VerifyOps with ScalaOpsPkg with TupledFunctions with UncheckedOps with LiftPrimitives with LiftString with LiftVariables
