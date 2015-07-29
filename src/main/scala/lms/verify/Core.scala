@@ -28,6 +28,9 @@ trait VerifyOps extends Base {
 
   def reflectMutableInput[A](v: Rep[A]): Rep[A]
 
+  def assigns(s: Rep[Any]): Unit
+  def assigns(s: Rep[Any], r: Rep[Any]): Unit
+
   def toplevelApply[B:Manifest](name: String, args: List[Rep[_]]): Rep[B]
 }
 
@@ -41,6 +44,15 @@ trait VerifyOpsExp extends VerifyOps with EffectExp {
 
   def reflectMutableInput[A](v: Rep[A]): Rep[A] =
     reflectMutableSym(v.asInstanceOf[Sym[A]])
+
+  case class Loc(s: Rep[Any], r: Option[Rep[Any]])
+  var locs: List[Loc] = Nil
+  def assigns(s: Rep[Any]): Unit = {
+    locs = Loc(s, None)::locs
+  }
+  def assigns(s: Rep[Any], r: Rep[Any]): Unit = {
+    locs = Loc(s, Some(r))::locs
+  }
 
   case class ToplevelApply[B:Manifest](name: String, args: List[Rep[_]]) extends Def[B]
   val eff = new scala.collection.mutable.LinkedHashMap[String,Summary]
@@ -106,7 +118,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       case Reflect(r, _, _) => exprOfDef(r, m)
       case _ => "TODO:Def:"+d
     }
-    def exprOf[A](e: Exp[A], m: Map[Sym[_], String]): String = e match {
+    def exprOf[A](e: Exp[A], m: Map[Sym[_], String] = Map()): String = e match {
       case Const(_) => quote(e)
       case Def(d) => exprOfDef(d, m)
       case s@Sym(n) => m.get(s) match {
@@ -137,15 +149,27 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
         case Def(Reify(_, s, _)) => s.mayWrite.isEmpty && s.mstWrite.isEmpty
         case _ => true
       }
+      val customAssignsStr =
+        if (!locs.isEmpty) {
+          assert(!assignsNothing)
+          locs.reverse.map{ case Loc(s, or) =>
+            or match {
+              case None => exprOf(s)
+              case Some(r) => exprOf(s)+"["+exprOf(r)+"]"
+            }
+          }.mkString("assigns ", ", ", ";")
+        } else ""
+      locs = Nil // reset
       withStream(out) {
         val preStr = exprOfBlock("requires", preBody)
         val postStr = exprOfBlock("ensures", postBody, Map(r -> "\\result"))
-        if (!preStr.isEmpty || assignsNothing || !postStr.isEmpty) {
-         stream.println("/*@")
-         stream.println(preStr)
-         if (assignsNothing) stream.println("assigns \\nothing;")
-         stream.println(postStr)
-         stream.println("*/")
+        if (!preStr.isEmpty || assignsNothing || !customAssignsStr.isEmpty || !postStr.isEmpty) {
+          stream.println("/*@")
+          stream.println(preStr)
+          if (assignsNothing) stream.println("assigns \\nothing;")
+          stream.println(postStr)
+          if (!customAssignsStr.isEmpty) stream.println(customAssignsStr)
+          stream.println("*/")
         }
 
         stream.println(sB+" "+functionName+"("+(args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")+") {")

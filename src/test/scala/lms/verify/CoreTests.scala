@@ -130,6 +130,8 @@ class CoreTests extends TestSuite {
       val inswap = toplevel("inswap",
         { (p: Rep[Array[Int]], i: Rep[Int], j: Rep[Int]) =>
           reflectMutableInput(p)
+          assigns(p(i))
+          assigns(p(j))
           val tmp = p(i)
           p(i) = p(j)
           p(j) = tmp
@@ -140,6 +142,7 @@ class CoreTests extends TestSuite {
       toplevel("insort",
         { (p: Rep[Array[Int]], n: Rep[Int]) =>
           reflectMutableInput(p)
+          assigns(p, 0 until n)
           var m = n
           while (m > 1) {
             var maxi = 0
