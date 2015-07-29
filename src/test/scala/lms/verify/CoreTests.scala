@@ -124,4 +124,19 @@ class CoreTests extends TestSuite {
     }
     check("5", (new Ex5 with Impl).code)
   }
+
+  test("6") {
+    trait Ex6 extends Dsl {
+      toplevel("inswap",
+        { (p: Rep[Array[Int]], i: Rep[Int], j: Rep[Int]) =>
+          reflectMutableInput(p)
+          val tmp = p(i)
+          p(i) = p(j)
+          p(j) = tmp
+        },
+        { (p: Rep[Array[Int]], i: Rep[Int], j: Rep[Int]) => validArray(p, i+1) && validArray(p, j+1) },
+        { (p: Rep[Array[Int]], i: Rep[Int], j: Rep[Int]) => result: Rep[Unit] => p(i)==old(p(j)) && p(j)==old(p(i)) })
+    }
+    check("6", (new Ex6 with Impl).code)
+  }
 }
