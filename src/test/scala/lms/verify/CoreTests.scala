@@ -139,6 +139,7 @@ class CoreTests extends TestSuite {
 
       toplevel("insort",
         { (p: Rep[Array[Int]], n: Rep[Int]) =>
+          reflectMutableInput(p)
           var m = n
           while (m > 1) {
             var maxi = 0

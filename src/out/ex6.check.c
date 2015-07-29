@@ -20,8 +20,8 @@ void insort(int  * x23, int  x24) {
     int x30 = 0;
     int x31 = x26;
     for(int x33=0; x33 < x31; x33++) {
-      int x35 = x30;
       int x34 = x23[x33];
+      int x35 = x30;
       int x36 = x23[x35];
       int x37 = x34 >= x36;
       if (x37) {
