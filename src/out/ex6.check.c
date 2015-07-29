@@ -1,5 +1,5 @@
 /*@
-requires (\valid(x0+ (0..(x1+1)-1)) && \valid(x0+ (0..(x2+1)-1)));
+requires (\valid(x0+x1) && \valid(x0+x2));
 ensures ((x0[x1]==\old(x0[x2])) && (x0[x2]==\old(x0[x1])));
 */
 void inswap(int  * x0, int  x1, int  x2) {
@@ -9,29 +9,29 @@ void inswap(int  * x0, int  x1, int  x2) {
   x0[x2] = x4;
 }
 /*@
-requires \valid(x23+ (0..x24-1));
+requires \valid(x21+(0..x22-1));
 */
-void insort(int  * x23, int  x24) {
-  int x26 = x24;
+void insort(int  * x21, int  x22) {
+  int x24 = x22;
   for (;;) {
-    int x27 = x26;
-    int x28 = x27 > 1;
-    if (!x28) break;
-    int x30 = 0;
-    int x31 = x26;
-    for(int x33=0; x33 < x31; x33++) {
-      int x34 = x23[x33];
-      int x35 = x30;
-      int x36 = x23[x35];
-      int x37 = x34 >= x36;
-      if (x37) {
-        x30 = x33;
+    int x25 = x24;
+    int x26 = x25 > 1;
+    if (!x26) break;
+    int x28 = 0;
+    int x29 = x24;
+    for(int x31=0; x31 < x29; x31++) {
+      int x32 = x21[x31];
+      int x33 = x28;
+      int x34 = x21[x33];
+      int x35 = x32 >= x34;
+      if (x35) {
+        x28 = x31;
       } else {
       }
     }
-    int x44 = x30;
-    int x43 = x31 - 1;
-    inswap(x23,x43,x44);
-    x26 -= 1;
+    int x42 = x28;
+    int x41 = x29 - 1;
+    inswap(x21,x41,x42);
+    x24 -= 1;
   }
 }

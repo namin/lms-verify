@@ -22,8 +22,8 @@ trait VerifyOps extends Base {
     g
   }
 
-  def validArray[A](p: Rep[Array[A]], n: Rep[Int]): Rep[Boolean]
   def valid[A](p: Rep[A]): Rep[Boolean]
+  def valid[A](p: Rep[A], r: Rep[Any]): Rep[Boolean]
   def old[A:Manifest](v: Rep[A]): Rep[A]
 
   def reflectMutableInput[A](v: Rep[A]): Rep[A]
@@ -32,12 +32,11 @@ trait VerifyOps extends Base {
 }
 
 trait VerifyOpsExp extends VerifyOps with EffectExp {
-  case class ValidArray[A](p: Rep[Array[A]], n: Rep[Int]) extends Def[Boolean]
-  case class Valid[A](p: Rep[A]) extends Def[Boolean]
+  case class Valid[A](p: Rep[A], r: Option[Rep[Any]]) extends Def[Boolean]
   case class Old[A:Manifest](v: Rep[A]) extends Def[A]
 
-  def validArray[A](p: Rep[Array[A]], n: Rep[Int]): Rep[Boolean] = ValidArray(p, n)
-  def valid[A](p: Rep[A]): Rep[Boolean] = Valid(p)
+  def valid[A](p: Rep[A]): Rep[Boolean] = Valid(p, None)
+  def valid[A](p: Rep[A], r: Rep[Any]): Rep[Boolean] = Valid(p, Some(r))
   def old[A:Manifest](v: Rep[A]): Rep[A] = Old(v)
 
   def reflectMutableInput[A](v: Rep[A]): Rep[A] =
@@ -96,8 +95,14 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
     }
     def exprOfDef[A](d: Def[A], m: Map[Sym[_], String]): String = d match {
       case Old(v) => "\\old("+exprOf(v, m)+")"
-      case Valid(p) => "\\valid("+exprOf(p, m)+")"
-      case ValidArray(p,n) => "\\valid("+exprOf(p, m)+"+ (0.."+exprOf(n, m)+"-1))"
+      case Valid(p, or) => or match {
+        case None => "\\valid("+exprOf(p, m)+")"
+        case Some(r) => "\\valid("+exprOf(p, m)+"+"+exprOf(r, m)+")"
+      }
+      case Until(a, b) => b match {
+        case Const(c:Int) => "("+exprOf(a, m)+".."+(c+1)+")"
+        case _ => "("+exprOf(a, m)+".."+exprOf(b, m)+"-1)"
+      }
       case Equal(a, b) => "("+exprOf(a, m)+"=="+exprOf(b, m)+")"
       case OrderingGTEQ(a, b) => "("+exprOf(a, m)+">="+exprOf(b, m)+")"
       case OrderingGT(a, b) => "("+exprOf(a, m)+">"+exprOf(b, m)+")"

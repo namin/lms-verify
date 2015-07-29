@@ -7,7 +7,7 @@ int picker_first(int  x0) {
   return 0;
 }
 /*@
-requires ((x7>0) && \valid(x6+ (0..x7-1)));
+requires ((x7>0) && \valid(x6+(0..x7-1)));
 assigns \nothing;
 */
 int pick_first_element(int  * x6, int  x7) {
@@ -16,37 +16,37 @@ int pick_first_element(int  * x6, int  x7) {
   return x10;
 }
 /*@
-requires ((x15>0) && \valid(x14+ (0..x15-1)));
+requires ((x16>0) && \valid(x15+(0..x16-1)));
 assigns \nothing;
 */
-int pick_first_directly(int  * x14, int  x15) {
-  int x17 = x14[0];
-  return x17;
+int pick_first_directly(int  * x15, int  x16) {
+  int x18 = x15[0];
+  return x18;
 }
 /*@
-requires (x21>0);
+requires (x23>0);
 assigns \nothing;
-ensures ((0<=\result) && (\result<x21));
+ensures ((0<=\result) && (\result<x23));
 */
-int picker_last(int  x21) {
-  int x23 = x21 - 1;
-  return x23;
+int picker_last(int  x23) {
+  int x25 = x23 - 1;
+  return x25;
 }
 /*@
-requires ((x29>0) && \valid(x28+ (0..x29-1)));
+requires ((x31>0) && \valid(x30+(0..x31-1)));
 assigns \nothing;
 */
-int pick_last_element(int  * x28, int  x29) {
-  int x31 = picker_last(x29);
-  int x32 = x28[x31];
-  return x32;
+int pick_last_element(int  * x30, int  x31) {
+  int x33 = picker_last(x31);
+  int x34 = x30[x33];
+  return x34;
 }
 /*@
-requires ((x37>0) && \valid(x36+ (0..x37-1)));
+requires ((x40>0) && \valid(x39+(0..x40-1)));
 assigns \nothing;
 */
-int pick_last_directly(int  * x36, int  x37) {
-  int x39 = x37 - 1;
-  int x40 = x36[x39];
-  return x40;
+int pick_last_directly(int  * x39, int  x40) {
+  int x42 = x40 - 1;
+  int x43 = x39[x42];
+  return x43;
 }

@@ -38,7 +38,7 @@ class CoreTests extends TestSuite {
           val i = pick_index(n)
           p(i) },
         { (p: Rep[Array[Int]], n: Rep[Int]) =>
-          n > 0 && validArray(p, n) },
+          n > 0 && valid(p, 0 until n) },
         { (p: Rep[Array[Int]], n: Rep[Int]) => result: Rep[Int] => unit(true) })
 
       toplevel("pick_first",
@@ -67,7 +67,7 @@ class CoreTests extends TestSuite {
           val i = f(n)
           p(i) },
         { (p: Rep[Array[Int]], n: Rep[Int]) =>
-          n > 0 && validArray(p, n) },
+          n > 0 && valid(p, 0 until n) },
         { (p: Rep[Array[Int]], n: Rep[Int]) => result: Rep[Int] => unit(true) })
       }
 
@@ -119,7 +119,7 @@ class CoreTests extends TestSuite {
           p(0) = p(1)
           p(1) = tmp
         },
-        { p: Rep[Array[Int]] => validArray(p, 2) },
+        { p: Rep[Array[Int]] => valid(p, 0 until 2) },
         { p: Rep[Array[Int]] => result: Rep[Unit] => p(0)==old(p(1)) && p(1)==old(p(0)) })
     }
     check("5", (new Ex5 with Impl).code)
@@ -134,7 +134,7 @@ class CoreTests extends TestSuite {
           p(i) = p(j)
           p(j) = tmp
         },
-        { (p: Rep[Array[Int]], i: Rep[Int], j: Rep[Int]) => validArray(p, i+1) && validArray(p, j+1) },
+        { (p: Rep[Array[Int]], i: Rep[Int], j: Rep[Int]) => valid(p, i) && valid(p, j) },
         { (p: Rep[Array[Int]], i: Rep[Int], j: Rep[Int]) => result: Rep[Unit] => p(i)==old(p(j)) && p(j)==old(p(i)) })
 
       toplevel("insort",
@@ -151,7 +151,7 @@ class CoreTests extends TestSuite {
             m -= 1;
           }
         },
-        { (p: Rep[Array[Int]], n: Rep[Int]) => validArray(p, n) },
+        { (p: Rep[Array[Int]], n: Rep[Int]) => valid(p, 0 until n) },
         { (p: Rep[Array[Int]], n: Rep[Int]) => result: Rep[Unit] => unit(true) }
       )
     }
