@@ -127,7 +127,7 @@ class CoreTests extends TestSuite {
 
   test("6") {
     trait Ex6 extends Dsl {
-      toplevel("inswap",
+      val inswap = toplevel("inswap",
         { (p: Rep[Array[Int]], i: Rep[Int], j: Rep[Int]) =>
           reflectMutableInput(p)
           val tmp = p(i)
@@ -136,6 +136,23 @@ class CoreTests extends TestSuite {
         },
         { (p: Rep[Array[Int]], i: Rep[Int], j: Rep[Int]) => validArray(p, i+1) && validArray(p, j+1) },
         { (p: Rep[Array[Int]], i: Rep[Int], j: Rep[Int]) => result: Rep[Unit] => p(i)==old(p(j)) && p(j)==old(p(i)) })
+
+      toplevel("insort",
+        { (p: Rep[Array[Int]], n: Rep[Int]) =>
+          var m = n
+          while (m > 1) {
+            var maxi = 0
+            for (i <- 0 until m) {
+              if (p(i) >= p(maxi))
+                maxi = i
+            }
+            inswap(p, m-1, maxi)
+            m -= 1;
+          }
+        },
+        { (p: Rep[Array[Int]], n: Rep[Int]) => validArray(p, n) },
+        { (p: Rep[Array[Int]], n: Rep[Int]) => result: Rep[Unit] => unit(true) }
+      )
     }
     check("6", (new Ex6 with Impl).code)
   }

@@ -8,3 +8,29 @@ void inswap(int  * x0, int  x1, int  x2) {
   x0[x1] = x5;
   x0[x2] = x4;
 }
+/*@
+requires \valid(x23+ (0..x24-1));
+*/
+void insort(int  * x23, int  x24) {
+  int x26 = x24;
+  for (;;) {
+    int x27 = x26;
+    int x28 = x27 > 1;
+    if (!x28) break;
+    int x30 = 0;
+    int x31 = x26;
+    for(int x33=0; x33 < x31; x33++) {
+      int x35 = x30;
+      int x34 = x23[x33];
+      int x36 = x23[x35];
+      int x37 = x34 >= x36;
+      if (x37) {
+        x30 = x33;
+      } else {
+      }
+    }
+    int x44 = x30;
+    int x43 = x31 - 1;
+    x26 -= 1;
+  }
+}

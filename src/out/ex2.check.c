@@ -16,11 +16,11 @@ int pick_element(int  * x6, int  x7) {
   return x10;
 }
 /*@
-requires \valid(x15);
+requires \valid(x14);
 assigns \nothing;
-ensures (\result==x15[0]);
+ensures (\result==x14[0]);
 */
-int pick_first(int  * x15) {
-  int x17 = x15[0];
-  return x17;
+int pick_first(int  * x14) {
+  int x16 = x14[0];
+  return x16;
 }

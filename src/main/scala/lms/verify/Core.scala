@@ -3,21 +3,21 @@ package lms.verify
 import scala.virtualization.lms.common._
 import java.io.{PrintWriter,StringWriter,FileOutputStream}
 
-trait VerifyOps extends Base with UncheckedOps {
+trait VerifyOps extends Base {
   case class TopLevel[B](name: String, mAs: List[Manifest[_]], mB:Manifest[B], f: List[Rep[_]] => Rep[B], pre: List[Rep[_]] => Rep[Boolean], post: List[Rep[_]] => Rep[B] => Rep[Boolean])
   val rec = new scala.collection.mutable.LinkedHashMap[String,TopLevel[_]]
-    def toplevel[A:Manifest,B:Manifest](name: String, f: Rep[A] => Rep[B], pre: Rep[A] => Rep[Boolean], post: Rep[A] => Rep[B] => Rep[Boolean]): Rep[A] => Rep[B] = {
-    val g = (x: Rep[A]) => unchecked[B](name,"(",x,")")
+  def toplevel[A:Manifest,B:Manifest](name: String, f: Rep[A] => Rep[B], pre: Rep[A] => Rep[Boolean], post: Rep[A] => Rep[B] => Rep[Boolean]): Rep[A] => Rep[B] = {
+    val g = (x: Rep[A]) => toplevelApply[B](name, List(x))
     rec.getOrElseUpdate(name, TopLevel(name, List(manifest[A]), manifest[B], xs => f(xs(0).asInstanceOf[Rep[A]]), xs => pre(xs(0).asInstanceOf[Rep[A]]), (xs: List[Rep[_]]) => (r: Rep[B]) => post(xs(0).asInstanceOf[Rep[A]])(r)))
     g
   }
   def toplevel[A1:Manifest,A2:Manifest,B:Manifest](name: String, f: (Rep[A1], Rep[A2]) => Rep[B], pre: (Rep[A1], Rep[A2]) => Rep[Boolean], post: (Rep[A1], Rep[A2]) => Rep[B] => Rep[Boolean]): (Rep[A1], Rep[A2]) => Rep[B] = {
-    val g = (x1: Rep[A1], x2: Rep[A2]) => unchecked[B](name,"(",x1,",",x2,")")
+    val g = (x1: Rep[A1], x2: Rep[A2]) => toplevelApply[B](name, List(x1, x2))
     rec.getOrElseUpdate(name, TopLevel(name, List(manifest[A1], manifest[A2]), manifest[B], xs => f(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]]), xs => pre(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]]), (xs: List[Rep[_]]) => (r: Rep[B]) => post(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]])(r)))
     g
   }
   def toplevel[A1:Manifest,A2:Manifest,A3:Manifest,B:Manifest](name: String, f: (Rep[A1], Rep[A2], Rep[A3]) => Rep[B], pre: (Rep[A1], Rep[A2], Rep[A3]) => Rep[Boolean], post: (Rep[A1], Rep[A2], Rep[A3]) => Rep[B] => Rep[Boolean]): (Rep[A1], Rep[A2], Rep[A3]) => Rep[B] = {
-    val g = (x1: Rep[A1], x2: Rep[A2], x3: Rep[A3]) => unchecked[B](name,"(",x1,",",x2,",",x3,")")
+    val g = (x1: Rep[A1], x2: Rep[A2], x3: Rep[A3]) => toplevelApply[B](name, List(x1, x2, x3))
     rec.getOrElseUpdate(name, TopLevel(name, List(manifest[A1], manifest[A2], manifest[A3]), manifest[B], xs => f(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]]), xs => pre(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]]), (xs: List[Rep[_]]) => (r: Rep[B]) => post(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]])(r)))
     g
   }
@@ -27,6 +27,8 @@ trait VerifyOps extends Base with UncheckedOps {
   def old[A:Manifest](v: Rep[A]): Rep[A]
 
   def reflectMutableInput[A](v: Rep[A]): Rep[A]
+
+  def toplevelApply[B:Manifest](name: String, args: List[Rep[_]]): Rep[B]
 }
 
 trait VerifyOpsExp extends VerifyOps with EffectExp {
@@ -40,6 +42,15 @@ trait VerifyOpsExp extends VerifyOps with EffectExp {
 
   def reflectMutableInput[A](v: Rep[A]): Rep[A] =
     reflectMutableSym(v.asInstanceOf[Sym[A]])
+
+  case class ToplevelApply[B:Manifest](name: String, args: List[Rep[_]]) extends Def[B]
+  val eff = new scala.collection.mutable.LinkedHashMap[String,Summary]
+  def toplevelApply[B:Manifest](name: String, args: List[Rep[_]]): Rep[B] = {
+    eff.get(name) match {
+      case Some(es) => reflectEffect(ToplevelApply(name, args), es)
+      case None => reflectEffect(ToplevelApply(name, args))
+    }
+  }
 }
 
 trait Dsl extends VerifyOps with ScalaOpsPkg with TupledFunctions with UncheckedOps with LiftPrimitives with LiftString with LiftVariables
@@ -95,6 +106,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
 
     override def emitNode(sym: Sym[Any], rhs: Def[Any]) = {
       rhs match {
+        case ToplevelApply(name, args) => emitValDef(sym, name+args.map(quote).mkString("(", ",", ")"))
         case ArrayApply(x,n) => emitValDef(sym, quote(x) + "[" + quote(n) + "]")
         case ArrayUpdate(x,n,y) => stream.println(quote(x) + "[" + quote(n) + "] = " + quote(y) + ";")
         case _ => super.emitNode(sym, rhs)
@@ -105,6 +117,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       val args = mAs.map(fresh(_))
       val r = fresh[B](mB)
       val body = reifyBlock(f(args))(mB)
+      eff.getOrElseUpdate(functionName, summarizeEffects(body))
       val preBody = reifyBlock(pre(args))
       val postBody = reifyBlock(post(args)(r))
       val sB = remap(mB)

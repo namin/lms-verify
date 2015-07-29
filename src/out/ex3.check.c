@@ -17,11 +17,10 @@ int pow4(int  x4) {
 }
 /*@
 assigns \nothing;
-ensures (\result==(((x13*x13)*x13)*x13));
+ensures (\result==(((x12*x12)*x12)*x12));
 */
-int pow4b(int  x13) {
-  int x15 = square(x13);
-  int x16 = square(x13);
-  int x17 = x15 * x16;
-  return x17;
+int pow4b(int  x12) {
+  int x14 = square(x12);
+  int x15 = x14 * x14;
+  return x15;
 }
