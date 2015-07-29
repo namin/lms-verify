@@ -31,6 +31,7 @@ void insort(int  * x23, int  x24) {
     }
     int x44 = x30;
     int x43 = x31 - 1;
+    inswap(x23,x43,x44);
     x26 -= 1;
   }
 }

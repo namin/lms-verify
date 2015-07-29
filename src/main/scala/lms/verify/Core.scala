@@ -48,9 +48,9 @@ trait VerifyOpsExp extends VerifyOps with EffectExp {
   def toplevelApply[B:Manifest](name: String, args: List[Rep[_]]): Rep[B] = {
     eff.get(name) match {
       case Some((params, es)) =>
-        val m = params.zip(args.map(_.asInstanceOf[Sym[Any]])).toMap
-        val es2 = replaceInSummary(m, es)
-        reflectEffect(ToplevelApply(name, args), es2)
+        //val m = params.zip(args.map(_.asInstanceOf[Sym[Any]])).toMap
+        //val es2 = replaceInSummary(m, es)
+        reflectEffect(ToplevelApply(name, args), es)
       case None => reflectEffect(ToplevelApply(name, args))
     }
   }
@@ -81,6 +81,12 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
         case _ => super.isPrimitiveType(tpe)
       }
     }
+    override def emitValDef(sym: Sym[Any], rhs: String): Unit = {
+      if (!isVoidType(sym.tp))
+        stream.println(remapWithRef(sym.tp) + quote(sym) + " = " + rhs + ";")
+      else stream.println(rhs + ";")
+    }
+
     def exprOfBlock(kw: String, e: Block[Boolean], m: Map[Sym[_], String] = Map()): String = {
       val r = exprOf(e.res, m)
       r match {
