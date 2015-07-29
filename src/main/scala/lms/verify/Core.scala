@@ -43,10 +43,10 @@ trait VerifyOpsExp extends VerifyOps with EffectExp {
     reflectMutableSym(v.asInstanceOf[Sym[A]])
 
   case class ToplevelApply[B:Manifest](name: String, args: List[Rep[_]]) extends Def[B]
-  val eff = new scala.collection.mutable.LinkedHashMap[String,(List[Sym[Any]], Summary)]
+  val eff = new scala.collection.mutable.LinkedHashMap[String,Summary]
   def toplevelApply[B:Manifest](name: String, args: List[Rep[_]]): Rep[B] = {
     eff.get(name) match {
-      case Some((params, es)) => reflectEffect(ToplevelApply(name, args), es)
+      case Some(es) => reflectEffect(ToplevelApply(name, args), es)
       case None => reflectEffect(ToplevelApply(name, args))
     }
   }
@@ -128,7 +128,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       val args = mAs.map(fresh(_))
       val r = fresh[B](mB)
       val body = reifyBlock(f(args))(mB)
-      eff.getOrElseUpdate(functionName, (args, summarizeEffects(body)))
+      eff.getOrElseUpdate(functionName, summarizeEffects(body))
       val preBody = reifyBlock(pre(args))
       val postBody = reifyBlock(post(args)(r))
       val sB = remap(mB)
