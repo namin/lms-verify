@@ -55,12 +55,23 @@ trait VerifyOpsExp extends VerifyOps with EffectExp {
   }
 
   case class ToplevelApply[B:Manifest](name: String, args: List[Rep[_]]) extends Def[B]
-  val eff = new scala.collection.mutable.LinkedHashMap[String,Summary]
+  val eff = new scala.collection.mutable.LinkedHashMap[String,(List[Sym[Any]], Summary)]
   def toplevelApply[B:Manifest](name: String, args: List[Rep[_]]): Rep[B] = {
     eff.get(name) match {
-      case Some(es) => reflectEffect(ToplevelApply(name, args), es)
+      case Some((params,es)) =>
+        val m = params.zip(args.map(_.asInstanceOf[Sym[Any]])).toMap
+        val es2 = replaceInSummary(m, es)
+        reflectEffect(ToplevelApply(name, args), es2)
       case None => reflectEffect(ToplevelApply(name, args))
     }
+  }
+  def replaceInSummary(m: Map[Sym[Any], Sym[Any]], es: Summary) = {
+    def r1(x: Sym[Any]) = m.get(x) match {
+      case Some(y) if y != null => y
+      case None => x
+    }
+    def r(xs: List[Sym[Any]]) = xs.map(r1)
+    Summary(es.maySimple, es.mstSimple, es.mayGlobal, es.mstGlobal, es.resAlloc, es.control, r(es.mayRead), r(es.mstRead), r(es.mayWrite), r(es.mstWrite))
   }
 }
 
@@ -140,7 +151,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       val args = mAs.map(fresh(_))
       val r = fresh[B](mB)
       val body = reifyBlock(f(args))(mB)
-      eff.getOrElseUpdate(functionName, summarizeEffects(body))
+      eff.getOrElseUpdate(functionName, (args, summarizeEffects(body)))
       val preBody = reifyBlock(pre(args))
       val postBody = reifyBlock(post(args)(r))
       val sB = remap(mB)
