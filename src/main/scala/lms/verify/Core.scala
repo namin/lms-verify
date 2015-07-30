@@ -32,6 +32,8 @@ trait VerifyOps extends Base {
   def assigns(s: Rep[Any], r: Rep[Any]): Unit
 
   def toplevelApply[B:Manifest](name: String, args: List[Rep[_]]): Rep[B]
+  def forall[A:Manifest](f: Rep[A] => Rep[Boolean]): Rep[Boolean]
+  def infix_==>(a: Rep[Boolean], b: Rep[Boolean]): Rep[Boolean]
 }
 
 trait VerifyOpsExp extends VerifyOps with EffectExp {
@@ -73,6 +75,15 @@ trait VerifyOpsExp extends VerifyOps with EffectExp {
     def r(xs: List[Sym[Any]]) = xs.map(r1)
     Summary(es.maySimple, es.mstSimple, es.mayGlobal, es.mstGlobal, es.resAlloc, es.control, r(es.mayRead), r(es.mstRead), r(es.mayWrite), r(es.mstWrite))
   }
+
+  case class Forall[A:Manifest](x: Sym[A], y: Block[Boolean]) extends Def[Boolean]
+  def forall[A:Manifest](f: Rep[A] => Rep[Boolean]): Rep[Boolean] = {
+    val x = fresh[A]
+    val y = reifyEffects(f(x))
+    Forall(x, y)
+  }
+  case class Implies(a: Rep[Boolean], b: Rep[Boolean]) extends Def[Boolean]
+  def infix_==>(a: Rep[Boolean], b: Rep[Boolean]): Rep[Boolean] = Implies(a, b)
 }
 
 trait Dsl extends VerifyOps with ScalaOpsPkg with TupledFunctions with UncheckedOps with LiftPrimitives with LiftString with LiftVariables
@@ -94,12 +105,14 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
     }
 
     def exprOfBlock(kw: String, e: Block[Boolean], m: Map[Sym[_], String] = Map()): String = {
-      val r = exprOf(e.res, m)
+      val r = exprOfBlock(e, m)
       r match {
         case "true" => ""
         case _ => kw + " " + r + ";"
       }
     }
+    def exprOfBlock[A](e: Block[A], m: Map[Sym[_], String]): String =
+      exprOf(e.res, m)
     def exprOfDef[A](d: Def[A], m: Map[Sym[_], String]): String = d match {
       case Old(v) => "\\old("+exprOf(v, m)+")"
       case Valid(p, or) => or match {
@@ -110,6 +123,8 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
         case Const(c:Int) => "("+exprOf(a, m)+".."+(c+1)+")"
         case _ => "("+exprOf(a, m)+".."+exprOf(b, m)+"-1)"
       }
+      case Forall(x, y) => "(\\forall "+remapWithRef(x.tp)+" "+quote(x)+"; "+exprOfBlock(y, m)+")"
+      case Implies(a, b) => "("+exprOf(a, m)+" ==> "+exprOf(b, m)+")"
       case Equal(a, b) => "("+exprOf(a, m)+"=="+exprOf(b, m)+")"
       case OrderingGTEQ(a, b) => "("+exprOf(a, m)+">="+exprOf(b, m)+")"
       case OrderingGT(a, b) => "("+exprOf(a, m)+">"+exprOf(b, m)+")"
@@ -118,6 +133,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       case BooleanAnd(a, b) => "("+exprOf(a, m)+" && "+exprOf(b, m)+")"
       case BooleanOr(a, b) => "("+exprOf(a, m)+" || "+exprOf(b, m)+")"
       case IntPlus(a, b) => "("+exprOf(a, m)+"+"+exprOf(b, m)+")"
+      case IntMinus(a, b) => "("+exprOf(a, m)+"-"+exprOf(b, m)+")"
       case IntTimes(a, b) => "("+exprOf(a, m)+"*"+exprOf(b, m)+")"
       case ArrayApply(p, i) => exprOf(p, m)+"["+exprOf(i, m)+"]"
       case Reify(r, _, _) => exprOf(r, m)

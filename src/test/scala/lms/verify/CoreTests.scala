@@ -155,7 +155,9 @@ class CoreTests extends TestSuite {
           }
         },
         { (p: Rep[Array[Int]], n: Rep[Int]) => valid(p, 0 until n) },
-        { (p: Rep[Array[Int]], n: Rep[Int]) => result: Rep[Unit] => unit(true) }
+        { (p: Rep[Array[Int]], n: Rep[Int]) => result: Rep[Unit] =>
+          forall{i: Rep[Int] => (0 <= i && i <= n-1) ==> p(i) <= p(i+1)}
+        }
       )
     }
     check("6", (new Ex6 with Impl).code)
