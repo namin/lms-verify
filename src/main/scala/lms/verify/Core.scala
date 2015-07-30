@@ -32,6 +32,7 @@ trait VerifyOps extends Base {
   def assigns(s: Rep[Any], r: Rep[Any]): Unit
 
   def toplevelApply[B:Manifest](name: String, args: List[Rep[_]]): Rep[B]
+  def exists[A:Manifest](f: Rep[A] => Rep[Boolean]): Rep[Boolean]
   def forall[A:Manifest](f: Rep[A] => Rep[Boolean]): Rep[Boolean]
   def infix_==>(a: Rep[Boolean], b: Rep[Boolean]): Rep[Boolean]
 }
@@ -76,12 +77,16 @@ trait VerifyOpsExp extends VerifyOps with EffectExp {
     Summary(es.maySimple, es.mstSimple, es.mayGlobal, es.mstGlobal, es.resAlloc, es.control, r(es.mayRead), r(es.mstRead), r(es.mayWrite), r(es.mstWrite))
   }
 
-  case class Forall[A:Manifest](x: Sym[A], y: Block[Boolean]) extends Def[Boolean]
-  def forall[A:Manifest](f: Rep[A] => Rep[Boolean]): Rep[Boolean] = {
+  case class Quantifier[A:Manifest](k: String, x: Sym[A], y: Block[Boolean]) extends Def[Boolean]
+  def quantifier[A:Manifest](k: String, f: Rep[A] => Rep[Boolean]): Rep[Boolean] = {
     val x = fresh[A]
     val y = reifyEffects(f(x))
-    Forall(x, y)
+    Quantifier(k, x, y)
   }
+  def exists[A:Manifest](f: Rep[A] => Rep[Boolean]): Rep[Boolean] =
+    quantifier("\\exists", f)
+  def forall[A:Manifest](f: Rep[A] => Rep[Boolean]): Rep[Boolean] =
+    quantifier("\\forall", f)
   case class Implies(a: Rep[Boolean], b: Rep[Boolean]) extends Def[Boolean]
   def infix_==>(a: Rep[Boolean], b: Rep[Boolean]): Rep[Boolean] = Implies(a, b)
 }
@@ -123,7 +128,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
         case Const(c:Int) => "("+exprOf(a, m)+".."+(c+1)+")"
         case _ => "("+exprOf(a, m)+".."+exprOf(b, m)+"-1)"
       }
-      case Forall(x, y) => "(\\forall "+remapWithRef(x.tp)+" "+quote(x)+"; "+exprOfBlock(y, m)+")"
+      case Quantifier(k, x, y) => "("+k+" "+remapWithRef(x.tp)+" "+quote(x)+"; "+exprOfBlock(y, m)+")"
       case Implies(a, b) => "("+exprOf(a, m)+" ==> "+exprOf(b, m)+")"
       case Equal(a, b) => "("+exprOf(a, m)+"=="+exprOf(b, m)+")"
       case OrderingGTEQ(a, b) => "("+exprOf(a, m)+">="+exprOf(b, m)+")"
