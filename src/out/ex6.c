@@ -14,7 +14,7 @@ void inswap(int* p, int i, int j) {
 /*@ requires n>0;
     requires \valid(p+(0..n-1));
     ensures \forall int i; 0 <= i < n−1 ==> p[i] <= p[i+1];
-    ensures \forall int i; 0 <= i <= n−1 ==> \exists int j; 0 <= j <= n-1 ==> p[i] == \old(p[j]);
+    ensures \forall int i; 0 <= i <= n−1 ==> \exists int j; 0 <= j <= n-1 && p[i] == \old(p[j]);
     assigns p[0..n-1];
 */
 void insort(int * p, int n) {
