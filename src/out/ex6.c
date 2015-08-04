@@ -20,7 +20,7 @@ void insort(int * p, int n) {
   /*@
     loop invariant (0 <= m <= n);
     loop invariant (\forall int i; m <= i < n−1 ==> p[i] <= p[i+1]);
-    loop invariant (\forall int i; 0 <= i < m < n-1 ==> p[i] <= p[m]);
+    loop invariant (\forall int i; 0 <= i < m <= n-1 ==> p[i] <= p[m]);
     loop assigns m, p[0..n-1];
     loop variant m;
    */
@@ -40,10 +40,15 @@ void insort(int * p, int n) {
     //@assert (\forall int i; 0 <= i < m ==> p[i] <= p[maxi]);
     //@assert (0 <= maxi <= m-1 < n);
     //@assert (\forall int i; m-1 < i < n−1 ==> p[i] <= p[i+1]);
-    //@assert (\forall int i; 0 <= i <= m-1 < m < n-1 ==> p[i] <= p[maxi] <= p[m]);
-    if (m-1 != maxi)
-      inswap(p, m-1, maxi);
-    //@assert (\forall int i; m-1 <= i < n−1 ==> p[i] <= p[i+1]);
+    //@assert (\forall int i; 0 <= i <= m-1 < m <= n-1 ==> p[i] <= p[maxi] <= p[m]);
+    //@assert (m <= n-1 ==> p[maxi] <= p[m]);
+
+    inswap(p, m-1, maxi);
+    //@assert (\forall int i; m-1 < i < n−1 ==> p[i] <= p[i+1]);
+    //@assert (\forall int i; 0 <= i < m ==> p[i] <= p[m-1]);
+
+    //@assert (\forall int i; m-1 < i < n−1 ==> p[i] <= p[i+1]);
+    //@assert (m <= n-1 ==> p[m-1] <= p[m]);
     //@assert (\forall int i; 0 <= i < m ==> p[i] <= p[m-1]);
   }
 }
