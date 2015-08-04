@@ -156,13 +156,33 @@ class CoreTests extends TestSuite {
         },
         { (p: Rep[Array[Int]], n: Rep[Int]) => valid(p, 0 until n) },
         { (p: Rep[Array[Int]], n: Rep[Int]) => result: Rep[Unit] =>
-          forall{i: Rep[Int] => (0 <= i && i <= n-1) ==>
-            (p(i) <= p(i+1) &&
-            exists{j: Rep[Int] => (0 <= j && j <= n-1) && p(i) == old(p(j))})
-          }
+          forall{i: Rep[Int] => (0 <= i && i <= n-1) ==> p(i) <= p(i+1)}
         }
       )
     }
     check("6", (new Ex6 with Impl).code)
+  }
+
+  test("7") {
+    trait Ex7 extends Dsl {
+      toplevel("member",
+        { (p: Rep[Array[Int]], n: Rep[Int], v: Rep[Int]) =>
+          var r = -1;
+          for (i <- 0 until n) {
+            if (r == -1 && p(i) == v) {
+              r=i
+            }
+          }
+          r
+        },
+        { (p: Rep[Array[Int]], n: Rep[Int], v: Rep[Int]) =>
+          n>0 && valid(p, 0 until n)
+        },
+        { (p: Rep[Array[Int]], n: Rep[Int], v: Rep[Int]) => result: Rep[Int] =>
+          (result == -1 ==> !(exists{i: Rep[Int] => 0 <= i && i < n && p(i)==v})) &&
+          (result != -1 ==> 0 < result && result < n && p(result)==v)
+        })
+    }
+    check("7", (new Ex7 with Impl).code)
   }
 }

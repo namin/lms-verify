@@ -11,7 +11,7 @@ void inswap(int  * x0, int  x1, int  x2) {
 }
 /*@
 requires \valid(x21+(0..x22-1));
-ensures (\forall int  x51; (((0<=x51) && (x51<=(x22-1))) ==> ((x21[x51]<=x21[(x51+1)]) && (\exists int  x60; (((0<=x60) && (x60<=(x22-1))) && (x21[x51]==\old(x21[x60])))))));
+ensures (\forall int  x51; (((0<=x51) && (x51<=(x22-1))) ==> (x21[x51]<=x21[(x51+1)])));
 assigns x21[(0..x22-1)];
 */
 void insort(int  * x21, int  x22) {
