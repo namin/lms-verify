@@ -151,6 +151,7 @@ class CoreTests extends TestSuite {
                 maxi = i
             }
             inswap(p, m-1, maxi)
+            _assert((m <= n-1) ==> (p(m-1) <= p(m)))
             m -= 1;
           }
         },

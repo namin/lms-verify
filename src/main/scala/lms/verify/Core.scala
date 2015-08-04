@@ -37,6 +37,8 @@ trait VerifyOps extends Base {
   def infix_==>(a: Rep[Boolean], b: Rep[Boolean]): Rep[Boolean]
 
   def loop(invariant: Rep[Int] => Rep[Boolean], assigns: Rep[Int] => Rep[List[Any]], variant: Rep[Int] => Rep[Int])(l: Rep[Unit]): Rep[Unit]
+
+  def _assert(cond: =>Rep[Boolean]): Rep[Unit]
 }
 
 trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp {
@@ -105,6 +107,15 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp {
     val y3 = reifyEffects(variant(i))
     val r = Loop(y1, y2, y3)
     loops.getOrElseUpdate(l.asInstanceOf[Sym[Unit]], r)
+    r
+  }
+
+  val asserts = new scala.collection.mutable.LinkedHashMap[Sym[_], Block[Boolean]]
+  case object Assert extends Def[Unit]
+  def _assert(cond: =>Rep[Boolean]): Rep[Unit] = {
+    val y = reifyEffects(cond)
+    val r = reflectEffect(Assert)
+    asserts.getOrElseUpdate(r.asInstanceOf[Sym[_]], y)
     r
   }
 }
@@ -179,6 +190,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
     override def emitNode(sym: Sym[Any], rhs: Def[Any]) = {
       rhs match {
         case ToplevelApply(name, args) => emitValDef(sym, name+args.map(quote).mkString("(", ",", ")"))
+        case Assert => stream.println(exprOfBlock("//@assert", asserts.get(sym).get))
         case ArrayApply(x,n) => emitValDef(sym, quote(x) + "[" + quote(n) + "]")
         case ArrayUpdate(x,n,y) => stream.println(quote(x) + "[" + quote(n) + "] = " + quote(y) + ";")
         case _ if loops.contains(sym) && !loopsDone.contains(sym) =>
