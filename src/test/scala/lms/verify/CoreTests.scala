@@ -186,8 +186,8 @@ class CoreTests extends TestSuite {
           n>0 && valid(p, 0 until n)
         },
         { (p: Rep[Array[Int]], n: Rep[Int], v: Rep[Int]) => result: Rep[Int] =>
-          (result == -1 ==> !(exists{i: Rep[Int] => 0 <= i && i < n && p(i)==v})) &&
-          (result != -1 ==> 0 <= result && result < n && p(result)==v)
+          ((result == -1) ==> !(exists{i: Rep[Int] => 0 <= i && i < n && p(i)==v})) &&
+          ((result != -1) ==> (0 <= result && result < n && p(result)==v))
         })
     }
     check("7", (new Ex7 with Impl).code)
