@@ -37,19 +37,8 @@ void insort(int * p, int n) {
     for (int i=0; i<m; i++)
       if (p[i] >= p[maxi])
         maxi = i;
-    //@assert (\forall int i; 0 <= i < m ==> p[i] <= p[maxi]);
-    //@assert (0 <= maxi <= m-1 < n);
-    //@assert (\forall int i; m-1 < i < n−1 ==> p[i] <= p[i+1]);
-    //@assert (\forall int i; 0 <= i <= m-1 < m <= n-1 ==> p[i] <= p[maxi] <= p[m]);
-    //@assert (m <= n-1 ==> p[maxi] <= p[m]);
-
     inswap(p, m-1, maxi);
-    //@assert (\forall int i; m-1 < i < n−1 ==> p[i] <= p[i+1]);
-    //@assert (\forall int i; 0 <= i < m ==> p[i] <= p[m-1]);
-
-    //@assert (\forall int i; m-1 < i < n−1 ==> p[i] <= p[i+1]);
     //@assert (m <= n-1 ==> p[m-1] <= p[m]);
-    //@assert (\forall int i; 0 <= i < m ==> p[i] <= p[m-1]);
   }
 }
 
