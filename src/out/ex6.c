@@ -14,34 +14,37 @@ void inswap(int* p, int i, int j) {
 /*@ requires n>0;
     requires \valid(p+(0..n-1));
     ensures \forall int i; 0 <= i < n−1 ==> p[i] <= p[i+1];
-    ensures \forall int i; 0 <= i <= n−1 ==> \exists int j; 0 <= j <= n-1 && p[i] == \old(p[j]);
     assigns p[0..n-1];
 */
 void insort(int * p, int n) {
-  //@assert (\forall int i; 0 <= i <= n−1 ==> \exists int j; 0 <= j <= n-1 && p[i] == \at(p[j], Pre));
-  /*@ loop invariant
-    (\forall int i; m <= i < n−1 ==> p[i] <= p[i+1]) &&
-    (\forall int i; 0 <= i < m < n-1 ==> p[i] <= p[m]) &&
-    (\forall int i; 0 <= i <= n−1 ==> \exists int j; 0 <= j <= n-1 && p[i] == \at(p[j], Pre));
-    loop assigns p[0..m-1];
-    loop variant m-1;
+  /*@
+    loop invariant (0 <= m <= n);
+    loop invariant (\forall int i; m <= i < n−1 ==> p[i] <= p[i+1]);
+    loop invariant (\forall int i; 0 <= i < m < n-1 ==> p[i] <= p[m]);
+    loop assigns m, p[0..n-1];
+    loop variant m;
    */
-  for (int m=n; m>1; m--) {
+  for (int m=n; m>0; m--) {
     int maxi = 0;
-    /*@ loop invariant
-      (0 <= maxi < n) &&
-      (\forall int j; 0 <= j < i ==> p[maxi] >= p[j]) &&
-      (\forall int i; 0 <= i <= n−1 ==> \exists int j; 0 <= j <= n-1 && p[i] == \at(p[j], Pre));
-      loop assigns maxi;
+    /*@
+      loop invariant (0 < m <= n);
+      loop invariant (0 <= i <= m);
+      loop invariant (0 <= maxi <= m-1 < n);
+      loop invariant (\forall int j; 0 <= j < i ==> p[j] <= p[maxi]);
+      loop assigns i, maxi;
       loop variant m-i;
      */
     for (int i=0; i<m; i++)
       if (p[i] >= p[maxi])
         maxi = i;
-    //@assert (\forall int i; 0 <= i <= n−1 ==> \exists int j; 0 <= j <= n-1 && p[i] == \at(p[j], Pre));
-    inswap(p, m-1, maxi);
-    //@assert (\forall int i; 0 <= i <= n−1 ==> \exists int j; 0 <= j <= n-1 && p[i] == \at(p[j], Pre));
-    //@assert (\forall int i; 0 <= i < m-1 < n-1 ==> p[i] <= p[m-1]);
+    //@assert (\forall int i; 0 <= i < m ==> p[i] <= p[maxi]);
+    //@assert (0 <= maxi <= m-1 < n);
+    //@assert (\forall int i; m-1 < i < n−1 ==> p[i] <= p[i+1]);
+    //@assert (\forall int i; 0 <= i <= m-1 < m < n-1 ==> p[i] <= p[maxi] <= p[m]);
+    if (m-1 != maxi)
+      inswap(p, m-1, maxi);
+    //@assert (\forall int i; m-1 <= i < n−1 ==> p[i] <= p[i+1]);
+    //@assert (\forall int i; 0 <= i < m ==> p[i] <= p[m-1]);
   }
 }
 
