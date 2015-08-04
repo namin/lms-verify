@@ -168,9 +168,16 @@ class CoreTests extends TestSuite {
       toplevel("member",
         { (p: Rep[Array[Int]], n: Rep[Int], v: Rep[Int]) =>
           var r = -1;
-          for (i <- 0 until n) {
-            if (r == -1 && p(i) == v) {
-              r=i
+          loop ({i: Rep[Int] =>
+            ((0 <= i) && (i <= n)) &&
+            ((r == -1) ==> !(exists{j: Rep[Int] => 0 <= j && j < i && p(j)==v})) &&
+            ((r != -1) ==> (unit(0) <= r && r < i && p(r)==v))},
+            {i: Rep[Int] => List(i, r)},
+            {i: Rep[Int] => n-i}) {
+            for (i <- 0 until n) {
+              if (r == -1 && p(i) == v) {
+                r=i
+              }
             }
           }
           r
@@ -180,7 +187,7 @@ class CoreTests extends TestSuite {
         },
         { (p: Rep[Array[Int]], n: Rep[Int], v: Rep[Int]) => result: Rep[Int] =>
           (result == -1 ==> !(exists{i: Rep[Int] => 0 <= i && i < n && p(i)==v})) &&
-          (result != -1 ==> 0 < result && result < n && p(result)==v)
+          (result != -1 ==> 0 <= result && result < n && p(result)==v)
         })
     }
     check("7", (new Ex7 with Impl).code)

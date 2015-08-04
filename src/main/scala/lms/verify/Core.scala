@@ -35,9 +35,11 @@ trait VerifyOps extends Base {
   def exists[A:Manifest](f: Rep[A] => Rep[Boolean]): Rep[Boolean]
   def forall[A:Manifest](f: Rep[A] => Rep[Boolean]): Rep[Boolean]
   def infix_==>(a: Rep[Boolean], b: Rep[Boolean]): Rep[Boolean]
+
+  def loop(invariant: Rep[Int] => Rep[Boolean], assigns: Rep[Int] => Rep[List[Any]], variant: Rep[Int] => Rep[Int])(l: Rep[Unit]): Rep[Unit]
 }
 
-trait VerifyOpsExp extends VerifyOps with EffectExp {
+trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp {
   case class Valid[A](p: Rep[A], r: Option[Rep[Any]]) extends Def[Boolean]
   case class Old[A:Manifest](v: Rep[A]) extends Def[A]
 
@@ -89,6 +91,22 @@ trait VerifyOpsExp extends VerifyOps with EffectExp {
     quantifier("\\forall", f)
   case class Implies(a: Rep[Boolean], b: Rep[Boolean]) extends Def[Boolean]
   def infix_==>(a: Rep[Boolean], b: Rep[Boolean]): Rep[Boolean] = Implies(a, b)
+
+  case class Loop(invariant: Block[Boolean], assigns: Block[List[Any]], variant: Block[Int]) extends Def[Unit]
+  val loops = new scala.collection.mutable.LinkedHashMap[Sym[_], Loop]
+  val loopsDone = new scala.collection.mutable.LinkedHashSet[Sym[_]]
+  def loop(invariant: Rep[Int] => Rep[Boolean], assigns: Rep[Int] => Rep[List[Any]], variant: Rep[Int] => Rep[Int])(l: Rep[Unit]): Rep[Unit] = {
+    val s = l.asInstanceOf[Sym[_]]
+    val i = l match {
+      case Def(Reflect(RangeForeach(_, _, i, _), _, _)) => i
+    }
+    val y1 = reifyEffects(invariant(i))
+    val y2 = reifyEffects(assigns(i))
+    val y3 = reifyEffects(variant(i))
+    val r = Loop(y1, y2, y3)
+    loops.getOrElseUpdate(l.asInstanceOf[Sym[Unit]], r)
+    r
+  }
 }
 
 trait Dsl extends VerifyOps with ScalaOpsPkg with TupledFunctions with UncheckedOps with LiftPrimitives with LiftString with LiftVariables
@@ -109,7 +127,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       }
     }
 
-    def exprOfBlock(kw: String, e: Block[Boolean], m: Map[Sym[_], String] = Map()): String = {
+    def exprOfBlock[A](kw: String, e: Block[A], m: Map[Sym[_], String] = Map()): String = {
       val r = exprOfBlock(e, m)
       r match {
         case "true" => ""
@@ -145,6 +163,8 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       case ArrayApply(p, i) => exprOf(p, m)+"["+exprOf(i, m)+"]"
       case Reify(r, _, _) => exprOf(r, m)
       case Reflect(r, _, _) => exprOfDef(r, m)
+      case ReadVar(Variable(s@Sym(n))) => quote(s)
+      case ListNew(xs) => xs.map(exprOf(_, m)).mkString(", ")
       case _ => "TODO:Def:"+d
     }
     def exprOf[A](e: Exp[A], m: Map[Sym[_], String] = Map()): String = e match {
@@ -161,6 +181,15 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
         case ToplevelApply(name, args) => emitValDef(sym, name+args.map(quote).mkString("(", ",", ")"))
         case ArrayApply(x,n) => emitValDef(sym, quote(x) + "[" + quote(n) + "]")
         case ArrayUpdate(x,n,y) => stream.println(quote(x) + "[" + quote(n) + "] = " + quote(y) + ";")
+        case _ if loops.contains(sym) && !loopsDone.contains(sym) =>
+          loopsDone += sym
+          val Loop(invariant, assigns, variant) = loops.get(sym).get
+          stream.println("/*@")
+          stream.println(exprOfBlock("loop invariant", invariant))
+          stream.println(exprOfBlock("loop assigns", assigns))
+          stream.println(exprOfBlock("loop variant", variant))
+          stream.println("*/")
+          super.emitNode(sym, rhs)
         case _ => super.emitNode(sym, rhs)
       }
     }
