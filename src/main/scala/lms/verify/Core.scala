@@ -37,6 +37,7 @@ trait VerifyOps extends Base {
   def infix_==>(a: Rep[Boolean], b: Rep[Boolean]): Rep[Boolean]
 
   def loop(invariant: Rep[Int] => Rep[Boolean], assigns: Rep[Int] => Rep[List[Any]], variant: Rep[Int] => Rep[Int])(l: Rep[Unit]): Rep[Unit]
+  def loop(invariant: => Rep[Boolean], assigns: => Rep[List[Any]], variant: => Rep[Int])(l: Rep[Unit]): Rep[Unit]
 
   def _assert(cond: =>Rep[Boolean]): Rep[Unit]
 }
@@ -98,13 +99,16 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp {
   val loops = new scala.collection.mutable.LinkedHashMap[Sym[_], Loop]
   val loopsDone = new scala.collection.mutable.LinkedHashSet[Sym[_]]
   def loop(invariant: Rep[Int] => Rep[Boolean], assigns: Rep[Int] => Rep[List[Any]], variant: Rep[Int] => Rep[Int])(l: Rep[Unit]): Rep[Unit] = {
-    val s = l.asInstanceOf[Sym[_]]
     val i = l match {
       case Def(Reflect(RangeForeach(_, _, i, _), _, _)) => i
     }
-    val y1 = reifyEffects(invariant(i))
-    val y2 = reifyEffects(assigns(i))
-    val y3 = reifyEffects(variant(i))
+    loop(invariant(i), assigns(i), variant(i))(l)
+  }
+  def loop(invariant: => Rep[Boolean], assigns: => Rep[List[Any]], variant: => Rep[Int])(l: Rep[Unit]): Rep[Unit] = {
+    val s = l.asInstanceOf[Sym[_]]
+    val y1 = reifyEffects(invariant)
+    val y2 = reifyEffects(assigns)
+    val y3 = reifyEffects(variant)
     val r = Loop(y1, y2, y3)
     loops.getOrElseUpdate(l.asInstanceOf[Sym[Unit]], r)
     r
