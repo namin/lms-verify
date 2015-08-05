@@ -162,14 +162,7 @@ class CoreTests extends TestSuite {
                     maxi = i
                 }
               }
-              _assert(forall{i: Rep[Int] => (0 <= i && i < m) ==> (p(i) <= p(maxi))})
-              _assert(unit(0) <= maxi && maxi <= m-1 && m-1 < n)
-              _assert(forall{i: Rep[Int] => ((m-1 < i) && (i < (n-unit(1)))) ==> (p(i) <= p(i+1))})
-              _assert(forall{i: Rep[Int] => (0 <= i && i <= m-1 && m <= n-1) ==> (p(i) <= p(maxi) && p(maxi) <= p(m))})
-              _assert((m <= n-1) ==> (p(maxi) <= p(m)))
               inswap(p, m-1, maxi)
-              _assert (forall{i: Rep[Int] => ((m-1 < i) && (i < (n-unit(1)))) ==> (p(i) <= p(i+1))})
-              _assert (forall{i: Rep[Int] => (0 <= i && i < m) ==> (p(i) <= p(m-1))})
               _assert (forall{i: Rep[Int] => ((m-1 < i) && (i < (n-unit(1)))) ==> (p(i) <= p(i+1))})
               _assert((m <= n-1) ==> (p(m-1) <= p(m)))
               _assert(forall{i: Rep[Int] => (0 <= i && i < m) ==> (p(i) <= p(m-1))})
