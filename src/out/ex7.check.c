@@ -1,7 +1,7 @@
 /*@
 requires ((x1>0) && \valid(x0+(0..x1-1)));
 assigns \nothing;
-ensures (((\result==-1) ==> (!(\exists int  x54; (((0<=x54) && (x54<x1)) && (x0[x54]==x2))))) && ((\result!=-1) ==> (((0<=\result) && (\result<x1)) && (x0[\result]==x2))));
+ensures (((\result==-1) ==> (!(\exists int  x53; (((0<=x53) && (x53<x1)) && (x0[x53]==x2))))) && ((\result!=-1) ==> (((0<=\result) && (\result<x1)) && (x0[\result]==x2))));
 */
 int member(int  * x0, int  x1, int  x2) {
   int x4 = -1;
@@ -21,6 +21,6 @@ int member(int  * x0, int  x1, int  x2) {
     } else {
     }
   }
-  int x48 = x4;
-  return x48;
+  int x47 = x4;
+  return x47;
 }

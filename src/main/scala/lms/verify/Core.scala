@@ -35,6 +35,7 @@ trait VerifyOps extends Base {
   def exists[A:Manifest](f: Rep[A] => Rep[Boolean]): Rep[Boolean]
   def forall[A:Manifest](f: Rep[A] => Rep[Boolean]): Rep[Boolean]
   def infix_==>(a: Rep[Boolean], b: Rep[Boolean]): Rep[Boolean]
+  def infix_within[A](p: Rep[Array[A]], r: Rep[Range]): Rep[Any]
 
   def loop(invariant: Rep[Int] => Rep[Boolean], assigns: Rep[Int] => Rep[List[Any]], variant: Rep[Int] => Rep[Int])(l: Rep[Unit]): Rep[Unit]
   def loop(invariant: => Rep[Boolean], assigns: => Rep[List[Any]], variant: => Rep[Int])(l: Rep[Unit]): Rep[Unit]
@@ -95,6 +96,9 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp {
   case class Implies(a: Rep[Boolean], b: Rep[Boolean]) extends Def[Boolean]
   def infix_==>(a: Rep[Boolean], b: Rep[Boolean]): Rep[Boolean] = Implies(a, b)
 
+  case class Within[A](p: Rep[Array[A]], r: Rep[Range]) extends Def[Any]
+  def infix_within[A](p: Rep[Array[A]], r: Rep[Range]): Rep[Any] = Within(p, r)
+
   case class Loop(invariant: Block[Boolean], assigns: Block[List[Any]], variant: Block[Int]) extends Def[Unit]
   val loops = new scala.collection.mutable.LinkedHashMap[Sym[_], Loop]
   val loopsDone = new scala.collection.mutable.LinkedHashSet[Sym[_]]
@@ -111,7 +115,7 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp {
     val y3 = reifyEffects(variant)
     val r = Loop(y1, y2, y3)
     loops.getOrElseUpdate(l.asInstanceOf[Sym[Unit]], r)
-    r
+    l
   }
 
   val asserts = new scala.collection.mutable.LinkedHashMap[Sym[_], Block[Boolean]]
@@ -163,6 +167,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       }
       case Quantifier(k, x, y) => "("+k+" "+remapWithRef(x.tp)+" "+quote(x)+"; "+exprOfBlock(y, m)+")"
       case Implies(a, b) => "("+exprOf(a, m)+" ==> "+exprOf(b, m)+")"
+      case Within(p, r) => exprOf(p, m)+"["+exprOf(r, m)+"]"
       case Equal(a, b) => "("+exprOf(a, m)+"=="+exprOf(b, m)+")"
       case NotEqual(a, b) => "("+exprOf(a, m)+"!="+exprOf(b, m)+")"
       case OrderingGTEQ(a, b) => "("+exprOf(a, m)+">="+exprOf(b, m)+")"
