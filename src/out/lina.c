@@ -1,3 +1,5 @@
+//#include <stdio.h>
+
 /*@ requires na > 0 && nb > 0 && na == nb;
     requires \valid(va+(0..na-1));
     requires \valid(vb+(0..nb-1));
@@ -117,4 +119,35 @@ void mm_mult(int** ma, int ra, int ca,
     }
   }
   return;
+}
+
+int main(void) {
+  int ma1[] = {1, 2, 3};
+  int ma2[] = {4, 5, 6};
+  int* ma[] = {ma1, ma2};
+  int ra = 2; int ca = 3;
+
+  int mb1[] = {1, 2};
+  int mb2[] = {3, 4};
+  int mb3[] = {5, 6};
+  int* mb[] = {mb1, mb2, mb3};
+  int rb = 3; int cb = 2;
+
+  int mc1[] = {0, 0};
+  int mc2[] = {0, 0};
+  int* mc[] = {mc1, mc2};
+  int rc = 2; int cc = 2;
+
+  mm_mult(ma, ra, ca, mb, rb, cb, mc, rc, cc);
+
+  /*
+  for (int i = 0; i < rc; i++) {
+    for (int j = 0; j < cc; j++) {
+      printf("%d ", mc[i][j]);
+    }
+    printf("\n");
+  }
+  */
+
+  return 0;
 }
