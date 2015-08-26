@@ -22,6 +22,12 @@ trait VerifyOps extends Base {
     g
   }
 
+  def toplevel[A1:Manifest:Typ,A2:Manifest:Typ,A3:Manifest:Typ,A4:Manifest:Typ,B:Manifest:Typ](name: String, f: (Rep[A1], Rep[A2], Rep[A3], Rep[A4]) => Rep[B], pre: (Rep[A1], Rep[A2], Rep[A3], Rep[A4]) => Rep[Boolean], post: (Rep[A1], Rep[A2], Rep[A3], Rep[A4]) => Rep[B] => Rep[Boolean]): (Rep[A1], Rep[A2], Rep[A3], Rep[A4]) => Rep[B] = {
+    val g = (x1: Rep[A1], x2: Rep[A2], x3: Rep[A3], x4: Rep[A4]) => toplevelApply[B](name, List(x1, x2, x3, x4))
+    rec.getOrElseUpdate(name, TopLevel(name, List(implicitly[Typ[A1]], implicitly[Typ[A2]], implicitly[Typ[A3]], implicitly[Typ[A4]]), implicitly[Typ[B]], xs => f(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]], xs(3).asInstanceOf[Rep[A4]]), xs => pre(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]], xs(3).asInstanceOf[Rep[A4]]), (xs: List[Rep[_]]) => (r: Rep[B]) => post(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]], xs(3).asInstanceOf[Rep[A4]])(r)))
+    g
+  }
+
   implicit def anyTyp: Typ[Any]
 
   def valid[A](p: Rep[A]): Rep[Boolean]
