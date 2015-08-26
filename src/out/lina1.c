@@ -20,6 +20,17 @@ int vv_mult(int* va, int na, int* vb, int nb) {
   return r;
 }
 
+/*@ requires ra > 0 && ca > 0;
+    requires ra < N && ca < N;
+    requires 0 <= r < ra;
+    requires 0 <= c < ca;
+    ensures 0 <= \result < ra*ca;
+    assigns \nothing;
+*/
+int index(int r, int c, int ra, int ca) {
+  return r*ca+c;
+}
+
 /*@ requires ra > 0 && ca > 0 && nb > 0 && nc > 0;
     requires ca == nb;
     requires ra == nc;
@@ -47,7 +58,7 @@ void mv_mult(int* ma, int ra, int ca,
       loop assigns c, vc[0..nc-1];
     */
     for (int c = 0; c < ca; c++) {
-      vc[r] += ma[r*ca+c]*vb[c];
+      vc[r] += ma[index(r, c, ra, ca)]*vb[c];
     }
   }
   return;
@@ -78,26 +89,20 @@ void mm_mult(int* ma, int ra, int ca,
     loop assigns r, mc[0..rc*cc-1];
   */
   for (int r = 0; r < ra; r++) {
-    //@assert 0 <= r < rc;
-    //@assert 0 <= r <= rc-1;
-    //@assert 0 <= r*cc <= (rc-1)*cc;
     /*@
       loop invariant cc==cb;
       loop invariant 0 <= c <= cb;
-      loop invariant 0 <= c <= cc;
-      loop invariant r*cc <= (rc-1)*cc;
-      loop invariant 0 <= r*cc+c <= rc*cc;
       loop assigns c, mc[0..rc*cc-1];
     */
     for (int c = 0; c < cb; c++) {
-      mc[r*cc+c] = 0;
+      mc[index(r, c, rc, cc)] = 0;
       /*@
         loop invariant rb==ca;
         loop invariant 0 <= i <= ca;
         loop assigns i, mc[0..rc*cc-1];
       */
       for (int i = 0; i < ca; i++) {
-        mc[r*cc+c] += ma[r*ca+i] * mb[i*cb+c];
+        mc[index(r, c, rc, cc)] += ma[index(r, i, ra, ca)] * mb[index(i, c, rb, cb)];
       }
     }
   }
