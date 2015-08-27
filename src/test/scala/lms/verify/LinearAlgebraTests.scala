@@ -76,7 +76,13 @@ class LinearAlgebraTests extends TestSuite {
 
       case class Matrix(m: Rep[Array[Int]], r: Rep[Int], c: Rep[Int]) extends {
         def req: Rep[Boolean] = r > 0 && c > 0 && r < N && c < N && valid(m, 0 until r*c)
+        class Aux(i: Rep[Int]) {
+          def apply(j : Rep[Int]) = m(index(i, j, r, c))
+          def update(j: Rep[Int], v: Rep[Int]) = m(index(i, j, r, c)) = v
+        }
+        def apply(i: Rep[Int]) = new Aux(i)
       }
+
       def toplevel_matrix(name: String, f: (Matrix, Matrix, Matrix) => Rep[Unit], pre: (Matrix, Matrix, Matrix) => Rep[Boolean], post: (Matrix, Matrix, Matrix) => Rep[Unit] => Rep[Boolean]): (Matrix, Matrix, Matrix) => Rep[Unit] = {
         val g = toplevel(name, (m1: Rep[Array[Int]], r1: Rep[Int], c1: Rep[Int], m2: Rep[Array[Int]], r2: Rep[Int], c2: Rep[Int], m3: Rep[Array[Int]], r3: Rep[Int], c3: Rep[Int]) => f(Matrix(m1, r1, c1), Matrix(m2, r2, c2), Matrix(m3, r3, c3)), (m1: Rep[Array[Int]], r1: Rep[Int], c1: Rep[Int], m2: Rep[Array[Int]], r2: Rep[Int], c2: Rep[Int], m3: Rep[Array[Int]], r3: Rep[Int], c3: Rep[Int]) => pre(Matrix(m1, r1, c1), Matrix(m2, r2, c2), Matrix(m3, r3, c3)), (m1: Rep[Array[Int]], r1: Rep[Int], c1: Rep[Int], m2: Rep[Array[Int]], r2: Rep[Int], c2: Rep[Int], m3: Rep[Array[Int]], r3: Rep[Int], c3: Rep[Int]) => post(Matrix(m1, r1, c1), Matrix(m2, r2, c2), Matrix(m3, r3, c3)))
         (a: Matrix, b: Matrix, o: Matrix) => g(a.m, a.r, a.c, b.m, b.r, b.c, o.m, o.r, o.c)
@@ -95,13 +101,13 @@ class LinearAlgebraTests extends TestSuite {
                 {c: Rep[Int] => List(c, o.m within (0 until o.r*o.c))},
                 {c: Rep[Int] => b.c-c}) {
                 for (c <- 0 until b.c) {
-                  o.m(index(r, c, o.r, o.c)) = 0
+                  o(r)(c) = 0
                   loop(
                     {i: Rep[Int] => b.r==a.c && unit(0) <= i && i <= a.c},
                     {i: Rep[Int] => List(i, o.m within (0 until o.r*o.c))},
                     {i: Rep[Int] => a.c-i}) {
                     for (i <- 0 until a.c) {
-                      o.m(index(r, c, o.r, o.c)) = o.m(index(r, c, o.r, o.c)) + a.m(index(r, i, a.r, a.c)) * b.m(index(i, c, b.r, b.c))
+                      o(r)(c) = o(r)(c) + a(r)(i) * b(i)(c)
                     }
                   }
                 }
