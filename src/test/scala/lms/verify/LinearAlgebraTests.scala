@@ -84,7 +84,14 @@ class LinearAlgebraTests extends TestSuite {
       }
 
       def toplevel_matrix(name: String, f: (Matrix, Matrix, Matrix) => Rep[Unit], pre: (Matrix, Matrix, Matrix) => Rep[Boolean], post: (Matrix, Matrix, Matrix) => Rep[Unit] => Rep[Boolean]): (Matrix, Matrix, Matrix) => Rep[Unit] = {
-        val g = toplevel(name, (m1: Rep[Array[Int]], r1: Rep[Int], c1: Rep[Int], m2: Rep[Array[Int]], r2: Rep[Int], c2: Rep[Int], m3: Rep[Array[Int]], r3: Rep[Int], c3: Rep[Int]) => f(Matrix(m1, r1, c1), Matrix(m2, r2, c2), Matrix(m3, r3, c3)), (m1: Rep[Array[Int]], r1: Rep[Int], c1: Rep[Int], m2: Rep[Array[Int]], r2: Rep[Int], c2: Rep[Int], m3: Rep[Array[Int]], r3: Rep[Int], c3: Rep[Int]) => pre(Matrix(m1, r1, c1), Matrix(m2, r2, c2), Matrix(m3, r3, c3)), (m1: Rep[Array[Int]], r1: Rep[Int], c1: Rep[Int], m2: Rep[Array[Int]], r2: Rep[Int], c2: Rep[Int], m3: Rep[Array[Int]], r3: Rep[Int], c3: Rep[Int]) => post(Matrix(m1, r1, c1), Matrix(m2, r2, c2), Matrix(m3, r3, c3)))
+        val g = toplevel(name,
+          (m1: Rep[Array[Int]], r1: Rep[Int], c1: Rep[Int], m2: Rep[Array[Int]], r2: Rep[Int], c2: Rep[Int], m3: Rep[Array[Int]], r3: Rep[Int], c3: Rep[Int]) => f(Matrix(m1, r1, c1), Matrix(m2, r2, c2), Matrix(m3, r3, c3)),
+          {(m1: Rep[Array[Int]], r1: Rep[Int], c1: Rep[Int], m2: Rep[Array[Int]], r2: Rep[Int], c2: Rep[Int], m3: Rep[Array[Int]], r3: Rep[Int], c3: Rep[Int]) =>
+            val o1 = Matrix(m1, r1, c1)
+            val o2 = Matrix(m2, r2, c2)
+            val o3 = Matrix(m3, r3, c3)
+            o1.req && o2.req && o3.req && pre(o1, o2, o3)},
+          (m1: Rep[Array[Int]], r1: Rep[Int], c1: Rep[Int], m2: Rep[Array[Int]], r2: Rep[Int], c2: Rep[Int], m3: Rep[Array[Int]], r3: Rep[Int], c3: Rep[Int]) => post(Matrix(m1, r1, c1), Matrix(m2, r2, c2), Matrix(m3, r3, c3)))
         (a: Matrix, b: Matrix, o: Matrix) => g(a.m, a.r, a.c, b.m, b.r, b.c, o.m, o.r, o.c)
       }
 
@@ -116,9 +123,6 @@ class LinearAlgebraTests extends TestSuite {
           }
         },
         { (a: Matrix, b: Matrix, o: Matrix) =>
-          a.req &&
-          b.req &&
-          o.req &&
           a.c == b.r && a.r == o.r && o.c == b.c
         },
         { (a: Matrix, b: Matrix, o: Matrix) =>
