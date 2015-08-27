@@ -66,6 +66,9 @@ class LinearAlgebraTests extends TestSuite {
   test("1b") {
     trait Lina1b extends Dsl {
       val N = 100
+      case class Matrix(m: Rep[Array[Int]], r: Rep[Int], c: Rep[Int]) {
+        def req: Rep[Boolean] = r > 0 && c > 0 && r < N && c < N && valid(m, 0 until r*c)
+      }
       val index = toplevel("index",
         { (r: Rep[Int], c: Rep[Int], ra: Rep[Int], ca: Rep[Int]) => r*ca+c },
         { (r: Rep[Int], c: Rep[Int], ra: Rep[Int], ca: Rep[Int]) =>
@@ -106,12 +109,10 @@ class LinearAlgebraTests extends TestSuite {
         { (ma: Rep[Array[Int]], ra: Rep[Int], ca: Rep[Int],
            mb: Rep[Array[Int]], rb: Rep[Int], cb: Rep[Int],
            mc: Rep[Array[Int]], rc: Rep[Int], cc: Rep[Int]) =>
-          ra > 0 && ca > 0 && rb > 0 && cc > 0 &&
-          ca == rb && ra == rc && cc == cb &&
-          ra < N && ca < N && rb < N && cb < N && rc < N && cc < N &&
-          valid(ma, 0 until ra*ca) &&
-          valid(mb, 0 until rb*cb) &&
-          valid(mc, 0 until rc*cc)
+          Matrix(ma, ra, ca).req &&
+          Matrix(mb, rb, cb).req &&
+          Matrix(mc, rc, cc).req &&
+          ca == rb && ra == rc && cc == cb
         },
         { (ma: Rep[Array[Int]], ra: Rep[Int], ca: Rep[Int],
            mb: Rep[Array[Int]], rb: Rep[Int], cb: Rep[Int],
@@ -120,6 +121,6 @@ class LinearAlgebraTests extends TestSuite {
           unit(true)
         })
     }
-    check("1", (new Lina1b with Impl).code)
+    check("1b", (new Lina1b with Impl).code)
   }
 }
