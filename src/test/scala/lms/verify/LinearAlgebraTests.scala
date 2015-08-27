@@ -77,7 +77,7 @@ class LinearAlgebraTests extends TestSuite {
       case class Matrix(m: Rep[Array[Int]], r: Rep[Int], c: Rep[Int]) extends {
         def req: Rep[Boolean] = r > 0 && c > 0 && r < N && c < N && valid(m, 0 until r*c)
         class Aux(i: Rep[Int]) {
-          def apply(j : Rep[Int]) = m(index(i, j, r, c))
+          def apply(j: Rep[Int]) = m(index(i, j, r, c))
           def update(j: Rep[Int], v: Rep[Int]) = m(index(i, j, r, c)) = v
         }
         def apply(i: Rep[Int]) = new Aux(i)
