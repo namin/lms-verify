@@ -163,6 +163,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
         return remap(m.typeArguments.head)+" "
       val tpe = super.remap(m)
       if (tpe.startsWith("int") || tpe.startsWith("uint") || tpe=="bool") "int"
+      else if (tpe == "string") "char "
       else tpe
     }
     override def isPrimitiveType(tpe: String): Boolean = {
@@ -230,6 +231,10 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
         case Assert => stream.println(exprOfBlock("//@assert", asserts.get(sym).get))
         case ArrayApply(x,n) => emitValDef(sym, quote(x) + "[" + quote(n) + "]")
         case ArrayUpdate(x,n,y) => stream.println(quote(x) + "[" + quote(n) + "] = " + quote(y) + ";")
+        case SeqLength(x) =>
+          // FIXME: only works for strings / Seq[Char]
+          emitValDef(sym, "strlen("+quote(x)+")")
+        case SeqApply(x,n) => emitValDef(sym, quote(x) + "[" + quote(n) + "]")
         case _ if loops.contains(sym) && !loopsDone.contains(sym) =>
           loopsDone += sym
           val Loop(invariant, assigns, variant) = loops.get(sym).get
