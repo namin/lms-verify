@@ -144,10 +144,20 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
   }
 }
 
-trait Dsl extends VerifyOps with ScalaOpsPkg with TupledFunctions with UncheckedOps with LiftPrimitives with LiftString with LiftVariables with LiftBoolean with LiftNumeric
+trait Dsl extends VerifyOps with ScalaOpsPkg with TupledFunctions with UncheckedOps with LiftPrimitives with LiftString with LiftVariables with LiftBoolean with LiftNumeric {
+  implicit def repStrToSeqOps(a: Rep[String]) = new SeqOpsCls(a.asInstanceOf[Rep[Seq[Char]]])
+  override def infix_&&(lhs: Rep[Boolean], rhs: => Rep[Boolean])(implicit pos: scala.reflect.SourceContext): Rep[Boolean] =
+    __ifThenElse(lhs, rhs, unit(false))
+}
 
 trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunctionsRecursiveExp with UncheckedOpsExp { self =>
   val codegen = new CCodeGenPkg with CGenVariables with CGenTupledFunctions with CGenUncheckedOps {
+    override def quote(x: Exp[Any]) = x match {
+      case Const(true) => "1/*true*/"
+      case Const(false) => "0/*false*/"
+      case _ => super.quote(x)
+    }
+
     override def remap[A](m: Typ[A]): String = {
       if (m.toString.startsWith("Array["))
         return remap(m.typeArguments.head)+" "
@@ -191,6 +201,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       case OrderingLTEQ(a, b) => "("+exprOf(a, m)+"<="+exprOf(b, m)+")"
       case OrderingLT(a, b) => "("+exprOf(a, m)+"<"+exprOf(b, m)+")"
       case BooleanAnd(a, b) => "("+exprOf(a, m)+" && "+exprOf(b, m)+")"
+      case IfThenElse(a, b, Block(Const(false))) => "("+exprOf(a, m)+" && "+exprOfBlock(b, m)+")"
       case BooleanOr(a, b) => "("+exprOf(a, m)+" || "+exprOf(b, m)+")"
       case BooleanNegate(a) => "(!"+exprOf(a, m)+")"
       case IntPlus(a, b) => "("+exprOf(a, m)+"+"+exprOf(b, m)+")"
@@ -204,6 +215,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       case _ => "TODO:Def:"+d
     }
     def exprOf[A](e: Exp[A], m: Map[Sym[_], String] = Map()): String = e match {
+      case Const(b: Boolean) => b.toString
       case Const(_) => quote(e)
       case Def(d) => exprOfDef(d, m)
       case s@Sym(n) => m.get(s) match {
