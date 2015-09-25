@@ -4,6 +4,9 @@ import scala.lms.common._
 import java.io.{PrintWriter,StringWriter,FileOutputStream}
 
 trait VerifyOps extends Base {
+  def includes: List[String] = Nil
+  def autoAssignNothing: Boolean = true
+
   case class TopLevel[B](name: String, mAs: List[Typ[_]], mB:Typ[B], f: List[Rep[_]] => Rep[B], pre: List[Rep[_]] => Rep[Boolean], post: List[Rep[_]] => Rep[B] => Rep[Boolean])
   val rec = new scala.collection.mutable.LinkedHashMap[String,TopLevel[_]]
   def toplevel[A:Manifest:Typ,B:Manifest:Typ](name: String, f: Rep[A] => Rep[B], pre: Rep[A] => Rep[Boolean], post: Rep[A] => Rep[B] => Rep[Boolean]): Rep[A] => Rep[B] = {
@@ -213,6 +216,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       case Reflect(r, _, _) => exprOfDef(r, m)
       case ReadVar(Variable(s@Sym(n))) => quote(s)
       case ListNew(xs) => xs.map(exprOf(_, m)).mkString(", ")
+      case SeqLength(x) => "strlen("+quote(x)+")" // FIXME: only works for strings / Seq[Char]
       case _ => "TODO:Def:"+d
     }
     def exprOf[A](e: Exp[A], m: Map[Sym[_], String] = Map()): String = e match {
@@ -259,7 +263,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       val y = getBlockResult(body)
       val assignsNothing = getBlockResultFull(body) match {
         case Def(Reify(_, s, _)) => s.mayWrite.isEmpty && s.mstWrite.isEmpty
-        case _ => true
+        case _ => autoAssignNothing
       }
       val customAssignsStr =
         if (!locs.isEmpty) {
@@ -297,6 +301,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
   }
   def emitAll(stream: java.io.PrintWriter): Unit = {
     assert(codegen ne null) //careful about initialization order
+    includes.foreach { i => stream.println("#include "+i) }
     rec.foreach { case (k,x) =>
       //stream.println("/* FILE: " + x.name + ".c */")
       //for ((_,v) <- rec) codegen.emitForwardDef(mtype(v.mA)::Nil, v.name, stream)(mtype(v.mB))
