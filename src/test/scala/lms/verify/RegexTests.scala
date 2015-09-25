@@ -10,10 +10,11 @@ trait StagedRegexpMatcher extends Dsl {
     else {
       var start = -1
       var found = false
+      loop (unit(-1) <= start && start <= text.length, List[Any](start, found), text.length-start) {
       while (!found && start < text.length) {
         start += 1
         found = matchhere(regexp, 0, text, start)
-      }
+      }}
       found
     }
   }
@@ -69,7 +70,7 @@ class RegexTests extends TestSuite {
   }
 
   gen("begin_a", "^a")
-  //gen("a_end", "a$")
-  //gen("a", "a")
+  gen("a_end", "a$")
+  gen("a", "a")
   //gen("ab_dot_star_ab", "ab.*ab")
 }
