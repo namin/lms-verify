@@ -1,6 +1,8 @@
 package lms.verify
 
-// from http://scala-lms.github.io/tutorials/regex.html
+// copied from http://scala-lms.github.io/tutorials/regex.html
+// added a `loop` annotation for each loop
+// code is otherwise identical
 trait StagedRegexpMatcher extends Dsl {
 
   /* search for regexp anywhere in text */
