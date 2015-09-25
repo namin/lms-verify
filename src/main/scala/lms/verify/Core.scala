@@ -189,7 +189,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
         case Some(r) => "\\valid("+exprOf(p, m)+"+"+exprOf(r, m)+")"
       }
       case Until(a, b) => b match {
-        case Const(c:Int) => "("+exprOf(a, m)+".."+(c+1)+")"
+        case Const(c:Int) => "("+exprOf(a, m)+".."+(c-1)+")"
         case _ => "("+exprOf(a, m)+".."+exprOf(b, m)+"-1)"
       }
       case Quantifier(k, x, y) => "("+k+" "+remapWithRef(x.tp)+" "+quote(x)+"; "+exprOfBlock(y, m)+")"
