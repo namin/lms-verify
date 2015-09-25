@@ -37,11 +37,12 @@ trait StagedRegexpMatcher extends Dsl {
     var sstart = start
     var found = matchhere(regexp, restart, text, sstart)
     var failed = false
+    loop (start <= sstart && sstart <= text.length, List[Any](sstart, found, failed), text.length-sstart) {
     while (!failed && !found && sstart < text.length) {
       failed = !matchchar(c, text(sstart))
       sstart += 1
       found = matchhere(regexp, restart, text, sstart)
-    }
+    }}
     !failed && found
   }
 
@@ -72,5 +73,5 @@ class RegexTests extends TestSuite {
   gen("begin_a", "^a")
   gen("a_end", "a$")
   gen("a", "a")
-  //gen("ab_dot_star_ab", "ab.*ab")
+  gen("ab_dot_star_ab", "ab.*ab")
 }
