@@ -264,7 +264,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       val y = getBlockResult(body)
       val assignsNothing = getBlockResultFull(body) match {
         case Def(Reify(_, s, _)) => s.mayWrite.isEmpty && s.mstWrite.isEmpty
-        case _ => autoAssignNothing
+        case _ => self.autoAssignNothing
       }
       val customAssignsStr =
         if (!locs.isEmpty) {

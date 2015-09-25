@@ -50,19 +50,26 @@ trait StagedRegexpMatcher extends Dsl {
 }
 
 class RegexTests extends TestSuite {
-  val under = "re"
+  val under = "re_"
 
-  test("1") {
-    trait Regex1 extends StagedRegexpMatcher {
-      override def includes = "<string.h>"::super.includes
-      override def autoAssignNothing = false
-      def valid_string(s: Rep[String]) = s.length>=0 && valid(s, 0 until s.length+1)
+  def gen(msg: String, re: String) {
+    test(msg) {
+      trait RegexProg extends StagedRegexpMatcher {
+        override def includes = "<string.h>"::super.includes
+        override def autoAssignNothing = false
+        def valid_string(s: Rep[String]) = s.length>=0 && valid(s, 0 until s.length+1)
 
-      toplevel("match_begin_a",
-        { (s: Rep[String]) => matchsearch("^a", s) },
-        { (s: Rep[String]) => valid_string(s) },
-        { (s: Rep[String]) => (r: Rep[Boolean]) => true })
+        toplevel("matcher",
+          { (s: Rep[String]) => matchsearch(re, s) },
+          { (s: Rep[String]) => valid_string(s) },
+          { (s: Rep[String]) => (r: Rep[Boolean]) => true })
+      }
+      check(msg, (new RegexProg with Impl).code)
     }
-    check("1", (new Regex1 with Impl).code)
   }
+
+  gen("begin_a", "^a")
+  //gen("a_end", "a$")
+  //gen("a", "a")
+  //gen("ab_dot_star_ab", "ab.*ab")
 }
