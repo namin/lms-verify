@@ -193,6 +193,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       }
       case Until(a, b) => b match {
         case Const(c:Int) => "("+exprOf(a, m)+".."+(c-1)+")"
+        case Def(IntPlus(c1, Const(1))) => "("+exprOf(a, m)+".."+exprOf(c1, m)+")"
         case _ => "("+exprOf(a, m)+".."+exprOf(b, m)+"-1)"
       }
       case Quantifier(k, x, y) => "("+k+" "+remapWithRef(x.tp)+" "+quote(x)+"; "+exprOfBlock(y, m)+")"

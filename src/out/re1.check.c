@@ -1,6 +1,6 @@
 #include <string.h>
 /*@
-requires ((strlen(x0)>=0) && \valid(x0+(0..(strlen(x0)+1)-1)));
+requires ((strlen(x0)>=0) && \valid(x0+(0..strlen(x0))));
 */
 int match_begin_a(char  * x0) {
   int x2 = strlen(x0);
