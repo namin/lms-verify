@@ -3,17 +3,6 @@
 #define N 100
 
 /*@ requires ra > 0 && ca > 0;
-    requires ra < N && ca < N;
-    requires 0 <= r < ra;
-    requires 0 <= c < ca;
-    ensures 0 <= \result < ra*ca;
-    assigns \nothing;
-*/
-int index(int r, int c, int ra, int ca) {
-  return r*ca+c;
-}
-
-/*@ requires ra > 0 && ca > 0;
     requires rb > 0 && cb > 0;
     requires rc > 0 && cc > 0;
     requires ca == rb;
