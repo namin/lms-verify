@@ -42,21 +42,21 @@ void mm_mult(int* ma, int ra, int ca,
       loop assigns c, mc[0..rc*cc-1];
     */
     for (int c = 0; c < cb; c++) {
-      // @assert (rc > 0 && cc > 0 && rc < N && cc < N && 0 <= r < rc && 0 <= c < cc);
+      //@assert (rc > 0 && cc > 0 && rc < N && cc < N && 0 <= r < rc && 0 <= c < cc);
       int i_c = r*cc+c;
-      // @assert (0 <= i_c < rc*cc);
+      //@assert (0 <= i_c < rc*cc);
       mc[i_c] = 0;
       /*@
         loop invariant 0 <= i <= ca;
         loop assigns i, mc[0..rc*cc-1];
       */
       for (int i = 0; i < ca; i++) {
-        // @assert (ra > 0 && ca > 0 && ra < N && ca < N && 0 <= r < ra && 0 <= i < ca);
+        //@assert (ra > 0 && ca > 0 && ra < N && ca < N && 0 <= r < ra && 0 <= i < ca);
         int i_a = r*ca+i;
-        // @assert (0 <= i_a < ra*ca);
-        // @assert (rb > 0 && cb > 0 && rb < N && cb < N && 0 <= i < rb && 0 <= c < cb);
+        //@assert (0 <= i_a < ra*ca);
+        //@assert (rb > 0 && cb > 0 && rb < N && cb < N && 0 <= i < rb && 0 <= c < cb);
         int i_b = i*cb+c;
-        // @assert (0 <= i_b < rb*cb);
+        //@assert (0 <= i_b < rb*cb);
         mc[i_c] += ma[i_a] * mb[i_b];
       }
     }
