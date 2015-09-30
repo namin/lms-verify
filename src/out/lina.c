@@ -8,7 +8,6 @@
 int vv_mult(int* va, int na, int* vb, int nb) {
   int r = 0;
   /*@
-    loop invariant na==nb;
     loop invariant 0<=i<=na;
     loop assigns i, r;
   */
@@ -33,14 +32,12 @@ void mv_mult(int** ma, int ra, int ca,
              int* vb, int nb,
              int* vc, int nc) {
   /*@
-    loop invariant ra==nc;
     loop invariant 0 <= r <= ra;
     loop assigns r, vc[0..nc-1];
   */
   for (int r = 0; r < ra; r++) {
     vc[r] = 0;
     /*@
-      loop invariant ca==nb;
       loop invariant 0 <= c <= ca;
       loop assigns c, vc[0..nc-1];
     */
@@ -66,7 +63,6 @@ void mv_mult_alt(int** ma, int ra, int ca,
              int* vb, int nb,
              int* vc, int nc) {
   /*@
-    loop invariant ra==nc;
     loop invariant 0 <= r <= ra;
     loop assigns r, vc[0..nc-1];
   */
@@ -96,20 +92,17 @@ void mm_mult(int** ma, int ra, int ca,
              int** mb, int rb, int cb,
              int** mc, int rc, int cc) {
   /*@
-    loop invariant ra==rc;
     loop invariant 0 <= r <= ra;
     loop assigns r, mc[0..rc-1][0..cc-1];
   */
   for (int r = 0; r < ra; r++) {
     /*@
-      loop invariant cc==cb;
       loop invariant 0 <= c <= cb;
       loop assigns c, mc[0..rc-1][0..cc-1];
     */
     for (int c = 0; c < cb; c++) {
       mc[r][c] = 0;
       /*@
-        loop invariant rb==ca;
         loop invariant 0 <= i <= ca;
         loop assigns i, mc[0..rc-1][0..cc-1];
       */
