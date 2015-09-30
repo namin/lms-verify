@@ -20,18 +20,18 @@ class LinearAlgebraTests extends TestSuite {
            mc: Rep[Array[Int]], rc: Rep[Int], cc: Rep[Int]) =>
           reflectMutableInput(mc)
           loop(
-            {r: Rep[Int] => ra == rc && unit(0) <= r && r <= ra},
+            {r: Rep[Int] => unit(0) <= r && r <= ra},
             {r: Rep[Int] => List(r, mc within (0 until rc*cc))},
             {r: Rep[Int] => ra-r}) {
             for (r <- 0 until ra) {
               loop(
-                {c: Rep[Int] => cc == cb && unit(0) <= c && c <= cb},
+                {c: Rep[Int] => unit(0) <= c && c <= cb},
                 {c: Rep[Int] => List(c, mc within (0 until rc*cc))},
                 {c: Rep[Int] => cb-c}) {
                 for (c <- 0 until cb) {
                   mc(index(r, c, rc, cc)) = 0
                   loop(
-                    {i: Rep[Int] => rb==ca && unit(0) <= i && i <= ca},
+                    {i: Rep[Int] => unit(0) <= i && i <= ca},
                     {i: Rep[Int] => List(i, mc within (0 until rc*cc))},
                     {i: Rep[Int] => ca-i}) {
                     for (i <- 0 until ca) {
@@ -99,18 +99,18 @@ class LinearAlgebraTests extends TestSuite {
         { (a: Matrix, b: Matrix, o: Matrix) =>
           reflectMutableInput(o.m)
           loop(
-            {r: Rep[Int] => a.r == o.r && unit(0) <= r && r <= a.r},
+            {r: Rep[Int] => unit(0) <= r && r <= a.r},
             {r: Rep[Int] => List(r, o.m within (0 until o.r*o.c))},
             {r: Rep[Int] => a.r-r}) {
             for (r <- 0 until a.r) {
               loop(
-                {c: Rep[Int] => o.c == b.c && unit(0) <= c && c <= b.c},
+                {c: Rep[Int] => unit(0) <= c && c <= b.c},
                 {c: Rep[Int] => List(c, o.m within (0 until o.r*o.c))},
                 {c: Rep[Int] => b.c-c}) {
                 for (c <- 0 until b.c) {
                   o(r)(c) = 0
                   loop(
-                    {i: Rep[Int] => b.r==a.c && unit(0) <= i && i <= a.c},
+                    {i: Rep[Int] => unit(0) <= i && i <= a.c},
                     {i: Rep[Int] => List(i, o.m within (0 until o.r*o.c))},
                     {i: Rep[Int] => a.c-i}) {
                     for (i <- 0 until a.c) {

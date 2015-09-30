@@ -13,13 +13,13 @@ requires ((((((((x27>0) && (x28>0)) && (x27<100)) && (x28<100)) && \valid(x26+(0
 */
 void mm_mult(int  * x26, int  x27, int  x28, int  * x29, int  x30, int  x31, int  * x32, int  x33, int  x34) {
   /*@
-  loop invariant (((x27==x33) && (0<=x37)) && (x37<=x27));
+  loop invariant ((0<=x37) && (x37<=x27));
   loop assigns x37, x32[(0..(x33*x34)-1)];
   loop variant (x27-x37);
   */
   for(int x37=0; x37 < x27; x37++) {
     /*@
-    loop invariant (((x34==x31) && (0<=x39)) && (x39<=x31));
+    loop invariant ((0<=x39) && (x39<=x31));
     loop assigns x39, x32[(0..(x33*x34)-1)];
     loop variant (x31-x39);
     */
@@ -27,7 +27,7 @@ void mm_mult(int  * x26, int  x27, int  x28, int  * x29, int  x30, int  x31, int
       int x40 = index(x37,x39,x33,x34);
       x32[x40] = 0;
       /*@
-      loop invariant (((x30==x28) && (0<=x43)) && (x43<=x28));
+      loop invariant ((0<=x43) && (x43<=x28));
       loop assigns x43, x32[(0..(x33*x34)-1)];
       loop variant (x28-x43);
       */
