@@ -10,8 +10,8 @@
     ensures 0 <= i < ra*ca;
     assigns \nothing;
 */
-void check_index(int i, int r, int c, int ra, int ca) {
-  return;
+int check_index(int i, int r, int c, int ra, int ca) {
+  return i;
 }
 
 /*@ requires ra > 0 && ca > 0;
