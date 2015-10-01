@@ -3,6 +3,18 @@
 #define N 100
 
 /*@ requires ra > 0 && ca > 0;
+    requires ra < N && ca < N;
+    requires 0 <= r < ra;
+    requires 0 <= c < ca;
+    requires i == r*ca+c;
+    ensures 0 <= i < ra*ca;
+    assigns \nothing;
+*/
+void check_index(int i, int r, int c, int ra, int ca) {
+  return;
+}
+
+/*@ requires ra > 0 && ca > 0;
     requires rb > 0 && cb > 0;
     requires rc > 0 && cc > 0;
     requires ca == rb;
@@ -35,6 +47,7 @@ void mm_mult(int* ma, int ra, int ca,
     for (int c = 0; c < cb; c++) {
       //@assert (rc > 0 && cc > 0 && rc < N && cc < N && 0 <= r < rc && 0 <= c < cc);
       int i_c = r*cc+c;
+      check_index(i_c, r, c, rc, cc);
       //@assert (0 <= i_c < rc*cc);
       mc[i_c] = 0;
       /*@
@@ -45,9 +58,11 @@ void mm_mult(int* ma, int ra, int ca,
       for (int i = 0; i < ca; i++) {
         //@assert (ra > 0 && ca > 0 && ra < N && ca < N && 0 <= r < ra && 0 <= i < ca);
         int i_a = r*ca+i;
+        check_index(i_a, r, i, ra, ca);
         //@assert (0 <= i_a < ra*ca);
         //@assert (rb > 0 && cb > 0 && rb < N && cb < N && 0 <= i < rb && 0 <= c < cb);
         int i_b = i*cb+c;
+        check_index(i_b, i, c, rb, cb);
         //@assert (0 <= i_b < rb*cb);
         mc[i_c] += ma[i_a] * mb[i_b];
       }
