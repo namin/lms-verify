@@ -259,8 +259,11 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
           loopsDone += sym
           stream.println("/*@")
           stream.println("loop invariant 0<="+quote(i)+"<="+quote(end)+";")
-          // TODO: only include inputs that are modified
-          val xs = for ((v,r) <- inputs) yield (quote(v)+"["+exprOf(r)+"]")
+          val s = summarizeEffects(body)
+          val xs = for (x <- s.mayWrite) yield (inputs.get(x) match {
+            case Some(r) => quote(x)+"["+exprOf(r)+"]"
+            case None => quote(x)
+          })
           stream.println("loop assigns "+quote(i)+(if (xs.isEmpty) "" else ", ")+xs.mkString(", ")+";")
           stream.println("loop variant "+quote(end)+"-"+quote(i)+";")
           stream.println("*/")
