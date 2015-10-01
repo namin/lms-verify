@@ -260,7 +260,8 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
           stream.println("/*@")
           stream.println("loop invariant 0<="+quote(i)+"<="+quote(end)+";")
           // TODO: only include inputs that are modified
-          stream.println("loop assigns "+quote(i)+", "+(for ((v,r) <- inputs) yield (quote(v)+"["+exprOf(r)+"]")).mkString(", ")+";")
+          val xs = for ((v,r) <- inputs) yield (quote(v)+"["+exprOf(r)+"]")
+          stream.println("loop assigns "+quote(i)+(if (xs.isEmpty) "" else ", ")+xs.mkString(", ")+";")
           stream.println("loop variant "+quote(end)+"-"+quote(i)+";")
           stream.println("*/")
           super.emitNode(sym, rhs)
