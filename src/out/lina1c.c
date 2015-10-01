@@ -24,11 +24,13 @@ void mm_mult(int* ma, int ra, int ca,
   /*@
     loop invariant 0 <= r <= ra;
     loop assigns r, mc[0..rc*cc-1];
+    loop variant ra-r;
   */
   for (int r = 0; r < ra; r++) {
     /*@
       loop invariant 0 <= c <= cb;
       loop assigns c, mc[0..rc*cc-1];
+      loop variant cb-c;
     */
     for (int c = 0; c < cb; c++) {
       //@assert (rc > 0 && cc > 0 && rc < N && cc < N && 0 <= r < rc && 0 <= c < cc);
@@ -38,6 +40,7 @@ void mm_mult(int* ma, int ra, int ca,
       /*@
         loop invariant 0 <= i <= ca;
         loop assigns i, mc[0..rc*cc-1];
+        loop variant ca-i;
       */
       for (int i = 0; i < ca; i++) {
         //@assert (ra > 0 && ca > 0 && ra < N && ca < N && 0 <= r < ra && 0 <= i < ca);
