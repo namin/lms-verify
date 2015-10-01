@@ -117,4 +117,42 @@ class LinearAlgebraTests extends TestSuite {
     }
     check("1b", (new Lina1b with Impl).code)
   }
+
+  test("2") {
+    trait Lina2 extends Dsl {
+      def index_where(suffix: String, predicate: Rep[Int] => Rep[Boolean]) = {
+        toplevel("index_where_" + suffix,
+          { (v: Rep[Array[Int]], n: Rep[Int], o: Rep[Array[Int]]) =>
+            reflectMutableInput(o)
+            assigns(o, 0 until n)
+            var r = 0
+            loop({i: Rep[Int] => unit(0) <= i && i <= n &&
+              unit(0) <= r && r <= i &&
+              forall{j: Rep[Int] => (0 <= j && j < r) ==> (0 <= o(j) && o(j) < i)} &&
+              forall{j: Rep[Int] => (0 < j && j < r) ==> (o(j-1) < o(j))}},
+              {i: Rep[Int] => List(i, r, o within (0 until n))},
+              {i: Rep[Int] => n-i}) {
+              for (i <- 0 until n) {
+                if (predicate(v(i))) {
+                  o(r) = i
+                  r += 1
+                }
+              }
+            }
+            r
+          },
+          { (v: Rep[Array[Int]], n: Rep[Int], o: Rep[Array[Int]]) => n > 0 && valid(v, 0 until n) && valid(o, 0 until n)},
+          { (v: Rep[Array[Int]], n: Rep[Int], o: Rep[Array[Int]]) => (result: Rep[Int]) =>
+            0 <= result && result <= n &&
+            forall{i: Rep[Int] => (0 <= i && i < result) ==> (0 <= o(i) && o(i) < n)} &&
+            forall{i: Rep[Int] => (0 < i && i < result) ==> (o(i-1) < o(i))}
+          })
+      }
+      def even(n: Rep[Int]) = n % 2 == 0
+
+      val index_where_even = index_where("even", even)
+    }
+
+    check("2", (new Lina2 with Impl).code)
+  }
 }
