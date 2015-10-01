@@ -44,6 +44,7 @@ trait VerifyOps extends Base {
   def old[A:Typ](v: Rep[A]): Rep[A]
 
   def reflectMutableInput[A](v: Rep[A]): Rep[A]
+  def reflectMutableInput[A](v: Rep[A], r: Rep[Range]): Rep[A]
 
   def assigns(s: Rep[Any]): Unit
   def assigns(s: Rep[Any], r: Rep[Any]): Unit
@@ -72,6 +73,11 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
 
   def reflectMutableInput[A](v: Rep[A]): Rep[A] =
     reflectMutableSym(v.asInstanceOf[Sym[A]])
+  val inputs = new scala.collection.mutable.LinkedHashMap[Sym[Any], Rep[Range]]
+  def reflectMutableInput[A](v: Rep[A], r: Rep[Range]): Rep[A] = {
+    inputs += (v.asInstanceOf[Sym[Any]] -> r)
+    reflectMutableInput(v)
+  }
 
   case class Loc(s: Rep[Any], r: Option[Rep[Any]])
   var locs: List[Loc] = Nil
@@ -247,6 +253,15 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
           stream.println(exprOfBlock("loop invariant", invariant))
           stream.println(exprOfBlock("loop assigns", assigns))
           stream.println(exprOfBlock("loop variant", variant))
+          stream.println("*/")
+          super.emitNode(sym, rhs)
+        case RangeForeach(start, end, i, body) if !loopsDone.contains(sym) =>
+          loopsDone += sym
+          stream.println("/*@")
+          stream.println("loop invariant 0<="+quote(i)+"<="+quote(end)+";")
+          // TODO: only include inputs that are modified
+          stream.println("loop assigns "+quote(i)+", "+(for ((v,r) <- inputs) yield (quote(v)+"["+exprOf(r)+"]")).mkString(", ")+";")
+          stream.println("loop variant "+quote(end)+"-"+quote(i)+";")
           stream.println("*/")
           super.emitNode(sym, rhs)
         case _ => super.emitNode(sym, rhs)

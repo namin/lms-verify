@@ -13,33 +13,33 @@ requires ((((((((x27>0) && (x28>0)) && (x27<100)) && (x28<100)) && \valid(x26+(0
 */
 void mm_mult(int  * x26, int  x27, int  x28, int  * x29, int  x30, int  x31, int  * x32, int  x33, int  x34) {
   /*@
-  loop invariant ((0<=x37) && (x37<=x27));
-  loop assigns x37, x32[(0..(x33*x34)-1)];
-  loop variant (x27-x37);
+  loop invariant 0<=x39<=x27;
+  loop assigns x39, x32[(0..(x33*x34)-1)];
+  loop variant x27-x39;
   */
-  for(int x37=0; x37 < x27; x37++) {
+  for(int x39=0; x39 < x27; x39++) {
     /*@
-    loop invariant ((0<=x39) && (x39<=x31));
-    loop assigns x39, x32[(0..(x33*x34)-1)];
-    loop variant (x31-x39);
+    loop invariant 0<=x41<=x31;
+    loop assigns x41, x32[(0..(x33*x34)-1)];
+    loop variant x31-x41;
     */
-    for(int x39=0; x39 < x31; x39++) {
-      int x40 = index(x37,x39,x33,x34);
-      x32[x40] = 0;
+    for(int x41=0; x41 < x31; x41++) {
+      int x42 = index(x39,x41,x33,x34);
+      x32[x42] = 0;
       /*@
-      loop invariant ((0<=x43) && (x43<=x28));
-      loop assigns x43, x32[(0..(x33*x34)-1)];
-      loop variant (x28-x43);
+      loop invariant 0<=x45<=x28;
+      loop assigns x45, x32[(0..(x33*x34)-1)];
+      loop variant x28-x45;
       */
-      for(int x43=0; x43 < x28; x43++) {
-        int x44 = x32[x40];
-        int x45 = index(x37,x43,x27,x28);
-        int x46 = x26[x45];
-        int x47 = index(x43,x39,x30,x31);
-        int x48 = x29[x47];
-        int x49 = x46 * x48;
-        int x50 = x44 + x49;
-        x32[x40] = x50;
+      for(int x45=0; x45 < x28; x45++) {
+        int x46 = x32[x42];
+        int x47 = index(x39,x45,x27,x28);
+        int x48 = x26[x47];
+        int x49 = index(x45,x41,x30,x31);
+        int x50 = x29[x49];
+        int x51 = x48 * x50;
+        int x52 = x46 + x51;
+        x32[x42] = x52;
       }
     }
   }
