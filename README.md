@@ -6,9 +6,9 @@ An early experiment using staging (via [LMS](http://github.com/TiarkRompf/virtua
 
 The generated C code is verified using frama-c wp as follows:
 
-```frama-c -wp -wp-rte -wp-prover cvc4 <file.c>```
+```frama-c -wp -wp-rte -wp-prover cvc4,alt-ergo <file.c>```
 
-All the files in the `src/out` directory should verify with this command, except those ending with `_bad.c` and except some `_overflow` goals. The `CVC4` solver is required for the sorting example (`ex6.c`). For the other examples, `alt-ergo` works just as well.
+All the files in the `src/out` directory should verify with this command, except those ending with `_bad.c` and except some `_overflow` goals.
 
 ### Docs
 * [frama-c wp manual (PDF)](http://frama-c.com/download/frama-c-wp-manual.pdf)
