@@ -1,5 +1,6 @@
 #include <limits.h>
 /*@
+requires (x0<INT_MAX);
 assigns \nothing;
 ensures (\result>x0);
 */
