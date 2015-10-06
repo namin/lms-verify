@@ -4,7 +4,7 @@ import scala.lms.common._
 import java.io.{PrintWriter,StringWriter,FileOutputStream}
 
 trait VerifyOps extends Base {
-  def includes: List[String] = Nil
+  def includes: List[String] = List("<limits.h>")
   def autoAssignNothing: Boolean = true
 
   case class TopLevel[B](name: String, mAs: List[Typ[_]], mB:Typ[B], f: List[Rep[_]] => Rep[B], pre: List[Rep[_]] => Rep[Boolean], post: List[Rep[_]] => Rep[B] => Rep[Boolean])
@@ -215,6 +215,8 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       case IfThenElse(a, b, Block(Const(false))) => "("+exprOf(a, m)+" && "+exprOfBlock(b, m)+")"
       case BooleanOr(a, b) => "("+exprOf(a, m)+" || "+exprOf(b, m)+")"
       case BooleanNegate(a) => "(!"+exprOf(a, m)+")"
+      case ObjIntMaxValue() => "INT_MAX"
+      case ObjIntMinValue() => "INT_MIN"
       case IntPlus(a, b) => "("+exprOf(a, m)+"+"+exprOf(b, m)+")"
       case IntMinus(a, b) => "("+exprOf(a, m)+"-"+exprOf(b, m)+")"
       case IntTimes(a, b) => "("+exprOf(a, m)+"*"+exprOf(b, m)+")"

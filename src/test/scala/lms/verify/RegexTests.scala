@@ -59,7 +59,7 @@ class RegexTests extends TestSuite {
   def gen(msg: String, re: String) {
     test(msg) {
       trait RegexProg extends StagedRegexpMatcher {
-        override def includes = "<string.h>"::super.includes
+        override def includes = super.includes:+"<string.h>"
         override def autoAssignNothing = false
         def valid_string(s: Rep[String]) = s.length>=0 && valid(s, 0 until s.length+1)
 
