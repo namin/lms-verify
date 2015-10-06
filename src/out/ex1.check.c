@@ -1,3 +1,4 @@
+#include <limits.h>
 /*@
 assigns \nothing;
 ensures (((\result>=x0) && (\result>=x1)) && ((\result==x0) || (\result==x1)));

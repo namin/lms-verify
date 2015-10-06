@@ -1,3 +1,4 @@
+#include <limits.h>
 /*@
 requires ((x1>0) && \valid(x0+(0..x1-1)));
 assigns \nothing;

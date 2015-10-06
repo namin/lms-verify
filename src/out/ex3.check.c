@@ -1,3 +1,4 @@
+#include <limits.h>
 /*@
 assigns \nothing;
 ensures (\result==(x0*x0));

@@ -1,3 +1,4 @@
+#include <limits.h>
 /*@
 requires (x0>=0);
 assigns \nothing;

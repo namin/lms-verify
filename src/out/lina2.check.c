@@ -1,3 +1,4 @@
+#include <limits.h>
 /*@
 requires (((x1>0) && \valid(x0+(0..x1-1))) && \valid(x2+(0..x1-1)));
 ensures ((((0<=\result) && (\result<=x1)) && (\forall int  x74; (((0<=x74) && (x74<\result)) ==> ((0<=x2[x74]) && (x2[x74]<x1))))) && (\forall int  x86; (((0<x86) && (x86<\result)) ==> (x2[(x86-1)]<x2[x86]))));

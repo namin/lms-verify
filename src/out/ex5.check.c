@@ -1,3 +1,4 @@
+#include <limits.h>
 /*@
 requires \valid(x0+(0..1));
 ensures ((x0[0]==\old(x0[1])) && (x0[1]==\old(x0[0])));
