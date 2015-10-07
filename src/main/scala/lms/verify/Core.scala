@@ -1,6 +1,7 @@
 package lms.verify
 
 import scala.lms.common._
+import scala.reflect.SourceContext
 import java.io.{PrintWriter,StringWriter,FileOutputStream}
 
 trait VerifyOps extends Base {
@@ -58,7 +59,7 @@ trait VerifyOps extends Base {
   def loop(invariant: Rep[Int] => Rep[Boolean], assigns: Rep[Int] => Rep[List[Any]], variant: Rep[Int] => Rep[Int])(l: Rep[Unit]): Rep[Unit]
   def loop(invariant: => Rep[Boolean], assigns: => Rep[List[Any]], variant: => Rep[Int])(l: Rep[Unit]): Rep[Unit]
 
-  def _assert(cond: =>Rep[Boolean]): Rep[Unit]
+  def _assert(cond: =>Rep[Boolean])(implicit pos: SourceContext): Rep[Unit]
 }
 
 trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBoolean with ListOpsExp {
@@ -145,7 +146,7 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
 
   val asserts = new scala.collection.mutable.LinkedHashMap[Sym[_], Block[Boolean]]
   case object Assert extends Def[Unit]
-  def _assert(cond: =>Rep[Boolean]): Rep[Unit] = {
+  def _assert(cond: =>Rep[Boolean])(implicit pos: SourceContext): Rep[Unit] = {
     val y = reifyEffects(cond)
     val r = reflectEffect(Assert)
     asserts.getOrElseUpdate(r.asInstanceOf[Sym[_]], y)
@@ -155,12 +156,13 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
 
 trait Dsl extends VerifyOps with ScalaOpsPkg with TupledFunctions with UncheckedOps with LiftPrimitives with LiftString with LiftVariables with LiftBoolean with LiftNumeric {
   implicit def repStrToSeqOps(a: Rep[String]) = new SeqOpsCls(a.asInstanceOf[Rep[Seq[Char]]])
-  override def infix_&&(lhs: Rep[Boolean], rhs: => Rep[Boolean])(implicit pos: scala.reflect.SourceContext): Rep[Boolean] =
+  override def infix_&&(lhs: Rep[Boolean], rhs: => Rep[Boolean])(implicit pos: SourceContext): Rep[Boolean] =
     __ifThenElse(lhs, rhs, unit(false))
 }
 
 trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunctionsRecursiveExp with UncheckedOpsExp { self =>
   val codegen = new CCodeGenPkg with CGenVariables with CGenTupledFunctions with CGenUncheckedOps {
+    var emitFileAndLine: Boolean = false
     override def quote(x: Exp[Any]) = x match {
       case Const(true) => "1/*true*/"
       case Const(false) => "0/*false*/"
@@ -239,6 +241,10 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
     }
 
     override def emitNode(sym: Sym[Any], rhs: Def[Any]) = {
+      if (emitFileAndLine && !rhs.isInstanceOf[Reflect[_]]) {
+        val s = quotePos(sym).split("//")(0).split(":")
+        stream.println(s"""#line ${s(1)} "${s(0)}" """)
+      }
       rhs match {
         case ToplevelApply(name, args) => emitValDef(sym, name+args.map(quote).mkString("(", ",", ")"))
         case Assert => stream.println(exprOfBlock("//@assert", asserts.get(sym).get))
