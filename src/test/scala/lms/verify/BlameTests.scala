@@ -13,13 +13,13 @@ class BlameTests extends TestSuite {
   test("0") {
     trait Blame0 extends Dsl {
       trait FuncInline[A,B] {
-        def apply(x: Rep[A])(implicit callerPos: SourceContext): Rep[B]
+        def apply(x: A)(implicit callerPos: SourceContext): B
       }
-      def inline[A:Manifest:Typ,B:Manifest:Typ](name: String, 
-        f: Rep[A] => Rep[B], pre: Rep[A] => Rep[Boolean], 
-        post: Rep[A] => Rep[B] => Rep[Boolean])(implicit calleePos: SourceContext) = 
+      def inline[A,B](name: String, 
+        f: A => B, pre: A => Rep[Boolean], 
+        post: A => B => Rep[Boolean])(implicit calleePos: SourceContext) = 
       new FuncInline[A,B] {
-        def apply(x: Rep[A])(implicit callerPos: SourceContext) = {
+        def apply(x: A)(implicit callerPos: SourceContext) = {
           // blame precondition on caller
           _assert(pre(x))(callerPos) 
           val res = f(x)
