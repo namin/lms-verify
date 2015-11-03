@@ -222,6 +222,8 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       case IntPlus(a, b) => "("+exprOf(a, m)+"+"+exprOf(b, m)+")"
       case IntMinus(a, b) => "("+exprOf(a, m)+"-"+exprOf(b, m)+")"
       case IntTimes(a, b) => "("+exprOf(a, m)+"*"+exprOf(b, m)+")"
+      case IntMod(a, b) => "("+exprOf(a, m)+"%"+exprOf(b, m)+")"
+      case IntBinaryAnd(a, b) => "("+exprOf(a, m)+"&"+exprOf(b, m)+")"
       case ArrayApply(p, i) => exprOf(p, m)+"["+exprOf(i, m)+"]"
       case Reify(r, _, _) => exprOf(r, m)
       case Reflect(r, _, _) => exprOfDef(r, m)
