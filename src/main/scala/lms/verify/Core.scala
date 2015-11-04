@@ -166,6 +166,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
     override def quote(x: Exp[Any]) = x match {
       case Const(true) => "1/*true*/"
       case Const(false) => "0/*false*/"
+      case Const(null) => "0/*null*/"
       case _ => super.quote(x)
     }
 
