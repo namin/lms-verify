@@ -181,18 +181,6 @@ trait StagedParser extends Dsl {
     def | (that: => Parser[T]) = Parser[T] { input =>
       this(input) orElse that(input)
     }
-
-    /*
-    def toParseResult: Rep[Input] => Rep[ParseResult[T]] = (in: Rep[Input]) => {
-      var isEmpty = unit(true); var tmpRes = unit(zeroVal[T]); var nxt = in
-      this(in).apply(
-        (t, next) => { isEmpty = unit(false); tmpRes = t; nxt = next },
-        (next) => { nxt = next }
-      )
-
-      if (isEmpty) Failure[T](nxt) else Success(tmpRes, nxt)
-    }
-    */
   }
 
   def __ifThenElse[A: Typ](
