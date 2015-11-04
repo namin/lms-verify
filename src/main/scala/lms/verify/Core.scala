@@ -154,13 +154,13 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
   }
 }
 
-trait Dsl extends VerifyOps with ScalaOpsPkg with TupledFunctions with UncheckedOps with LiftPrimitives with LiftString with LiftVariables with LiftBoolean with LiftNumeric {
+trait Dsl extends VerifyOps with ScalaOpsPkg with TupledFunctions with UncheckedOps with LiftPrimitives with LiftString with LiftVariables with LiftBoolean with LiftNumeric with ZeroVal {
   implicit def repStrToSeqOps(a: Rep[String]) = new SeqOpsCls(a.asInstanceOf[Rep[Seq[Char]]])
   override def infix_&&(lhs: Rep[Boolean], rhs: => Rep[Boolean])(implicit pos: SourceContext): Rep[Boolean] =
     __ifThenElse(lhs, rhs, unit(false))
 }
 
-trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunctionsRecursiveExp with UncheckedOpsExp { self =>
+trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunctionsRecursiveExp with UncheckedOpsExp with ZeroValExp { self =>
   val codegen = new CCodeGenPkg with CGenVariables with CGenTupledFunctions with CGenUncheckedOps {
     var emitFileAndLine: Boolean = false
     override def quote(x: Exp[Any]) = x match {

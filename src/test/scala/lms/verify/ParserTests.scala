@@ -5,8 +5,6 @@ package lms.verify
 import scala.lms.common.Record
 
 trait StagedParser extends Dsl with scala.lms.common.StructOps {
-  def zeroVal[A: Typ]: A = ???
-
   // Reader
   type Elem = Char
   type Input = Record { val input: Array[Char]; val offset: Int }
