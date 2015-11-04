@@ -4,18 +4,16 @@ package lms.verify
 
 import scala.lms.common.Record
 
-trait StagedParser extends Dsl with scala.lms.common.StructOps {
+trait StagedParser extends Dsl {
   // Reader
   type Elem = Char
-  type Input = Record { val input: Array[Char]; val offset: Int }
-  def Reader(_input: Rep[Array[Char]], _offset: Rep[Int] = unit(0)) =
-    new Record { val input = _input; val offset = _offset }
-  implicit class InputOps(r: Rep[Input]) {
-    def first: Rep[Elem] = r.input(r.offset)
-    def atEnd: Rep[Boolean] = r.offset >= r.input.length
-    def rest: Rep[Input] = Reader(r.input, r.offset+1)
+  type Input = Array[Char] // \0-terminated C string
+  implicit class InputOps(s: Rep[Input]) {
+    def first: Rep[Elem] = s(0)
+    def atEnd: Rep[Boolean] = s(0) == '\0'
+    def rest: Rep[Input] = /*s+1*/uncheckedPure[Input](s, "+1")
     def foreach(f: Rep[Char] => Rep[Unit]) = {
-      var t = r
+      var t = s
       while (readVar(t).atEnd) {
         f(readVar(t).first)
         t = readVar(t).rest
@@ -220,31 +218,15 @@ trait StagedParser extends Dsl with scala.lms.common.StructOps {
 
   def accept(e: Rep[Elem]): Parser[Elem] = acceptIf(_ == e)
 
-  def acceptIdx(e: Rep[Elem]): Parser[Int] = acceptIfIdx(_ == e)
-
-  def acceptIfIdx(p: Rep[Elem] => Rep[Boolean]) = Parser[Int] { in =>
-    conditional(
-      in.atEnd,
-      ParseResultCPS.Failure[Int](in),
-      conditional(
-        p(in.first),
-        ParseResultCPS.Success(in.offset, in.rest),
-        ParseResultCPS.Failure[Int](in)
-      )
-    )
-  }
-
   def isLetter(c: Rep[Char]): Rep[Boolean] =
     (c >= unit('a') && c <= unit('z')) ||
     (c >= unit('A') && c <= unit('Z'))
 
   def letter: Parser[Char] = acceptIf(isLetter)
-  def letterIdx = acceptIfIdx(isLetter)
 
   def isDigit(c: Rep[Char]): Rep[Boolean] =
     c >= unit('0') && c <= unit('9')
 
   def digit: Parser[Char] = acceptIf(isDigit)
   /*def digit2Int: Parser[Int] = digit map (c => (c - unit('0')).toInt)*/
-  def digitIdx = acceptIfIdx(isDigit)
 }
