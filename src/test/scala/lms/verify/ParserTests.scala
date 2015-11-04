@@ -63,6 +63,15 @@ trait StagedParser extends Dsl {
         )
       )
     }
+
+    def toResult(default: Rep[T]): Rep[T] = {
+      var value = default
+      self.apply(
+        (t, _) => value = t,
+        _ => unit(())
+      )
+      value
+    }
   }
 
   case class ParseResultCPSCond[T: Typ](
@@ -197,10 +206,8 @@ trait StagedParser extends Dsl {
       def apply(in: Rep[Input]) = f(in)
     }
 
-    /*
-    def phrase[T: Typ](p: => Parser[T], in: Rep[Input]): Rep[Option[T]] =
-      p(in).toOption
-    */
+    def phrase[T: Typ](p: => Parser[T], in: Rep[Input], default: Rep[T]): Rep[T] =
+      p(in).toResult(default)
   }
 
   // CharParsers
@@ -229,4 +236,5 @@ trait StagedParser extends Dsl {
 
   def digit: Parser[Char] = acceptIf(isDigit)
   /*def digit2Int: Parser[Int] = digit map (c => (c - unit('0')).toInt)*/
+
 }
