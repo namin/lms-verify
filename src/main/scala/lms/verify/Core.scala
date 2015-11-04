@@ -268,7 +268,8 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
           stream.println("/*@")
           stream.println(exprOfBlock("loop invariant", invariant))
           stream.println(exprOfBlock("loop assigns", assigns))
-          stream.println(exprOfBlock("loop variant", variant))
+          if (!variant.res.isInstanceOf[Const[_]])
+            stream.println(exprOfBlock("loop variant", variant))
           stream.println("*/")
           super.emitNode(sym, rhs)
         case RangeForeach(start, end, i, body) if !loopsDone.contains(sym) =>

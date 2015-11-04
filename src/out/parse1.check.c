@@ -8,6 +8,10 @@ int p(char  * x0) {
   char  *x2 = x0;
   int x3 = 1/*true*/;
   int x4 = 0;
+  /*@
+  loop invariant ((strlen(x2)>=0) && \valid(x2+(0..strlen(x2))));
+  loop assigns x2, x3, x4;
+  */
   for (;;) {
     int x5 = x3;
     if (!x5) break;
@@ -53,10 +57,10 @@ int p(char  * x0) {
       x2 = x35;
     }
   }
-  int x45 = x4;
-  char  *x46 = x2;
-  int x47 = -1;
-  x47 = x45;
-  int x49 = x47;
-  return x49;
+  int x58 = x4;
+  char  *x59 = x2;
+  int x60 = -1;
+  x60 = x58;
+  int x62 = x60;
+  return x62;
 }

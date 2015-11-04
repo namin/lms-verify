@@ -229,12 +229,12 @@ trait StagedParser extends Dsl {
   def rep[T: Typ, R: Typ](p: Parser[T], z: Rep[R], f: (Rep[R], Rep[T]) => Rep[R]) = Parser[R] { input =>
     var in = input
     var c = unit(true); var a = z
-    //loop (valid_input(in), List[Any](in, c, a), 1) {
+    loop (valid_input(in), List[Any](in, c, a), 0) {
     while (c) {
       p(in).apply[Unit](
         (x, next) => { a = f(a, x); in = next },
         next => { c = false; in = next })
-    }//}
+    }}
     ParseResultCPS.Success(a, in)
   }
 }
