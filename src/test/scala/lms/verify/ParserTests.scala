@@ -226,10 +226,10 @@ trait StagedParser extends Dsl {
   def digit: Parser[Char] = acceptIf(isDigit)
   def digit2Int: Parser[Int] = digit map (c => (c - unit('0')).asInstanceOf[Rep[Int]])
 
-  def rep[T: Typ, R: Typ](p: Parser[T], z: Rep[R], f: (Rep[R], Rep[T]) => Rep[R], pz: Rep[R] => Rep[Boolean]) = Parser[R] { input =>
+  def rep[T: Typ, R: Typ](p: Parser[T], z: Rep[R], f: (Rep[R], Rep[T]) => Rep[R], pz: Option[Rep[R] => Rep[Boolean]] = None) = Parser[R] { input =>
     var in = input
     var c = unit(true); var a = z
-    loop (valid_input(in) && pz(z), List[Any](in, c, a), 0) {
+    loop (valid_input(in) && (pz.map(_(a)).getOrElse(true)), List[Any](in, c, a), 0) {
     while (c) {
       p(in).apply[Unit](
         (x, next) => { a = f(a, x); in = next },
@@ -254,15 +254,40 @@ class ParserTests extends TestSuite {
     check("0", (new P0 with Impl).code)
   }
 
+  // overflow failures
   test("1") {
     trait P1 extends StagedParser { import Parser._
       val p = toplevel("p",
         { in: Rep[Input] =>
-          phrase(rep(digit2Int, 0, { (a: Rep[Int], x: Rep[Int]) => a*10+x }, { a: Rep[Int] => true }), in, -1)
+          phrase(rep(digit2Int, 0, { (a: Rep[Int], x: Rep[Int]) => a*10+x }), in, -1)
         },
         { in: Rep[Input] => valid_input(in) },
         { in: Rep[Input] => result: Rep[Int] => unit(true) })
     }
     check("1", (new P1 with Impl).code)
+  }
+
+  // overflow verifies
+  test("2") {
+    trait P2 extends StagedParser { import Parser._
+      val p = toplevel("p",
+        { in: Rep[Input] =>
+          val m = Int.MaxValue / 10 - 10
+          phrase(
+            rep(digit2Int, 0,
+              { (a: Rep[Int], x: Rep[Int]) =>
+                if (a<0) a
+                else if (a>m) -1
+                else a*10+x
+              },
+              Some({ a: Rep[Int] => (a == -1) || (0 <= a) })),
+            in, -1)
+        },
+        { in: Rep[Input] => valid_input(in) },
+        { in: Rep[Input] => result: Rep[Int] =>
+          (result == -1) || (0 <= result)
+        })
+    }
+    check("2", (new P2 with Impl).code)
   }
 }

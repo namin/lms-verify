@@ -1,0 +1,84 @@
+#include <limits.h>
+#include <string.h>
+/*@
+requires ((strlen(x0)>=0) && \valid(x0+(0..strlen(x0))));
+assigns \nothing;
+ensures ((\result==-1) || (0<=\result));
+*/
+int p(char  * x0) {
+  char  *x5 = x0;
+  int x6 = 1/*true*/;
+  int x7 = 0;
+  int x2 = INT_MAX;
+  int x3 = x2 / 10;
+  int x4 = x3 - 10;
+  /*@
+  loop invariant (((strlen(x5)>=0) && \valid(x5+(0..strlen(x5)))) && ((x7==-1) || (0<=x7)));
+  loop assigns x5, x6, x7;
+  */
+  for (;;) {
+    int x8 = x6;
+    if (!x8) break;
+    char  *x10 = x5;
+    int x17 = 1/*true*/;
+    char x18 = '\0';
+    char  *x19 = 0/*null*/;
+    char x11 = x10[0];
+    int x12 = x11 == '\0';
+    if (x12) {
+      x19 = x10;
+    } else {
+      int x13 = x11 >= '0';
+      int x15;
+      if (x13) {
+        int x14 = x11 <= '9';
+        x15 = x14;
+      } else {
+        x15 = 0/*false*/;
+      }
+      if (x15) {
+        x17 = 0/*false*/;
+        x18 = x11;
+        char  *x16 = x10+1;
+        x19 = x16;
+      } else {
+        x19 = x10;
+      }
+    }
+    int x31 = x17;
+    if (x31) {
+      char  *x32 = x19;
+      x6 = 0/*false*/;
+      x5 = x32;
+    } else {
+      char x36 = x18;
+      char  *x38 = x19;
+      int x39 = x7;
+      int x40 = x39 < 0;
+      int x45;
+      if (x40) {
+        x45 = x39;
+      } else {
+        int x41 = x39 > x4;
+        int x44;
+        if (x41) {
+          x44 = -1;
+        } else {
+          char x37 = x36 - '0';
+          int x42 = x39 * 10;
+          int x43 = x42 + x37;
+          x44 = x43;
+        }
+        x45 = x44;
+      }
+      x7 = x45;
+      x5 = x38;
+    }
+  }
+  int x71 = x7;
+  char  *x72 = x5;
+  int x73 = -1;
+  x73 = x71;
+  int x75 = x73;
+  return x75;
+}

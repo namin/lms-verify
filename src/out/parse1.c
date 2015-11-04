@@ -11,12 +11,12 @@ int my_atoi(char* a) {
   char* s = a;
   /*@
     loop invariant strlen(s)>=0 && \valid(s+(0..strlen(s)));
-    loop invariant 0 <= r <= INT_MAX;
+    loop invariant 0 <= r;
     loop assigns r, s;
     loop variant strlen(s);
   */
   while ('0' <= *s && *s <= '9') {
-    if (r >= m) return -1;
+    if (r > m) return -1;
     r = 10*r + (*s - '0');
     s++;
   }
