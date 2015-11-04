@@ -234,8 +234,8 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       case ReadVar(Variable(s@Sym(n))) => quote(s)
       case ListNew(xs) => xs.map(exprOf(_, m)).mkString(", ")
       // FIXME: only works for strings / Seq[Char] / Array[Char]
-      case SeqLength(x) => "strlen("+quote(x)+")"
-      case ArrayLength(x) => "strlen("+quote(x)+")"
+      case SeqLength(x) => "strlen("+exprOf(x, m)+")"
+      case ArrayLength(x) => "strlen("+exprOf(x, m)+")"
       case _ => "TODO:Def:"+d
     }
     def exprOf[A](e: Exp[A], m: Map[Sym[_], String] = Map()): String = e match {
