@@ -8,7 +8,7 @@ trait StagedParser extends Dsl {
   type Input = Array[Char] // \0-terminated C string
   implicit class InputOps(s: Rep[Input]) {
     def first: Rep[Elem] = s(0)
-    def atEnd: Rep[Boolean] = s(0) == unit(0).asInstanceOf[Rep[Char]]
+    def atEnd: Rep[Boolean] = s(0) == unit(0.toChar)
     def rest: Rep[Input] = /*s+1*/uncheckedPure[Input](s, "+1")
     def foreach(f: Rep[Char] => Rep[Unit]) = {
       var t = s
