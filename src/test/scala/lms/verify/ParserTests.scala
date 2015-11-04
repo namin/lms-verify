@@ -226,10 +226,10 @@ trait StagedParser extends Dsl {
   def digit: Parser[Char] = acceptIf(isDigit)
   def digit2Int: Parser[Int] = digit map (c => (c - unit('0')).asInstanceOf[Rep[Int]])
 
-  def rep[T: Typ, R: Typ](p: Parser[T], z: Rep[R], f: (Rep[R], Rep[T]) => Rep[R]) = Parser[R] { input =>
+  def rep[T: Typ, R: Typ](p: Parser[T], z: Rep[R], f: (Rep[R], Rep[T]) => Rep[R], pz: Rep[R] => Rep[Boolean]) = Parser[R] { input =>
     var in = input
     var c = unit(true); var a = z
-    loop (valid_input(in), List[Any](in, c, a), 0) {
+    loop (valid_input(in) && pz(z), List[Any](in, c, a), 0) {
     while (c) {
       p(in).apply[Unit](
         (x, next) => { a = f(a, x); in = next },
@@ -258,7 +258,7 @@ class ParserTests extends TestSuite {
     trait P1 extends StagedParser { import Parser._
       val p = toplevel("p",
         { in: Rep[Input] =>
-          phrase(rep(digit2Int, 0, { (a: Rep[Int], x: Rep[Int]) => a*10+x }), in, -1)
+          phrase(rep(digit2Int, 0, { (a: Rep[Int], x: Rep[Int]) => a*10+x }, { a: Rep[Int] => true }), in, -1)
         },
         { in: Rep[Input] => valid_input(in) },
         { in: Rep[Input] => result: Rep[Int] => unit(true) })

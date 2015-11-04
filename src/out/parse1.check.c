@@ -57,10 +57,10 @@ int p(char  * x0) {
       x2 = x35;
     }
   }
-  int x58 = x4;
-  char  *x59 = x2;
-  int x60 = -1;
-  x60 = x58;
-  int x62 = x60;
-  return x62;
+  int x59 = x4;
+  char  *x60 = x2;
+  int x61 = -1;
+  x61 = x59;
+  int x63 = x61;
+  return x63;
 }

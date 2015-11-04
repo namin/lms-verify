@@ -218,6 +218,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       case OrderingLTEQ(a, b) => "("+exprOf(a, m)+"<="+exprOf(b, m)+")"
       case OrderingLT(a, b) => "("+exprOf(a, m)+"<"+exprOf(b, m)+")"
       case BooleanAnd(a, b) => "("+exprOf(a, m)+" && "+exprOf(b, m)+")"
+      case IfThenElse(a, Block(Const(true)), Block(Const(false))) => exprOf(a, m)
       case IfThenElse(a, b, Block(Const(false))) => "("+exprOf(a, m)+" && "+exprOfBlock(b, m)+")"
       case BooleanOr(a, b) => "("+exprOf(a, m)+" || "+exprOf(b, m)+")"
       case BooleanNegate(a) => "(!"+exprOf(a, m)+")"
