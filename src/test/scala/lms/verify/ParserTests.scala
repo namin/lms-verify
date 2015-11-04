@@ -230,10 +230,13 @@ class ParserTests extends TestSuite {
 
   test("0") {
     trait P0 extends StagedParser { import Parser._
+      override def includes = super.includes:+"<string.h>"
+      def valid_input(s: Rep[Input]) = s.length>=0 && valid(s, 0 until s.length+1)
+
       val p = toplevel("p",
-        { in: Rep[Array[Char]] => phrase(digit2Int, in, -1) },
-        { in: Rep[Array[Char]] => unit(true) },
-        { in: Rep[Array[Char]] => result: Rep[Int] => unit(true) })
+        { in: Rep[Input] => phrase(digit2Int, in, -1) },
+        { in: Rep[Input] => valid_input(in) },
+        { in: Rep[Input] => result: Rep[Int] => unit(true) })
     }
     check("0", (new P0 with Impl).code)
   }

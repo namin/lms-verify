@@ -1,5 +1,7 @@
 #include <limits.h>
+#include <string.h>
 /*@
+requires ((strlen(x0)>=0) && \valid(x0+(0..strlen(x0))));
 assigns \nothing;
 */
 int p(char  * x0) {
