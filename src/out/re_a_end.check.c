@@ -29,7 +29,7 @@ int matcher(char  * x0) {
     int x14 = x13 < x7;
     int x18;
     if (x14) {
-      int x15 = x0[x13];
+      char x15 = x0[x13];
       int x16 = 'a' == x15;
       int x17 = 0/*false*/ || x16;
       x18 = x17;

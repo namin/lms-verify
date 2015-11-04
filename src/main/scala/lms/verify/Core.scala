@@ -170,16 +170,18 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
     }
 
     override def remap[A](m: Typ[A]): String = {
-      if (m.toString.startsWith("Array["))
+      val s = m.toString
+      if (s.startsWith("Array["))
         return remap(m.typeArguments.head)+" "
       val tpe = super.remap(m)
-      if (tpe.startsWith("int") || tpe.startsWith("uint") || tpe=="bool") "int"
+      if (tpe.startsWith("int") || tpe.startsWith("uint") || tpe=="bool")
+        if (s == "Char") "char" else "int"
       else if (tpe == "string") "char "
       else tpe
     }
     override def isPrimitiveType(tpe: String): Boolean = {
       tpe match {
-        case "int" | "uint" => true
+        case "int" | "uint" | "char" => true
         case _ => super.isPrimitiveType(tpe)
       }
     }

@@ -8,7 +8,7 @@ int matcher(char  * x0) {
   int x3 = 0 < x2;
   int x7;
   if (x3) {
-    int x4 = x0[0];
+    char x4 = x0[0];
     int x5 = 'a' == x4;
     int x6 = 0/*false*/ || x5;
     x7 = x6;
