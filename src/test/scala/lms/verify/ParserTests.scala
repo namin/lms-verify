@@ -2,8 +2,6 @@ package lms.verify
 
 // inspired by http://manojo.github.io/2015/09/04/staged-parser-combinators-recursion/
 
-import scala.lms.common.Record
-
 trait StagedParser extends Dsl {
   // Reader
   type Elem = Char
