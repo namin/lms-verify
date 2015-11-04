@@ -221,6 +221,20 @@ trait StagedParser extends Dsl {
     c >= unit('0') && c <= unit('9')
 
   def digit: Parser[Char] = acceptIf(isDigit)
-  /*def digit2Int: Parser[Int] = digit map (c => (c - unit('0')).toInt)*/
+  def digit2Int: Parser[Int] = digit map (c => (c - unit('0')).asInstanceOf[Rep[Int]])
 
+}
+
+class ParserTests extends TestSuite {
+  val under = "parse"
+
+  test("0") {
+    trait P0 extends StagedParser { import Parser._
+      val p = toplevel("p",
+        { in: Rep[Array[Char]] => phrase(digit2Int, in, -1) },
+        { in: Rep[Array[Char]] => unit(true) },
+        { in: Rep[Array[Char]] => result: Rep[Int] => unit(true) })
+    }
+    //check("0", (new P0 with Impl).code)
+  }
 }
