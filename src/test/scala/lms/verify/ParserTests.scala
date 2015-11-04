@@ -3,6 +3,9 @@ package lms.verify
 // inspired by http://manojo.github.io/2015/09/04/staged-parser-combinators-recursion/
 
 trait StagedParser extends Dsl {
+  override def includes = super.includes:+"<string.h>"
+  def valid_input(s: Rep[Input]) = s.length>=0 && valid(s, 0 until s.length+1)
+
   // Reader
   type Elem = Char
   type Input = Array[Char] // \0-terminated C string
@@ -230,9 +233,6 @@ class ParserTests extends TestSuite {
 
   test("0") {
     trait P0 extends StagedParser { import Parser._
-      override def includes = super.includes:+"<string.h>"
-      def valid_input(s: Rep[Input]) = s.length>=0 && valid(s, 0 until s.length+1)
-
       val p = toplevel("p",
         { in: Rep[Input] => phrase(digit2Int, in, -1) },
         { in: Rep[Input] => valid_input(in) },
