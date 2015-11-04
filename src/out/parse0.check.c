@@ -3,6 +3,7 @@
 /*@
 requires ((strlen(x0)>=0) && \valid(x0+(0..strlen(x0))));
 assigns \nothing;
+ensures ((\result==-1) || ((0<=\result) && (\result<=9)));
 */
 int p(char  * x0) {
   int x8 = -1;

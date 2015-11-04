@@ -236,7 +236,9 @@ class ParserTests extends TestSuite {
       val p = toplevel("p",
         { in: Rep[Input] => phrase(digit2Int, in, -1) },
         { in: Rep[Input] => valid_input(in) },
-        { in: Rep[Input] => result: Rep[Int] => unit(true) })
+        { in: Rep[Input] => result: Rep[Int] =>
+          result == -1 || (0 <= result && result <= 9)
+        })
     }
     check("0", (new P0 with Impl).code)
   }
