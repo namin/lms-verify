@@ -344,7 +344,6 @@ class ParserTests extends TestSuite {
       // rep(p, (), { (a: Rep[Unit], x: Rep[T]) => a })
       // also, repN returns repetition number to avoid inspecting void as a value
       def repN[T: Typ](p: Parser[T], n: Rep[Int]) = Parser[Int] { input =>
-        _assert(n >= 0)
         var ok = unit(true)
         var in = input
         loop(
