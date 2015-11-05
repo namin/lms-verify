@@ -49,36 +49,35 @@ int p(char  * x0) {
     if (x31) {
       char  *x32 = x19;
       x6 = 0/*false*/;
-      x5 = x32;
     } else {
-      char x36 = x18;
-      char  *x38 = x19;
-      int x39 = x7;
-      int x40 = x39 < 0;
-      int x45;
-      if (x40) {
-        x45 = x39;
+      char x35 = x18;
+      char  *x37 = x19;
+      int x38 = x7;
+      int x39 = x38 < 0;
+      int x44;
+      if (x39) {
+        x44 = x38;
       } else {
-        int x41 = x39 > x4;
-        int x44;
-        if (x41) {
-          x44 = -1;
+        int x40 = x38 > x4;
+        int x43;
+        if (x40) {
+          x43 = -1;
         } else {
-          char x37 = x36 - '0';
-          int x42 = x39 * 10;
-          int x43 = x42 + x37;
-          x44 = x43;
+          char x36 = x35 - '0';
+          int x41 = x38 * 10;
+          int x42 = x41 + x36;
+          x43 = x42;
         }
-        x45 = x44;
+        x44 = x43;
       }
-      x7 = x45;
-      x5 = x38;
+      x7 = x44;
+      x5 = x37;
     }
   }
-  int x71 = x7;
-  char  *x72 = x5;
-  int x73 = -1;
-  x73 = x71;
-  int x75 = x73;
-  return x75;
+  int x70 = x7;
+  char  *x71 = x5;
+  int x72 = -1;
+  x72 = x70;
+  int x74 = x72;
+  return x74;
 }

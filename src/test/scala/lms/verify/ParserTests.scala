@@ -233,7 +233,7 @@ trait StagedParser extends Dsl {
     while (c) {
       p(in).apply[Unit](
         (x, next) => { a = f(a, x); in = next },
-        next => { c = false; in = next })
+        next => { c = false })
     }}
     ParseResultCPS.Success(a, in)
   }

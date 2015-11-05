@@ -45,22 +45,21 @@ int p(char  * x0) {
     if (x28) {
       char  *x29 = x16;
       x3 = 0/*false*/;
-      x2 = x29;
     } else {
-      char x33 = x15;
-      char  *x35 = x16;
-      int x36 = x4;
-      char x34 = x33 - '0';
-      int x37 = x36 * 10;
-      int x38 = x37 + x34;
-      x4 = x38;
-      x2 = x35;
+      char x32 = x15;
+      char  *x34 = x16;
+      int x35 = x4;
+      char x33 = x32 - '0';
+      int x36 = x35 * 10;
+      int x37 = x36 + x33;
+      x4 = x37;
+      x2 = x34;
     }
   }
-  int x59 = x4;
-  char  *x60 = x2;
-  int x61 = -1;
-  x61 = x59;
-  int x63 = x61;
-  return x63;
+  int x58 = x4;
+  char  *x59 = x2;
+  int x60 = -1;
+  x60 = x58;
+  int x62 = x60;
+  return x62;
 }
