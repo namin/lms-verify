@@ -310,16 +310,18 @@ class ParserTests extends TestSuite {
       }
       def accept(s: String): Parser[Unit] = accept(s.toList)
       // See TODO below: returning A instead of Unit for similar reasons
-      def acceptStr[A: Typ](s: Rep[String], v: Rep[A]) = Parser[A] { input =>
+      def acceptStr[A: Typ](s: String, v: Rep[A]) = Parser[A] { input =>
         var in = input
-        var cs = s.asInstanceOf[Rep[Input]]
-        loop(valid_input(in) && valid_input(cs), List[Any](in, cs), 0) {
-        while (!cs.atEnd && !in.atEnd && in.first==cs.first) {
-          in = in.rest
-          cs = cs.rest
-        }}
+        var ok = unit(true)
+        for (i <- (0 until s.length):Range) {
+          if (ok) {
+            if (in.atEnd) ok = false
+            else if (in.first != s(i)) ok = false
+            else in = in.rest
+          }
+        }
         conditional(
-          cs.atEnd,
+          ok,
           ParseResultCPS.Success(v, in),
           ParseResultCPS.Failure(input))
       }
