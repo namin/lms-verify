@@ -21,6 +21,7 @@ trait StagedParser extends Dsl {
       }
     }
   }
+  implicit def var2input(s: Var[Input]): InputOps = readVar(s)
 
   // Parser Result
   abstract class ParseResultCPS[T: Typ] { self =>
@@ -308,6 +309,21 @@ class ParserTests extends TestSuite {
         case x :: xs => accept(x) ~> accept(xs)
       }
       def accept(s: String): Parser[Unit] = accept(s.toList)
+      // See TODO below: returning A instead of Unit for similar reasons
+      def acceptStr[A: Typ](s: Rep[String], v: Rep[A]) = Parser[A] { input =>
+        var in = input
+        var cs = s.asInstanceOf[Rep[Input]]
+        loop(valid_input(in) && valid_input(cs), List[Any](in, cs), 0) {
+        while (!cs.atEnd && !in.atEnd && in.first==cs.first) {
+          in = in.rest
+          cs = cs.rest
+        }}
+        conditional(
+          cs.atEnd,
+          ParseResultCPS.Success(v, in),
+          ParseResultCPS.Failure(input))
+      }
+
 
       def repUnit[T: Typ](p: Parser[T]) = Parser[Unit] { input =>
         var in = input
@@ -362,7 +378,7 @@ class ParserTests extends TestSuite {
       val CONTENT_LENGTH = 1
       val OTHER_HEADER = 0
       def headerName: Parser[Int] =
-        (accept("Content-Length") ^^^ CONTENT_LENGTH) |
+        acceptStr("Content-Length", CONTENT_LENGTH) |
         (repUnit(letter | accept('-')) ^^^ OTHER_HEADER)
 
       val NO_VALUE = -2
@@ -393,6 +409,6 @@ class ParserTests extends TestSuite {
         { in: Rep[Input] => valid_input(in) },
         { in: Rep[Input] => result: Rep[Int] => unit(true) })
     }
-    //check("3", (new P3 with Impl).code) -- too big
+    //check("3", (new P3 with Impl).code)
   }
 }

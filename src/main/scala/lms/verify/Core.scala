@@ -168,6 +168,9 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       case Const(false) => "0/*false*/"
       case Const(null) => "0/*null*/"
       case Const(c: Char) if c==0.toChar => "'\\0'"
+      case Const(s: String) =>
+        // undo CCodegen
+        super.quote(x).stripPrefix("string(").stripSuffix(")")
       case _ => super.quote(x)
     }
 
