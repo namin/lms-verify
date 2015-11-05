@@ -345,11 +345,16 @@ class ParserTests extends TestSuite {
         _assert(n >= 0)
         var ok = unit(true)
         var in = input
+        loop(
+          { i: Rep[Int] => 0<=i && valid_input(in) },
+          { i: Rep[Int] => List(i, ok, in) },
+          { i: Rep[Int] => n-i }) {
         for (i <- 0 until n)
           if (ok)
             p(in).apply[Unit](
               (_, next) => { in = next },
               next => { ok = false })
+        }
         conditional(ok, ParseResultCPS.Success(n, in), ParseResultCPS.Failure(input))
       }
 
