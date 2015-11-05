@@ -179,6 +179,10 @@ trait StagedParser extends Dsl {
       this(input) map f
     }
 
+    def ^^[U: Typ](f: Rep[T] => Rep[U]) = map(f)
+
+    def ^^^[U: Typ](u: Rep[U]) = map(x => u)
+
     def | (that: => Parser[T]) = Parser[T] { input =>
       this(input) orElse that(input)
     }
@@ -289,5 +293,106 @@ class ParserTests extends TestSuite {
         })
     }
     check("2", (new P2 with Impl).code)
+  }
+
+  // toy HTTP parser inspired by http://dl.acm.org/authorize?N80783
+  // also see https://github.com/manojo/experiments/blob/simple/src/main/scala/lms/parsing/examples/HttpParser.scala
+  //
+  // to avoid dealing with data structures, just returns
+  //   the content length of the payload if parse successful
+  //   -1 otherwise
+  test("3") {
+    trait P3 extends StagedParser {  import Parser._
+      def accept(cs: List[Char]): Parser[Unit] = cs match {
+        case Nil => Parser { i => ParseResultCPS.Success((), i) }
+        case x :: xs => accept(x) ~> accept(xs)
+      }
+      def accept(s: String): Parser[Unit] = accept(s.toList)
+
+      def repUnit[T: Typ](p: Parser[T]) = Parser[Unit] { input =>
+        var in = input
+        var c = unit(true)
+        loop (valid_input(in), List[Any](in, c), 0) {
+        while (c) {
+          p(in).apply[Unit](
+            (_, next) => { in = next },
+            next => { c = false })
+        }}
+        ParseResultCPS.Success((), in)
+      }
+      // TODO(namin): need to re-think Unit -> void mapping?
+      // problem reusing rep due to bad codegen
+      // because Unit becomes void, which is not a value in C
+      // rep(p, (), { (a: Rep[Unit], x: Rep[T]) => a })
+      // also, repN returns repetition number to avoid inspecting void as a value
+      def repN[T: Typ](p: Parser[T], n: Rep[Int]) = Parser[Int] { input =>
+        _assert(n >= 0)
+        var ok = unit(true)
+        var in = input
+        for (i <- 0 until n)
+          if (ok)
+            p(in).apply[Unit](
+              (_, next) => { in = next },
+              next => { ok = false })
+        conditional(ok, ParseResultCPS.Success(n, in), ParseResultCPS.Failure(input))
+      }
+
+      val OVERFLOW = -1
+      def nat: Parser[Int] =
+        digit2Int >> { z: Rep[Int] =>
+          rep(digit2Int, z, { (a: Rep[Int], x: Rep[Int]) =>
+            if (a<0) a
+            else if (a>Int.MaxValue / 10 - 10) OVERFLOW
+            else a*10+x
+          }, Some({ a: Rep[Int] => (a == OVERFLOW) || (0 <= a) }))
+        }
+      def acceptNat: Parser[Unit] =
+        digit >> { z: Rep[Char] => repUnit(digit) }
+
+      def anyChar: Parser[Char] = acceptIf(c => true)
+      def wildChar: Parser[Char] = acceptIf(c => c != '\n')
+      def acceptNewline: Parser[Unit] = accept("\n")
+      def acceptLine: Parser[Unit] = repUnit(wildChar) ~> acceptNewline
+      def whitespaces: Parser[Unit] = repUnit(accept(' '))
+
+      def status: Parser[Int] =
+        (accept("HTTP/") ~> acceptNat ~> accept('.') ~> acceptNat  ~> whitespaces) ~>
+        nat <~ acceptLine
+
+      val CONTENT_LENGTH = 1
+      val OTHER_HEADER = 0
+      def headerName: Parser[Int] =
+        (accept("Content-Length") ^^^ CONTENT_LENGTH) |
+        (repUnit(letter | accept('-')) ^^^ OTHER_HEADER)
+
+      val NO_VALUE = -2
+      def header: Parser[Int] =
+        (headerName <~ whitespaces <~ accept(':') <~ whitespaces) >> { h: Rep[Int] =>
+          if (h==CONTENT_LENGTH) (nat <~ whitespaces <~ acceptNewline)
+          else (acceptLine ^^^ NO_VALUE)
+        }
+
+      def headers: Parser[Int] =
+        rep(header, 0, { (a: Rep[Int], x: Rep[Int]) => if (x==NO_VALUE) a else x })
+
+      def acceptBody(n: Rep[Int]): Parser[Int] =
+        if (n<0) Parser[Int] { input => ParseResultCPS.Failure(input) }
+        else repN(anyChar, n)
+
+      def http: Parser[Int] =
+        ((status ~> headers <~ acceptNewline) >> acceptBody) <~ acceptNewline
+
+      val p = toplevel("p",
+        { in: Rep[Input] =>
+          var r = unit(-1)
+          http(in).apply(
+            (v, next) => if (next.atEnd) r = v,
+            _ => unit(()))
+          r
+        },
+        { in: Rep[Input] => valid_input(in) },
+        { in: Rep[Input] => result: Rep[Int] => unit(true) })
+    }
+    //check("3", (new P3 with Impl).code) -- too big
   }
 }
