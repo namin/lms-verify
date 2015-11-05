@@ -415,6 +415,6 @@ class ParserTests extends TestSuite {
         { in: Rep[Input] => valid_input(in) },
         { in: Rep[Input] => result: Rep[Int] => unit(true) })
     }
-    //check("3", (new P3 with Impl).code)
+    check("3", (new P3 with Impl).code)
   }
 }
