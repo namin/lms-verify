@@ -62,7 +62,7 @@ trait StagedParser extends Dsl {
 
         self.apply[Unit](
           (x, next) => { isEmpty = unit(false); value = x; rdr = next },
-          next => rdr = next
+          next => ()
         )
 
         if (isEmpty) that.apply(success, failure) else success(value, rdr)
@@ -150,7 +150,7 @@ nested flatmap in `self.
 
       self.apply[Unit](
         (x, next) => { isEmpty = unit(false); value = x; rdr = next },
-        next => rdr = next
+        next => ()
       )
 
       conditional(isEmpty, that, ParseResultCPS.Success(value, rdr))
