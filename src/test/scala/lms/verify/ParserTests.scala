@@ -309,8 +309,7 @@ class ParserTests extends TestSuite {
         case x :: xs => accept(x) ~> accept(xs)
       }
       def accept(s: String): Parser[Unit] = accept(s.toList)
-      // See TODO below: returning A instead of Unit for similar reasons
-      def acceptStr[A: Typ](s: String, v: Rep[A]) = Parser[A] { input =>
+      def acceptStr(s: String) = Parser[Unit] { input =>
         var in = input
         var ok = unit(true)
         for (i <- (0 until s.length):Range) {
@@ -322,28 +321,14 @@ class ParserTests extends TestSuite {
         }
         conditional(
           ok,
-          ParseResultCPS.Success(v, in),
+          ParseResultCPS.Success((), in),
           ParseResultCPS.Failure(input))
       }
 
+      def repUnit[T: Typ](p: Parser[T]) =
+        rep(p, (), { (a: Rep[Unit], x: Rep[T]) => a })
 
-      def repUnit[T: Typ](p: Parser[T]) = Parser[Unit] { input =>
-        var in = input
-        var c = unit(true)
-        loop (valid_input(in), List[Any](in, c), 0) {
-        while (c) {
-          p(in).apply[Unit](
-            (_, next) => { in = next },
-            next => { c = false })
-        }}
-        ParseResultCPS.Success((), in)
-      }
-      // TODO(namin): need to re-think Unit -> void mapping?
-      // problem reusing rep due to bad codegen
-      // because Unit becomes void, which is not a value in C
-      // rep(p, (), { (a: Rep[Unit], x: Rep[T]) => a })
-      // also, repN returns repetition number to avoid inspecting void as a value
-      def repN[T: Typ](p: Parser[T], n: Rep[Int]) = Parser[Int] { input =>
+      def repN[T: Typ](p: Parser[T], n: Rep[Int]) = Parser[Unit] { input =>
         var ok = unit(true)
         var in = input
         loop(
@@ -356,7 +341,7 @@ class ParserTests extends TestSuite {
               (_, next) => { in = next },
               next => { ok = false })
         }
-        conditional(ok, ParseResultCPS.Success(n, in), ParseResultCPS.Failure(input))
+        conditional(ok, ParseResultCPS.Success((), in), ParseResultCPS.Failure(input))
       }
 
       val OVERFLOW = -1
@@ -384,7 +369,7 @@ class ParserTests extends TestSuite {
       val CONTENT_LENGTH = 1
       val OTHER_HEADER = 0
       def headerName: Parser[Int] =
-        acceptStr("Content-Length", CONTENT_LENGTH) |
+        (acceptStr("Content-Length") ^^^ CONTENT_LENGTH) |
         (repUnit(letter | accept('-')) ^^^ OTHER_HEADER)
 
       val NO_VALUE = -2
@@ -399,7 +384,7 @@ class ParserTests extends TestSuite {
 
       def acceptBody(n: Rep[Int]): Parser[Int] =
         if (n<0) Parser[Int] { input => ParseResultCPS.Failure(input) }
-        else repN(anyChar, n)
+        else repN(anyChar, n) ^^^ n
 
       def http: Parser[Int] =
         ((status ~> headers <~ acceptNewline) >> acceptBody) <~ acceptNewline

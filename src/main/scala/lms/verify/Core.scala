@@ -190,6 +190,23 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
         case _ => super.isPrimitiveType(tpe)
       }
     }
+    override def emitValDef(sym: Sym[Any], rhs: String): Unit = {
+      if (!isVoidType(sym.tp)) super.emitValDef(sym, rhs)
+      else emitVoid(rhs)
+    }
+    override def emitVarDef(sym: Sym[Variable[Any]], rhs: String): Unit = {
+      if (!isVoidVar(sym)) super.emitVarDef(sym, rhs)
+      else emitVoid(rhs)
+    }
+    override def emitAssignment(sym: Sym[Any], rhs: String): Unit = {
+      if (!isVoidVar(sym)) super.emitAssignment(sym, rhs)
+      else emitVoid(rhs)
+    }
+    def isVoidVar(sym: Sym[Any]) = isVoidType(sym.tp.typeArguments.head)
+    def emitVoid(rhs: String): Unit = {
+      if (rhs.contains("("))
+        stream.println(rhs + ";")
+    }
 
     def exprOfBlock[A](kw: String, e: Block[A], m: Map[Sym[_], String] = Map()): String = {
       val r = exprOfBlock(e, m)
@@ -235,8 +252,8 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       case ArrayApply(p, i) => exprOf(p, m)+"["+exprOf(i, m)+"]"
       case Reify(r, _, _) => exprOf(r, m)
       case Reflect(r, _, _) => exprOfDef(r, m)
-      case ReadVar(Variable(s@Sym(n))) => quote(s)
-      case ListNew(xs) => xs.map(exprOf(_, m)).mkString(", ")
+      case ReadVar(Variable(s@Sym(n))) => if (isVoidVar(s)) "" else quote(s)
+      case ListNew(xs) => xs.map(exprOf(_, m)).filter(_.nonEmpty).mkString(", ")
       // FIXME: only works for strings / Seq[Char] / Array[Char]
       case SeqLength(x) => "strlen("+exprOf(x, m)+")"
       case ArrayLength(x) => "strlen("+exprOf(x, m)+")"
@@ -262,6 +279,8 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
         case Assert => stream.println(exprOfBlock("//@assert", asserts.get(sym).get))
         case ArrayApply(x,n) => emitValDef(sym, quote(x) + "[" + quote(n) + "]")
         case ArrayUpdate(x,n,y) => stream.println(quote(x) + "[" + quote(n) + "] = " + quote(y) + ";")
+        // TODO: the LMS C codegen should be updated to use emitAssignment instead
+        case Assign(Variable(a), b) => emitAssignment(a.asInstanceOf[Sym[Variable[Any]]], quote(b))
         case SeqLength(x) =>
           // FIXME: only works for strings / Seq[Char]
           emitValDef(sym, "strlen("+quote(x)+")")
