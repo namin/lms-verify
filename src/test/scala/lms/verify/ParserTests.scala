@@ -57,6 +57,27 @@ trait StagedParser extends Dsl {
       def apply[X: Typ](
         success: (Rep[T], Rep[Input]) => Rep[X],
         failure: Rep[Input] => Rep[X]
+      ): Rep[X] = {
+        var isEmpty = unit(true); var value = zeroVal[T]; var rdr = zeroVal[Input]
+
+        self.apply[Unit](
+          (x, next) => { isEmpty = unit(false); value = x; rdr = next },
+          next => rdr = next
+        )
+
+        if (isEmpty) that.apply(success, failure) else success(value, rdr)
+      }
+    }
+
+/*
+
+This definition of orElse causes code duplication of `that` for each
+nested flatmap in `self.
+
+    def orElse(that: => ParseResultCPS[T]) = new ParseResultCPS[T] {
+      def apply[X: Typ](
+        success: (Rep[T], Rep[Input]) => Rep[X],
+        failure: Rep[Input] => Rep[X]
       ): Rep[X] = self.apply(
         (t: Rep[T], in: Rep[Input]) => success(t, in),
         (nxt: Rep[Input]) => that.apply(
@@ -65,6 +86,7 @@ trait StagedParser extends Dsl {
         )
       )
     }
+ */
 
     def toResult(default: Rep[T]): Rep[T] = {
       var value = default
@@ -309,7 +331,13 @@ class ParserTests extends TestSuite {
         case x :: xs => accept(x) ~> accept(xs)
       }
       def accept(s: String): Parser[Unit] = accept(s.toList)
-      def acceptStr(s: String) = Parser[Unit] { input =>
+
+/*
+
+Alternative definition of `accept`. Generates less code, but arguably
+more low-level.
+
+      def accept(s: String) = Parser[Unit] { input =>
         var in = input
         var ok = unit(true)
         for (i <- (0 until s.length):Range) {
@@ -324,6 +352,7 @@ class ParserTests extends TestSuite {
           ParseResultCPS.Success((), in),
           ParseResultCPS.Failure(input))
       }
+ */
 
       def repUnit[T: Typ](p: Parser[T]) =
         rep(p, (), { (a: Rep[Unit], x: Rep[T]) => a })
@@ -369,7 +398,7 @@ class ParserTests extends TestSuite {
       val CONTENT_LENGTH = 1
       val OTHER_HEADER = 0
       def headerName: Parser[Int] =
-        (acceptStr("Content-Length") ^^^ CONTENT_LENGTH) |
+        (accept("Content-Length") ^^^ CONTENT_LENGTH) |
         (repUnit(letter | accept('-')) ^^^ OTHER_HEADER)
 
       val NO_VALUE = -2
