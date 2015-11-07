@@ -379,6 +379,16 @@ more low-level.
     { in: Rep[Input] => result: Rep[Int] => unit(true) })
 }
 
+trait ChunkedHttpParser extends HttpParser { import Parser._
+  val TRANSFER_ENCODING = 2
+  override def headerMap = super.headerMap :+ ("Transfer-Encoding", TRANSFER_ENCODING)
+
+  val CHUNKED = -3
+  override def headerValue(h: Rep[Int]) =
+    if (h==TRANSFER_ENCODING) (accept("chunked") ^^^ CHUNKED) <~ whitespaces <~ acceptNewline
+    else super.headerValue(h)
+}
+
 class ParserTests extends TestSuite {
   val under = "parse"
 
