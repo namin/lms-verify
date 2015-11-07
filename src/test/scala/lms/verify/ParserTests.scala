@@ -343,9 +343,10 @@ more low-level.
     nat <~ acceptLine
 
   val CONTENT_LENGTH = 1
+  def headerMap: List[(String, Int)] = ("Content-Length", CONTENT_LENGTH)::Nil
   val OTHER_HEADER = 0
   def headerName: Parser[Int] =
-    (accept("Content-Length") ^^^ CONTENT_LENGTH) |
+    ((for ((h,i) <- headerMap) yield (accept(h) ^^^ i)).reduce(_ | _)) |
     (repUnit(letter | accept('-')) ^^^ OTHER_HEADER)
 
   val NO_VALUE = -2
