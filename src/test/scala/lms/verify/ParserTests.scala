@@ -321,13 +321,14 @@ more low-level.
   }
 
   val OVERFLOW = -1
+  def overflowOrPos = Some({ a: Rep[Int] => (a == OVERFLOW) || (0 <= a) })
   def num(c: Parser[Int], b: Int): Parser[Int] =
     c >> { z: Rep[Int] =>
       rep(c, z, { (a: Rep[Int], x: Rep[Int]) =>
         if (a<0) a
         else if (a>Int.MaxValue / b - b) OVERFLOW
         else a*b+x
-      }, Some({ a: Rep[Int] => (a == OVERFLOW) || (0 <= a) }))
+      }, overflowOrPos)
     }
 
   def nat: Parser[Int] = num(digit2Int, 10)
@@ -407,7 +408,7 @@ trait ChunkedHttpParser extends HttpParser { import Parser._
       if (a<0) a
       else if (a>Int.MaxValue - x) OVERFLOW
       else a+x
-    }, Some({ a: Rep[Int] => (a == OVERFLOW) || (0 <= a) }))
+    }, overflowOrPos)
 }
 
 class ParserTests extends TestSuite {
