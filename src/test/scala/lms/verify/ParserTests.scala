@@ -284,22 +284,22 @@ trait HttpParser extends StagedParser {  import Parser._
 Alternative definition of `accept`. Generates less code, but arguably
 more low-level.
 
-    def accept(s: String) = Parser[Unit] { input =>
-      var in = input
-      var ok = unit(true)
-      for (i <- (0 until s.length):Range) {
-        if (ok) {
-          if (in.atEnd) ok = false
-          else if (in.first != s(i)) ok = false
-          else in = in.rest
-        }
+  def accept(s: String) = Parser[Unit] { input =>
+    var in = input
+    var ok = unit(true)
+    for (i <- (0 until s.length):Range) {
+      if (ok) {
+        if (in.atEnd) ok = false
+        else if (in.first != s(i)) ok = false
+        else in = in.rest
       }
-      conditional(
-        ok,
-        ParseResultCPS.Success((), in),
-        ParseResultCPS.Failure(input))
     }
- */
+    conditional(
+      ok,
+      ParseResultCPS.Success((), in),
+      ParseResultCPS.Failure(input))
+  }
+*/
 
   def repUnit[T: Typ](p: Parser[T]) =
     rep(p, (), { (a: Rep[Unit], x: Rep[T]) => a })
