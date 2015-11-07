@@ -468,4 +468,12 @@ class ParserTests extends TestSuite {
     }
     check("3", (new P3 with Impl).code)
   }
+
+  test("4") {
+    trait P4 extends ChunkedHttpParser {
+      override def http = chunkedBody
+      val p = top
+    }
+    check("4", (new P4 with Impl).code)
+  }
 }
