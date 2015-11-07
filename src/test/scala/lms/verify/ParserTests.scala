@@ -403,7 +403,11 @@ trait ChunkedHttpParser extends HttpParser { import Parser._
     (hex <~ acceptNewline) >> super.acceptBody
 
   def chunkedBody: Parser[Int] =
-    rep(acceptChunk, 0, { (a: Rep[Int], x: Rep[Int]) => a+x })
+    rep(acceptChunk, 0, { (a: Rep[Int], x: Rep[Int]) =>
+      if (a<0) a
+      else if (a>Int.MaxValue - x) OVERFLOW
+      else a+x
+    }, Some({ a: Rep[Int] => (a == OVERFLOW) || (0 <= a) }))
 }
 
 class ParserTests extends TestSuite {
