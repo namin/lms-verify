@@ -387,6 +387,15 @@ trait ChunkedHttpParser extends HttpParser { import Parser._
   override def headerValue(h: Rep[Int]) =
     if (h==TRANSFER_ENCODING) (accept("chunked") ^^^ CHUNKED) <~ whitespaces <~ acceptNewline
     else super.headerValue(h)
+
+  override def acceptBody(n: Rep[Int]): Parser[Int] =
+    if (n==CHUNKED) chunkedBody else super.acceptBody(n)
+
+  def acceptChunk: Parser[Int] =
+    nat >> super.acceptBody // TODO: change nat to hex
+
+  def chunkedBody: Parser[Int] =
+    rep(acceptChunk, 0, { (a: Rep[Int], x: Rep[Int]) => a+x })
 }
 
 class ParserTests extends TestSuite {
