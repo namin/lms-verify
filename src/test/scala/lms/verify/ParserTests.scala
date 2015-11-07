@@ -349,11 +349,12 @@ more low-level.
     (repUnit(letter | accept('-')) ^^^ OTHER_HEADER)
 
   val NO_VALUE = -2
+  def headerValue(h: Rep[Int]) =
+    if (h==CONTENT_LENGTH) (nat <~ whitespaces <~ acceptNewline)
+    else (acceptLine ^^^ NO_VALUE)
+
   def header: Parser[Int] =
-    (headerName <~ whitespaces <~ accept(':') <~ whitespaces) >> { h: Rep[Int] =>
-      if (h==CONTENT_LENGTH) (nat <~ whitespaces <~ acceptNewline)
-      else (acceptLine ^^^ NO_VALUE)
-    }
+    (headerName <~ whitespaces <~ accept(':') <~ whitespaces) >> headerValue
 
   def headers: Parser[Int] =
     rep(header, 0, { (a: Rep[Int], x: Rep[Int]) => if (x==NO_VALUE) a else x })
