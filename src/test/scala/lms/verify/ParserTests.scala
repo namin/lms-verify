@@ -321,14 +321,16 @@ more low-level.
   }
 
   val OVERFLOW = -1
-  def nat: Parser[Int] =
-    digit2Int >> { z: Rep[Int] =>
-      rep(digit2Int, z, { (a: Rep[Int], x: Rep[Int]) =>
+  def num(c: Parser[Int], b: Int): Parser[Int] =
+    c >> { z: Rep[Int] =>
+      rep(c, z, { (a: Rep[Int], x: Rep[Int]) =>
         if (a<0) a
-        else if (a>Int.MaxValue / 10 - 10) OVERFLOW
-        else a*10+x
+        else if (a>Int.MaxValue / b - b) OVERFLOW
+        else a*b+x
       }, Some({ a: Rep[Int] => (a == OVERFLOW) || (0 <= a) }))
     }
+
+  def nat: Parser[Int] = num(digit2Int, 10)
   def acceptNat: Parser[Unit] =
     digit >> { z: Rep[Char] => repUnit(digit) }
 
