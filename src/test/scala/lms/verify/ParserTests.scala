@@ -393,8 +393,14 @@ trait ChunkedHttpParser extends HttpParser { import Parser._
   override def acceptBody(n: Rep[Int]): Parser[Int] =
     if (n==CHUNKED) chunkedBody else super.acceptBody(n)
 
+  def hexDigit2Int: Parser[Int] =
+    digit2Int |
+    (acceptIf(c => c >= unit('a') && c <= unit('f')) ^^
+      (c => 10+(c - unit('a')).asInstanceOf[Rep[Int]]))
+  def hex: Parser[Int] = num(hexDigit2Int, 16)
+
   def acceptChunk: Parser[Int] =
-    nat >> super.acceptBody // TODO: change nat to hex
+    ((hex <~ acceptNewline) >> super.acceptBody) <~ acceptNewline
 
   def chunkedBody: Parser[Int] =
     rep(acceptChunk, 0, { (a: Rep[Int], x: Rep[Int]) => a+x })
