@@ -364,10 +364,10 @@ more low-level.
 
   def acceptBody(n: Rep[Int]): Parser[Int] =
     if (n<0) Parser[Int] { input => ParseResultCPS.Failure(input) }
-    else repN(anyChar, n) ^^^ n
+    else (repN(anyChar, n) ^^^ n) <~ acceptNewline
 
   def http: Parser[Int] =
-    ((status ~> headers <~ acceptNewline) >> acceptBody) <~ acceptNewline
+    (status ~> headers <~ acceptNewline) >> acceptBody
 
   def top = toplevel("p",
     { in: Rep[Input] =>
@@ -400,7 +400,7 @@ trait ChunkedHttpParser extends HttpParser { import Parser._
   def hex: Parser[Int] = num(hexDigit2Int, 16)
 
   def acceptChunk: Parser[Int] =
-    ((hex <~ acceptNewline) >> super.acceptBody) <~ acceptNewline
+    (hex <~ acceptNewline) >> super.acceptBody
 
   def chunkedBody: Parser[Int] =
     rep(acceptChunk, 0, { (a: Rep[Int], x: Rep[Int]) => a+x })
