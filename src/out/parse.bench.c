@@ -23,6 +23,8 @@ static const char original_data[] =
   "<A HREF=\"http://www.google.com/\">here</A>.\r\n"
   "</BODY></HTML>\r\n";
 
+// TODO: don't miss the \r's
+// TODO: should we be more relaxed about Content-Length?
 static char data[] =
   "HTTP/1.1 301 Moved Permanently\n"
   "Location: http://www.google.com/\n"
