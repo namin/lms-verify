@@ -324,7 +324,9 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
     def emitVerify[B](f: List[Exp[_]] => Exp[B], pre: List[Exp[_]] => Exp[Boolean], post: List[Exp[_]] => Exp[B] => Exp[Boolean], functionName: String, out: PrintWriter)(mAs: List[Typ[_]], mB: Typ[B]): Unit = {
       val args = mAs.map(fresh(_))
       val r = fresh[B](mB)
+      val oldFns = rec.keys.toSet
       val body = reifyBlock(f(args))(mB)
+      val fns = rec.keys.toSet -- oldFns
       eff.getOrElseUpdate(functionName, (args, summarizeEffects(body)))
       val preBody = reifyBlock(pre(args))
       val postBody = reifyBlock(post(args)(r))
@@ -345,6 +347,11 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
           }.mkString("assigns ", ", ", ";")
         } else ""
       locs = Nil // reset
+
+      fns.foreach { case k =>
+        val x = rec(k)
+        emitHeader(x.name, out)(x.mAs, mtype(x.mB))
+      }
       withStream(out) {
         val preStr = exprOfBlock("requires", preBody)
         val postStr = exprOfBlock("ensures", postBody, Map(r -> "\\result"))
