@@ -312,6 +312,15 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       }
     }
 
+    def emitHeader[B](functionName: String, out: PrintWriter)(mAs: List[Typ[_]], mB: Typ[B]): Unit = {
+      val args = mAs.map(fresh(_))
+      val r = fresh[B](mB)
+      val sB = remapWithRef(mB).trim()
+      withStream(out) {
+        stream.println(sB+" "+functionName+"("+(args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")+");")
+      }
+    }
+
     def emitVerify[B](f: List[Exp[_]] => Exp[B], pre: List[Exp[_]] => Exp[Boolean], post: List[Exp[_]] => Exp[B] => Exp[Boolean], functionName: String, out: PrintWriter)(mAs: List[Typ[_]], mB: Typ[B]): Unit = {
       val args = mAs.map(fresh(_))
       val r = fresh[B](mB)
@@ -319,7 +328,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       eff.getOrElseUpdate(functionName, (args, summarizeEffects(body)))
       val preBody = reifyBlock(pre(args))
       val postBody = reifyBlock(post(args)(r))
-      val sB = remap(mB)
+      val sB = remapWithRef(mB).trim()
       val y = getBlockResult(body)
       val assignsNothing = autoAssignNothing && {
         val s = summarizeEffects(body)
@@ -363,8 +372,6 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
     assert(codegen ne null) //careful about initialization order
     includes.foreach { i => stream.println("#include "+i) }
     rec.foreach { case (k,x) =>
-      //stream.println("/* FILE: " + x.name + ".c */")
-      //for ((_,v) <- rec) codegen.emitForwardDef(mtype(v.mA)::Nil, v.name, stream)(mtype(v.mB))
       codegen.emitVerify(x.f, x.pre, x.post.asInstanceOf[List[Exp[_]] => Exp[_] => Exp[Boolean]], x.name, stream)(x.mAs, mtype(x.mB))
     }
   }

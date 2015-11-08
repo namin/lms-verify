@@ -264,15 +264,7 @@ nested flatmap in `self.
     }}
     ParseResultCPS.Success(a, in)
   }
-}
 
-// toy HTTP parser inspired by http://dl.acm.org/authorize?N80783
-// also see https://github.com/manojo/experiments/blob/simple/src/main/scala/lms/parsing/examples/HttpParser.scala
-//
-// to avoid dealing with data structures, just returns
-//   the content length of the payload if parse successful
-//   -1 otherwise
-trait HttpParser extends StagedParser {  import Parser._
   def accept(cs: List[Char]): Parser[Unit] = cs match {
     case Nil => Parser { i => ParseResultCPS.Success((), i) }
     case x :: xs => accept(x) ~> accept(xs)
@@ -319,7 +311,15 @@ more low-level.
     }
     conditional(ok, ParseResultCPS.Success((), in), ParseResultCPS.Failure(input))
   }
+}
 
+// toy HTTP parser inspired by http://dl.acm.org/authorize?N80783
+// also see https://github.com/manojo/experiments/blob/simple/src/main/scala/lms/parsing/examples/HttpParser.scala
+//
+// to avoid dealing with data structures, just returns
+//   the content length of the payload if parse successful
+//   -1 otherwise
+trait HttpParser extends StagedParser {  import Parser._
   val OVERFLOW = -1
   def overflowOrPos = Some({ a: Rep[Int] => (a == OVERFLOW) || (0 <= a) })
   def num(c: Parser[Int], b: Int): Parser[Int] =
@@ -337,7 +337,7 @@ more low-level.
 
   def anyChar: Parser[Char] = acceptIf(c => true)
   def wildChar: Parser[Char] = acceptIf(c => c != '\n')
-  def acceptNewline: Parser[Unit] = accept("\n")
+  def acceptNewline: Parser[Unit] = accept('\n') ^^^ unit(())
   def acceptLine: Parser[Unit] = repUnit(wildChar) ~> acceptNewline
   def whitespaces: Parser[Unit] = repUnit(accept(' '))
 
@@ -409,6 +409,33 @@ trait ChunkedHttpParser extends HttpParser { import Parser._
       else if (a>Int.MaxValue - x) OVERFLOW
       else a+x
     }, overflowOrPos)
+}
+
+trait ToplevelAcceptParser extends StagedParser { import Parser._
+  type ToplevelParser = Rep[Input] => Rep[Input]
+  val ps = new scala.collection.mutable.LinkedHashMap[String,ToplevelParser]
+  def toplevel_parser(s: String, p: Parser[Unit]): ToplevelParser =
+    ps.getOrElseUpdate(s, toplevel("p_"+s.replaceAll("[^A-Za-z0-9]", ""),
+    { in: Rep[Input] =>
+      var out = in
+      p(in).apply(
+        (_, next) => out = next,
+             next => out = unit(0).asInstanceOf[Rep[Input]]) // ignore next on failure
+      out
+    },
+    { in: Rep[Input] => valid_input(in) },
+    { in: Rep[Input] => out: Rep[Input] => unit(0) == out || valid_input(out) }))
+
+  override def accept(s: String): Parser[Unit] = {
+    val f = toplevel_parser(s, super.accept(s))
+    Parser[Unit] { in =>
+      val out = f(in)
+      conditional(
+        unit(0) != out,
+        ParseResultCPS.Success(unit(()), out),
+        ParseResultCPS.Failure(in))
+    }
+  }
 }
 
 class ParserTests extends TestSuite {
