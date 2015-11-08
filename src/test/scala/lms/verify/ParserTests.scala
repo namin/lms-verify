@@ -444,6 +444,20 @@ trait ToplevelAcceptParser extends StagedParser { import Parser._
   }
 }
 
+trait TweakParser extends StagedParser { import Parser._
+  override def repUnit[T: Typ](p: Parser[T]) = Parser[Unit] { input =>
+    var in = input
+    var c = unit(true)
+    loop (valid_input(in), List[Any](in, c), 0) {
+    while (c) {
+      p(in).apply[Unit](
+        (_, next) => { in = next },
+        next => { c = false })
+    }}
+    ParseResultCPS.Success((), in)
+  }
+}
+
 class ParserTests extends TestSuite {
   val under = "parse"
 
@@ -496,8 +510,16 @@ class ParserTests extends TestSuite {
     check("2", (new P2 with Impl).code)
   }
 
+  test("3a") {
+    trait P3a extends HttpParser {
+      override def http = headers
+      val p = top
+    }
+    check("3a", (new P3a with Impl).code)
+  }
+
   test("3") {
-    trait P3 extends HttpParser {
+    trait P3 extends HttpParser with ToplevelAcceptParser with TweakParser {
       val p = top
     }
     check("3", (new P3 with Impl).code)
@@ -509,5 +531,12 @@ class ParserTests extends TestSuite {
       val p = top
     }
     check("4", (new P4 with Impl).code)
+  }
+
+  test("5") {
+    trait P5 extends ChunkedHttpParser with ToplevelAcceptParser with TweakParser {
+      val p = top
+    }
+    check("5", (new P5 with Impl).code)
   }
 }
