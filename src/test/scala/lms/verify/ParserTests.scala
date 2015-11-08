@@ -47,10 +47,16 @@ trait StagedParser extends Dsl {
       def apply[X: Typ](
         success: (Rep[U], Rep[Input]) => Rep[X],
         failure: Rep[Input] => Rep[X]
-      ): Rep[X] = self.apply(
-        (t: Rep[T], in: Rep[Input]) => f(t, in).apply(success, failure),
-        failure
-      )
+      ): Rep[X] = {
+        var isEmpty = unit(true); var value = zeroVal[T]; var rdr = zeroVal[Input]
+
+        self.apply[Unit](
+          (x, next) => { isEmpty = unit(false); value = x; rdr = next },
+          next => rdr = next
+        )
+
+        if (isEmpty) failure(rdr) else f(value, rdr).apply(success, failure)
+      }
     }
 
     def orElse(that: => ParseResultCPS[T]) = new ParseResultCPS[T] {
