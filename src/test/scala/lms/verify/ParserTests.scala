@@ -75,25 +75,6 @@ trait StagedParser extends Dsl {
       }
     }
 
-/*
-
-This definition of orElse causes code duplication of `that` for each
-nested flatmap in `self.
-
-    def orElse(that: => ParseResultCPS[T]) = new ParseResultCPS[T] {
-      def apply[X: Typ](
-        success: (Rep[T], Rep[Input]) => Rep[X],
-        failure: Rep[Input] => Rep[X]
-      ): Rep[X] = self.apply(
-        (t: Rep[T], in: Rep[Input]) => success(t, in),
-        (nxt: Rep[Input]) => that.apply(
-          success,
-          failure
-        )
-      )
-    }
- */
-
     def toResult(default: Rep[T]): Rep[T] = {
       var value = default
       self.apply(
@@ -132,24 +113,6 @@ nested flatmap in `self.
       }
     }
 
-    override def flatMapWithNext[U: Typ](f: (Rep[T], Rep[Input]) => ParseResultCPS[U])
-        = new ParseResultCPS[U] {
-
-      def apply[X: Typ](
-        success: (Rep[U], Rep[Input]) => Rep[X],
-        failure: Rep[Input] => Rep[X]
-      ): Rep[X] = {
-
-        var isEmpty = unit(true); var value = zeroVal[T]; var rdr = zeroVal[Input]
-
-        self.apply[Unit](
-          (x, next) => { isEmpty = unit(false); value = x; rdr = next },
-          next => rdr = next
-        )
-
-        if (isEmpty) failure(rdr) else f(value, rdr).apply(success, failure)
-      }
-    }
 
     override def orElse(that: => ParseResultCPS[T]): ParseResultCPS[T] = {
       var isEmpty = unit(true); var value = zeroVal[T]; var rdr = zeroVal[Input]
