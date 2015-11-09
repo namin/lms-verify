@@ -24,6 +24,7 @@ static const char original_data[] =
   "</BODY></HTML>\r\n";
 
 // TODO: don't miss the \r's
+// TODO: allow more chars in header name field, all but ':' and spaces?
 // TODO: should we be more relaxed about Content-Length?
 static char data[] =
   "HTTP/1.1 301 Moved Permanently\n"
