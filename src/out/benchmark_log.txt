@@ -1,0 +1,18 @@
+Benchmarks
+==========
+
+            LMS               Node
+
+-O3
+0.    1919404.250000    953986.375000   req/sec
+1.    1985162.000000
+2.    1989370.250000
+
+-O2   1880522.250000    916313.500000   req/sec
+
+
+
+
+
+1. Using nat (folding into int for major and minor versions of http status)
+2. no overflow check on top of 1
