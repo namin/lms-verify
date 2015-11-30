@@ -290,19 +290,22 @@ more low-level.
 //   -1 otherwise
 trait HttpParser extends StagedParser {  import Parser._
   val OVERFLOW = -1
-  def overflowOrPos = Some({ a: Rep[Int] => (a == OVERFLOW) || (0 <= a) })
+  def overflowOrPos: Option[Rep[Int] => Rep[Boolean]] =
+    Some({ a: Rep[Int] => (a == OVERFLOW) || (0 <= a) })
+  def numAcc(b: Int) = { (a: Rep[Int], x: Rep[Int]) =>
+    if (a<0) a
+    else if (a>Int.MaxValue / b - b) OVERFLOW
+    else a*b+x
+  }
   def num(c: Parser[Int], b: Int): Parser[Int] =
     c >> { z: Rep[Int] =>
-      rep(c, z, { (a: Rep[Int], x: Rep[Int]) =>
-        if (a<0) a
-        else if (a>Int.MaxValue / b - b) OVERFLOW
-        else a*b+x
-      }, overflowOrPos)
+      rep(c, z, numAcc(b), overflowOrPos)
     }
 
   def nat: Parser[Int] = num(digit2Int, 10)
   def acceptNat: Parser[Unit] =
     digit >> { z: Rep[Char] => repUnit(digit) }
+  def ignoredNat: Parser[Unit] = acceptNat
 
   def anyChar: Parser[Char] = acceptIf(c => true)
   def wildChar: Parser[Char] = acceptIf(c => c != '\n')
@@ -311,7 +314,7 @@ trait HttpParser extends StagedParser {  import Parser._
   def whitespaces: Parser[Unit] = repUnit(accept(' '))
 
   def status: Parser[Int] =
-    (accept("HTTP/") ~> acceptNat ~> accept('.') ~> acceptNat  ~> whitespaces) ~>
+    (accept("HTTP/") ~> ignoredNat ~> accept('.') ~> ignoredNat  ~> whitespaces) ~>
     nat <~ acceptLine
 
   val CONTENT_LENGTH = 1
@@ -499,6 +502,15 @@ class ParserTests extends TestSuite {
   test("5") {
     trait P5 extends ChunkedHttpParser with ToplevelAcceptParser with TweakParser {
       val p = top
+
+      // Variations
+
+      // still parse ignored nat
+      //override def ignoredNat = nat ^^^ ()
+
+      // no overflow check
+      //override def overflowOrPos = None
+      //override def numAcc(b: Int) = { (a: Rep[Int], x: Rep[Int]) => a*b+x }
     }
     check("5", (new P5 with Impl).code)
   }
