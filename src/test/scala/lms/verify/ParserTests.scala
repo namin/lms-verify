@@ -269,7 +269,7 @@ more low-level.
     var ok = unit(true)
     var in = input
     loop(
-      { i: Rep[Int] => 0 <= i && valid_input(in) },
+      { i: Rep[Int] => 0<=i && valid_input(in) },
       { i: Rep[Int] => List(i, ok, in) },
       { i: Rep[Int] => n-i }) {
     for (i <- 0 until n)
@@ -290,14 +290,13 @@ more low-level.
 //   -1 otherwise
 trait HttpParser extends StagedParser {  import Parser._
   val OVERFLOW = -1
-  def overflowOrPos: Option[Rep[Int] => Rep[Boolean]] =
-    Some({ a: Rep[Int] => (a == OVERFLOW) || (0 <= a) })
+  def overflowOrPos = Some({ a: Rep[Int] => (a == OVERFLOW) || (0 <= a) })
   def num(c: Parser[Int], b: Int): Parser[Int] =
     c >> { z: Rep[Int] =>
       rep(c, z, { (a: Rep[Int], x: Rep[Int]) =>
-        if (a < 0) a
-        else if (a > Int.MaxValue / b - b) OVERFLOW
-        else a * b + x
+        if (a<0) a
+        else if (a>Int.MaxValue / b - b) OVERFLOW
+        else a*b+x
       }, overflowOrPos)
     }
 
@@ -311,14 +310,8 @@ trait HttpParser extends StagedParser {  import Parser._
   def acceptLine: Parser[Unit] = repUnit(wildChar) ~> acceptNewline
   def whitespaces: Parser[Unit] = repUnit(accept(' '))
 
-  /**
-   * 1. Nodejs uses equivalent of nat for major and minor HTTP version number
-   * -. we should use nat filter (_ <= 999) for full compatibility
-   * -. there is an extra check for a minor HTTP version that we don't have
-   * -. We don't save fields for status_code, etc, we throw them away
-   */
   def status: Parser[Int] =
-    (accept("HTTP/") ~> nat ~> accept('.') ~> nat  ~> whitespaces) ~>
+    (accept("HTTP/") ~> acceptNat ~> accept('.') ~> acceptNat  ~> whitespaces) ~>
     nat <~ acceptLine
 
   val CONTENT_LENGTH = 1
@@ -340,7 +333,7 @@ trait HttpParser extends StagedParser {  import Parser._
     rep(header, 0, { (a: Rep[Int], x: Rep[Int]) => if (x==NO_VALUE) a else x })
 
   def acceptBody(n: Rep[Int]): Parser[Int] =
-    if (n < 0) Parser[Int] { input => ParseResultCPS.Failure(input) }
+    if (n<0) Parser[Int] { input => ParseResultCPS.Failure(input) }
     else (repN(anyChar, n) ^^^ n) <~ acceptNewline
 
   def http: Parser[Int] =
@@ -364,17 +357,16 @@ trait ChunkedHttpParser extends HttpParser { import Parser._
 
   val CHUNKED = -3
   override def headerValue(h: Rep[Int]) =
-    if (h == TRANSFER_ENCODING) (accept("chunked") ^^^ CHUNKED) <~ whitespaces <~ acceptNewline
+    if (h==TRANSFER_ENCODING) (accept("chunked") ^^^ CHUNKED) <~ whitespaces <~ acceptNewline
     else super.headerValue(h)
 
   override def acceptBody(n: Rep[Int]): Parser[Int] =
-    if (n == CHUNKED) chunkedBody else super.acceptBody(n)
+    if (n==CHUNKED) chunkedBody else super.acceptBody(n)
 
   def hexDigit2Int: Parser[Int] =
     digit2Int |
     (acceptIf(c => c >= unit('a') && c <= unit('f')) ^^
-      (c => 10 + (c - unit('a')).asInstanceOf[Rep[Int]]))
-
+      (c => 10+(c - unit('a')).asInstanceOf[Rep[Int]]))
   def hex: Parser[Int] = num(hexDigit2Int, 16)
 
   def acceptChunk: Parser[Int] =
@@ -382,8 +374,8 @@ trait ChunkedHttpParser extends HttpParser { import Parser._
 
   def chunkedBody: Parser[Int] =
     rep(acceptChunk, 0, { (a: Rep[Int], x: Rep[Int]) =>
-      if (a < 0) a
-      else if (a > Int.MaxValue - x) OVERFLOW
+      if (a<0) a
+      else if (a>Int.MaxValue - x) OVERFLOW
       else a+x
     }, overflowOrPos)
 }
@@ -466,7 +458,7 @@ class ParserTests extends TestSuite {
           phrase(
             rep(digit2Int, 0,
               { (a: Rep[Int], x: Rep[Int]) =>
-                if (a < 0) a
+                if (a<0) a
                 else if (a>m) -1
                 else a*10+x
               },
@@ -509,14 +501,5 @@ class ParserTests extends TestSuite {
       val p = top
     }
     check("5", (new P5 with Impl).code)
-  }
-
-  test("5-nooverflow") {
-    trait P5 extends ChunkedHttpParser with ToplevelAcceptParser with TweakParser {
-      val p = top
-      override def overflowOrPos = None
-    }
-
-    check("5-nooverflow", (new P5 with Impl).code)
   }
 }
