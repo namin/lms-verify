@@ -144,14 +144,31 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
     l
   }
 
-  val asserts = new scala.collection.mutable.LinkedHashMap[Sym[_], Block[Boolean]]
-  case object Assert extends Def[Unit]
+  case class Assert(y: Block[Boolean]) extends Def[Unit]
   def _assert(cond: =>Rep[Boolean])(implicit pos: SourceContext): Rep[Unit] = {
     val y = reifyEffects(cond)
-    val r = reflectEffect(Assert)
-    asserts.getOrElseUpdate(r.asInstanceOf[Sym[_]], y)
+    val r = reflectEffect(Assert(y))
     r
   }
+
+  override def syms(e: Any): List[Sym[Any]] = e match {
+    case Assert(y) => syms(y)
+    case Quantifier(k, x, y) => syms(y)
+    case _ => super.syms(e)
+  }
+
+  override def boundSyms(e: Any): List[Sym[Any]] = e match {
+    case Assert(y) => effectSyms(y)
+    case Quantifier(k, x, y) => syms(x) ::: effectSyms(y)
+    case _ => super.boundSyms(e)
+  }
+
+  override def symsFreq(e: Any): List[(Sym[Any], Double)] = e match {
+    case Assert(y) => freqCold(y)
+    case Quantifier(k, x, y) => freqCold(y)
+    case _ => super.symsFreq(e)
+  }
+
 }
 
 trait Dsl extends VerifyOps with ScalaOpsPkg with TupledFunctions with UncheckedOps with LiftPrimitives with LiftString with LiftVariables with LiftBoolean with LiftNumeric with ZeroVal {
@@ -276,7 +293,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       }
       rhs match {
         case ToplevelApply(name, args) => emitValDef(sym, name+args.map(quote).mkString("(", ",", ")"))
-        case Assert => stream.println(exprOfBlock("//@assert", asserts.get(sym).get))
+        case Assert(y) => stream.println(exprOfBlock("//@assert", y))
         case ArrayApply(x,n) => emitValDef(sym, quote(x) + "[" + quote(n) + "]")
         case ArrayUpdate(x,n,y) => stream.println(quote(x) + "[" + quote(n) + "] = " + quote(y) + ";")
         // TODO: the LMS C codegen should be updated to use emitAssignment instead
