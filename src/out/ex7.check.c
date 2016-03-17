@@ -2,12 +2,12 @@
 /*@
 requires ((x1>0) && \valid(x0+(0..x1-1)));
 assigns \nothing;
-ensures (((\result==-1) ==> (!(\exists int  x56; (((0<=x56) && (x56<x1)) && (x0[x56]==x2))))) && ((\result!=-1) ==> (((0<=\result) && (\result<x1)) && (x0[\result]==x2))));
+ensures (((\result==-1) ==> (!(\exists int  x69; (((0<=x69) && (x69<x1)) && (x0[x69]==x2))))) && ((\result!=-1) ==> (((0<=\result) && (\result<x1)) && (x0[\result]==x2))));
 */
 int member(int  * x0, int  x1, int  x2) {
   int x4 = -1;
   /*@
-  loop invariant ((((0<=x6) && (x6<=x1)) && ((x4==-1) ==> (!(\exists int  x22; (((0<=x22) && (x22<x6)) && (x0[x22]==x2)))))) && ((x4!=-1) ==> (((0<=x4) && (x4<x6)) && (x0[x4]==x2))));
+  loop invariant ((((0<=x6) && (x6<=x1)) && ((x4==-1) ==> (!(\exists int  x23; (((0<=x23) && (x23<x6)) && (x0[x23]==x2)))))) && ((x4!=-1) ==> (((0<=x4) && (x4<x6)) && (x0[x4]==x2))));
   loop assigns x6, x4;
   loop variant (x1-x6);
   */
@@ -27,6 +27,6 @@ int member(int  * x0, int  x1, int  x2) {
     } else {
     }
   }
-  int x50 = x4;
-  return x50;
+  int x60 = x4;
+  return x60;
 }

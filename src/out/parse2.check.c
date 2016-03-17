@@ -1,7 +1,7 @@
 #include <limits.h>
 #include <string.h>
 /*@
-requires ((strlen(x0)>=0) && \valid(x0+(0..strlen(x0))));
+requires ((strlen(x0)>=0) && \valid(x0+(0..(strlen(x0)+1)-1)));
 assigns \nothing;
 ensures ((\result==-1) || (0<=\result));
 */
@@ -13,7 +13,7 @@ int p(char  * x0) {
   int x3 = x2 / 10;
   int x4 = x3 - 10;
   /*@
-  loop invariant (((strlen(x5)>=0) && \valid(x5+(0..strlen(x5)))) && ((x7==-1) || (0<=x7)));
+  loop invariant (((strlen(x5)>=0) && \valid(x5+(0..(strlen(x5)+1)-1))) && ((x7==-1) || (0<=x7)));
   loop assigns x5, x6, x7;
   */
   for (;;) {
@@ -74,10 +74,10 @@ int p(char  * x0) {
       x5 = x37;
     }
   }
-  int x70 = x7;
-  char  *x71 = x5;
-  int x72 = -1;
-  x72 = x70;
-  int x74 = x72;
-  return x74;
+  int x72 = x7;
+  char  *x73 = x5;
+  int x74 = -1;
+  x74 = x72;
+  int x76 = x74;
+  return x76;
 }

@@ -1,7 +1,7 @@
 #include <limits.h>
 #include <string.h>
 /*@
-requires ((strlen(x0)>=0) && \valid(x0+(0..strlen(x0))));
+requires ((strlen(x0)>=0) && \valid(x0+(0..(strlen(x0)+1)-1)));
 */
 int matcher(char  * x0) {
   int x2 = -1;
@@ -36,7 +36,7 @@ int matcher(char  * x0) {
     } else {
       x18 = 0/*false*/;
     }
-    int x100;
+    int x104;
     if (x18) {
       int x19 = x13 + 1;
       int x20 = x19 < x7;
@@ -49,7 +49,7 @@ int matcher(char  * x0) {
       } else {
         x24 = 0/*false*/;
       }
-      int x99;
+      int x103;
       if (x24) {
         int x25 = x19 + 1;
         int x26 = x25;
@@ -90,7 +90,7 @@ int matcher(char  * x0) {
         int x42 = x41;
         int x43 = 0/*false*/;
         /*@
-        loop invariant ((((x2+1)+1)<=x26) && (x26<=strlen(x0)));
+        loop invariant ((x25<=x26) && (x26<=strlen(x0)));
         loop assigns x26, x42, x43;
         loop variant (strlen(x0)-x26);
         */
@@ -157,25 +157,25 @@ int matcher(char  * x0) {
           }
           x42 = x76;
         }
-        int x93 = x43;
-        int x94 = !x93;
-        int x97;
-        if (x94) {
-          int x95 = x42;
-          x97 = x95;
+        int x97 = x43;
+        int x98 = !x97;
+        int x101;
+        if (x98) {
+          int x99 = x42;
+          x101 = x99;
         } else {
-          x97 = 0/*false*/;
+          x101 = 0/*false*/;
         }
-        x99 = x97;
+        x103 = x101;
       } else {
-        x99 = 0/*false*/;
+        x103 = 0/*false*/;
       }
-      x100 = x99;
+      x104 = x103;
     } else {
-      x100 = 0/*false*/;
+      x104 = 0/*false*/;
     }
-    x3 = x100;
+    x3 = x104;
   }
-  int x116 = x3;
-  return x116;
+  int x124 = x3;
+  return x124;
 }

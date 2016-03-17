@@ -6,15 +6,15 @@ int main(int  x0) {
   #line 44 "BlameTests.scala"
   //@assert ((x0%2)==1);
   #line 37 "BlameTests.scala"
-  //@assert (((x0+1)%2)==0);
+  int x6 = x0 + 1;
+  #line 37 "BlameTests.scala"
+  //@assert ((x6%2)==0);
   #line 38 "BlameTests.scala"
-  //@assert (((x0+1)%2)==0);
+  //@assert ((x6%2)==0);
   #line 37 "BlameTests.scala"
-  int x5 = x0 + 1;
-  #line 37 "BlameTests.scala"
-  int x10 = x5 - 1;
+  int x15 = x6 - 1;
   #line 39 "BlameTests.scala"
-  //@assert ((((x0+1)-1)%2)==1);
+  //@assert ((x15%2)==1);
   #line 581 "Effects.scala"
-  return x10;
+  return x15;
 }

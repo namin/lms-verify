@@ -11,44 +11,44 @@ void inswap(int  * x0, int  x1, int  x2) {
   x0[x2] = x4;
 }
 /*@
-requires ((x23>0) && \valid(x22+(0..x23-1)));
-ensures (\forall int  x174; (((0<=x174) && (x174<(x23-1))) ==> (x22[x174]<=x22[(x174+1)])));
-assigns x22[(0..x23-1)];
+requires ((x26>0) && \valid(x25+(0..x26-1)));
+ensures (\forall int  x203; (((0<=x203) && (x203<(x26-1))) ==> (x25[x203]<=x25[(x203+1)])));
+assigns x25[(0..x26-1)];
 */
-void insort(int  * x22, int  x23) {
-  int x26 = x23;
+void insort(int  * x25, int  x26) {
+  int x29 = x26;
   /*@
-  loop invariant ((((0<=x26) && (x26<=x23)) && (\forall int  x130; (((x26<=x130) && (x130<(x23-1))) ==> (x22[x130]<=x22[(x130+1)])))) && (\forall int  x143; ((((0<=x143) && (x143<x26)) && (x26<=(x23-1))) ==> (x22[x143]<=x22[x26]))));
-  loop assigns x26, x22[(0..x23-1)];
-  loop variant x26;
+  loop invariant ((((0<=x29) && (x29<=x26)) && (\forall int  x152; (((x29<=x152) && (x152<(x26-1))) ==> (x25[x152]<=x25[(x152+1)])))) && (\forall int  x168; ((((0<=x168) && (x168<x29)) && (x29<=(x26-1))) ==> (x25[x168]<=x25[x29]))));
+  loop assigns x29, x25[(0..x26-1)];
+  loop variant x29;
   */
   for (;;) {
-    int x27 = x26;
-    int x28 = x27 > 1;
-    if (!x28) break;
-    int x30 = 0;
-    int x31 = x26;
+    int x30 = x29;
+    int x31 = x30 > 1;
+    if (!x31) break;
+    int x33 = 0;
+    int x34 = x29;
     /*@
-    loop invariant ((((((((0<=x26) && (x26<=x23)) && (0<=x33)) && (x33<=x26)) && (0<=x30)) && (x30<=(x26-1))) && ((x26-1)<x23)) && (\forall int  x62; (((0<=x62) && (x62<x33)) ==> (x22[x62]<=x22[x30]))));
-    loop assigns x33, x30;
-    loop variant (x26-x33);
+    loop invariant ((((((((0<=x29) && (x29<=x26)) && (0<=x36)) && (x36<=x29)) && (0<=x33)) && (x33<=(x29-1))) && ((x29-1)<x26)) && (\forall int  x74; (((0<=x74) && (x74<x36)) ==> (x25[x74]<=x25[x33]))));
+    loop assigns x36, x33;
+    loop variant (x29-x36);
     */
-    for(int x33=0; x33 < x31; x33++) {
-      int x34 = x22[x33];
-      int x35 = x30;
-      int x36 = x22[x35];
-      int x37 = x34 >= x36;
-      if (x37) {
-        x30 = x33;
+    for(int x36=0; x36 < x34; x36++) {
+      int x37 = x25[x36];
+      int x38 = x33;
+      int x39 = x25[x38];
+      int x40 = x37 >= x39;
+      if (x40) {
+        x33 = x36;
       } else {
       }
     }
-    int x82 = x30;
-    int x81 = x31 - 1;
-    inswap(x22,x81,x82);
-    //@assert (\forall int  x84; ((((x26-1)<x84) && (x84<(x23-1))) ==> (x22[x84]<=x22[(x84+1)])));
-    //@assert ((x26<=(x23-1)) ==> (x22[(x26-1)]<=x22[x26]));
-    //@assert (\forall int  x108; (((0<=x108) && (x108<x26)) ==> (x22[x108]<=x22[(x26-1)])));
-    x26 = x81;
+    int x96 = x33;
+    int x95 = x34 - 1;
+    inswap(x25,x95,x96);
+    //@assert (\forall int  x98; ((((x29-1)<x98) && (x98<(x26-1))) ==> (x25[x98]<=x25[(x98+1)])));
+    //@assert ((x29<=(x26-1)) ==> (x25[(x29-1)]<=x25[x29]));
+    //@assert (\forall int  x127; (((0<=x127) && (x127<x29)) ==> (x25[x127]<=x25[(x29-1)])));
+    x29 = x95;
   }
 }

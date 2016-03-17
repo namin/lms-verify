@@ -10,37 +10,37 @@ int index(int  x0, int  x1, int  x2, int  x3) {
   return x6;
 }
 /*@
-requires ((((((((((((((((x27>0) && (x28>0)) && (x30>0)) && (x34>0)) && (x28==x30)) && (x27==x33)) && (x34==x31)) && (x27<100)) && (x28<100)) && (x30<100)) && (x31<100)) && (x33<100)) && (x34<100)) && \valid(x26+(0..(x27*x28)-1))) && \valid(x29+(0..(x30*x31)-1))) && \valid(x32+(0..(x33*x34)-1)));
+requires ((((((((((((((((x37>0) && (x38>0)) && (x40>0)) && (x44>0)) && (x38==x40)) && (x37==x43)) && (x44==x41)) && (x37<100)) && (x38<100)) && (x40<100)) && (x41<100)) && (x43<100)) && (x44<100)) && \valid(x36+(0..(x37*x38)-1))) && \valid(x39+(0..(x40*x41)-1))) && \valid(x42+(0..(x43*x44)-1)));
 */
-void mm_mult(int  * x26, int  x27, int  x28, int  * x29, int  x30, int  x31, int  * x32, int  x33, int  x34) {
+void mm_mult(int  * x36, int  x37, int  x38, int  * x39, int  x40, int  x41, int  * x42, int  x43, int  x44) {
   /*@
-  loop invariant ((0<=x37) && (x37<=x27));
-  loop assigns x37, x32[(0..(x33*x34)-1)];
-  loop variant (x27-x37);
+  loop invariant ((0<=x47) && (x47<=x37));
+  loop assigns x47, x42[(0..(x43*x44)-1)];
+  loop variant (x37-x47);
   */
-  for(int x37=0; x37 < x27; x37++) {
+  for(int x47=0; x47 < x37; x47++) {
     /*@
-    loop invariant ((0<=x39) && (x39<=x31));
-    loop assigns x39, x32[(0..(x33*x34)-1)];
-    loop variant (x31-x39);
+    loop invariant ((0<=x49) && (x49<=x41));
+    loop assigns x49, x42[(0..(x43*x44)-1)];
+    loop variant (x41-x49);
     */
-    for(int x39=0; x39 < x31; x39++) {
-      int x40 = index(x37,x39,x33,x34);
-      x32[x40] = 0;
+    for(int x49=0; x49 < x41; x49++) {
+      int x50 = index(x47,x49,x43,x44);
+      x42[x50] = 0;
       /*@
-      loop invariant ((0<=x43) && (x43<=x28));
-      loop assigns x43, x32[(0..(x33*x34)-1)];
-      loop variant (x28-x43);
+      loop invariant ((0<=x53) && (x53<=x38));
+      loop assigns x53, x42[(0..(x43*x44)-1)];
+      loop variant (x38-x53);
       */
-      for(int x43=0; x43 < x28; x43++) {
-        int x44 = x32[x40];
-        int x45 = index(x37,x43,x27,x28);
-        int x46 = x26[x45];
-        int x47 = index(x43,x39,x30,x31);
-        int x48 = x29[x47];
-        int x49 = x46 * x48;
-        int x50 = x44 + x49;
-        x32[x40] = x50;
+      for(int x53=0; x53 < x38; x53++) {
+        int x54 = x42[x50];
+        int x55 = index(x47,x53,x37,x38);
+        int x56 = x36[x55];
+        int x57 = index(x53,x49,x40,x41);
+        int x58 = x39[x57];
+        int x59 = x56 * x58;
+        int x60 = x54 + x59;
+        x42[x50] = x60;
       }
     }
   }

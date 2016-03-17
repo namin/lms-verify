@@ -1,7 +1,7 @@
 #include <limits.h>
 #include <string.h>
 /*@
-requires ((strlen(x0)>=0) && \valid(x0+(0..strlen(x0))));
+requires ((strlen(x0)>=0) && \valid(x0+(0..(strlen(x0)+1)-1)));
 */
 int matcher(char  * x0) {
   int x2 = -1;
@@ -46,6 +46,6 @@ int matcher(char  * x0) {
     }
     x3 = x21;
   }
-  int x37 = x3;
-  return x37;
+  int x41 = x3;
+  return x41;
 }
