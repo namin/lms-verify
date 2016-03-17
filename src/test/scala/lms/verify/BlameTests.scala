@@ -50,26 +50,6 @@ class BlameTests extends TestSuite {
     val o = (new Blame1 with Impl)
     o.codegen.emitFileAndLine = true
     check("1", o.code)
-    /* TODO:
-
-      In the generated code we have things like this:
-
-        //@assert (((x0+1)%2)==0);
-        int x5 = x0 + 1;
-
-      Note that the assert was originally generated after x5.
-
-      Asserts always generate full expressions, which makes
-      sense for method headers, but here we might prefer:
-
-        int x5 = x0 + 1;
-        //@assert ((x5%2)==0);
-
-      We could modify the code generator to see if a certain
-      expression has already been scheduled.
-
-    */
-
   }
 
 
