@@ -65,6 +65,21 @@ trait VerifyOps extends Base {
 trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBoolean with ListOpsExp {
   implicit def anyTyp: Typ[Any] = manifestTyp
 
+  var suspendCSE: Boolean = false
+  def reifySpec[A:Typ](block: => Exp[A]): Block[A] = {
+    val savedCSE = suspendCSE
+    suspendCSE = false
+    try {
+      reifyEffects(block)
+    } finally {
+      suspendCSE = savedCSE
+    }
+  }
+  override protected implicit def toAtom[T:Typ](d: Def[T])(implicit pos: SourceContext): Exp[T] = {
+    if (suspendCSE) reflectEffect(d)
+    else super.toAtom[T](d)(implicitly[Typ[T]], pos)
+  }
+
   case class Valid[A](p: Rep[A], r: Option[Rep[Any]]) extends Def[Boolean]
   case class Old[A](v: Rep[A]) extends Def[A]
 
@@ -112,7 +127,7 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
   case class Quantifier[A:Typ](k: String, x: Sym[A], y: Block[Boolean]) extends Def[Boolean]
   def quantifier[A:Typ](k: String, f: Rep[A] => Rep[Boolean]): Rep[Boolean] = {
     val x = fresh[A]
-    val y = reifyEffects(f(x))
+    val y = reifySpec(f(x))
     Quantifier(k, x, y)
   }
   def exists[A:Typ](f: Rep[A] => Rep[Boolean]): Rep[Boolean] =
@@ -136,9 +151,9 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
   }
   def loop(invariant: => Rep[Boolean], assigns: => Rep[List[Any]], variant: => Rep[Int])(l: Rep[Unit]): Rep[Unit] = {
     val s = l.asInstanceOf[Sym[_]]
-    val y1 = reifyEffects(invariant)
-    val y2 = reifyEffects(assigns)
-    val y3 = reifyEffects(variant)
+    val y1 = reifySpec(invariant)
+    val y2 = reifySpec(assigns)
+    val y3 = reifySpec(variant)
     val r = Loop(y1, y2, y3)
     loops.getOrElseUpdate(l.asInstanceOf[Sym[Unit]], r)
     l
@@ -146,7 +161,7 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
 
   case class Assert(y: Block[Boolean]) extends Def[Unit]
   def _assert(cond: =>Rep[Boolean])(implicit pos: SourceContext): Rep[Unit] = {
-    val y = reifyEffects(cond)
+    val y = reifySpec(cond)
     val r = reflectEffect(Assert(y))
     r
   }
@@ -225,6 +240,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
         stream.println(rhs + ";")
     }
 
+    val emitted = new scala.collection.mutable.LinkedHashSet[Sym[_]]
     def exprOfBlock[A](kw: String, e: Block[A], m: Map[Sym[_], String] = Map()): String = {
       val r = exprOfBlock(e, m)
       r match {
@@ -279,14 +295,17 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
     def exprOf[A](e: Exp[A], m: Map[Sym[_], String] = Map()): String = e match {
       case Const(b: Boolean) => b.toString
       case Const(_) => quote(e)
-      case Def(d) => exprOfDef(d, m)
-      case s@Sym(n) => m.get(s) match {
-        case Some(v) => v
-        case None => quote(e)
+      case s@Sym(n) => s match {
+        case Def(d) if !emitted(s) => exprOfDef(d, m)
+        case _ => m.get(s) match {
+          case Some(v) => v
+          case None => quote(e)
+        }
       }
     }
 
     override def emitNode(sym: Sym[Any], rhs: Def[Any]) = {
+      emitted += sym
       if (emitFileAndLine && !rhs.isInstanceOf[Reflect[_]]) {
         val s = quotePos(sym).split("//")(0).split(":")
         stream.println(s"""#line ${s(1)} "${s(0)}" """)
@@ -345,8 +364,8 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       val body = reifyBlock(f(args))(mB)
       val fns = rec.keys.toSet -- oldFns
       eff.getOrElseUpdate(functionName, (args, summarizeEffects(body)))
-      val preBody = reifyBlock(pre(args))
-      val postBody = reifyBlock(post(args)(r))
+      val preBody = reifySpec(pre(args))
+      val postBody = reifySpec(post(args)(r))
       val sB = remapWithRef(mB).trim()
       val y = getBlockResult(body)
       val assignsNothing = autoAssignNothing && {
