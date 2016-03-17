@@ -68,16 +68,21 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
   var suspendCSE: Boolean = false
   def reifySpec[A:Typ](block: => Exp[A]): Block[A] = {
     val savedCSE = suspendCSE
-    suspendCSE = false
+    suspendCSE = true
     try {
       reifyEffects(block)
     } finally {
       suspendCSE = savedCSE
     }
   }
+
   override protected implicit def toAtom[T:Typ](d: Def[T])(implicit pos: SourceContext): Exp[T] = {
-    if (suspendCSE) reflectEffect(d)
-    else super.toAtom[T](d)(implicitly[Typ[T]], pos)
+    def a = super.toAtom[T](d)(implicitly[Typ[T]], pos)
+    if (suspendCSE) d match {
+      case _:Reify[_] => a
+      case _:Reflect[_] => a
+      case _ => reflectEffect(d)
+    } else a
   }
 
   case class Valid[A](p: Rep[A], r: Option[Rep[Any]]) extends Def[Boolean]
