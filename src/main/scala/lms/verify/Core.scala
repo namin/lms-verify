@@ -16,6 +16,11 @@ trait VerifyOps extends Base {
       ensures{r: Rep[B] => post(xs)(r)}(mB)
       f(xs)
     })
+  def toplevel[A:Manifest:Typ,B:Manifest:Typ](name: String, f: Rep[A] => Rep[B]): Rep[A] => Rep[B] = {
+    val g = (x: Rep[A]) => toplevelApply[B](name, List(x))
+    rec.getOrElseUpdate(name, TopLevel(name, List(implicitly[Typ[A]]), implicitly[Typ[B]], xs => f(xs(0).asInstanceOf[Rep[A]])))
+    g
+  }
   def toplevel[A:Manifest:Typ,B:Manifest:Typ](name: String, f: Rep[A] => Rep[B], pre: Rep[A] => Rep[Boolean], post: Rep[A] => Rep[B] => Rep[Boolean]): Rep[A] => Rep[B] = {
     val g = (x: Rep[A]) => toplevelApply[B](name, List(x))
     rec.getOrElseUpdate(name, mkTopLevel(name, List(implicitly[Typ[A]]), implicitly[Typ[B]], xs => f(xs(0).asInstanceOf[Rep[A]]), xs => pre(xs(0).asInstanceOf[Rep[A]]), (xs: List[Rep[_]]) => (r: Rep[B]) => post(xs(0).asInstanceOf[Rep[A]])(r)))

@@ -6,9 +6,11 @@ class CoreTests extends TestSuite {
   test("0") {
     trait Ex0 extends Dsl {
       toplevel("inc",
-        { x: Rep[Int] => x + 1 },
-        { x: Rep[Int] => x < Int.MaxValue },
-        { x: Rep[Int] => result: Rep[Int] => result > x })
+        { x: Rep[Int] =>
+          requires{x < Int.MaxValue}
+          ensures{result: Rep[Int] => result > x}
+          x + 1
+        })
     }
     check("0", (new Ex0 with Impl).code)
   }
