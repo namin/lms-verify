@@ -8,33 +8,39 @@ trait VerifyOps extends Base {
   def includes: List[String] = List("<limits.h>")
   def autoAssignNothing: Boolean = true
 
-  case class TopLevel[B](name: String, mAs: List[Typ[_]], mB:Typ[B], f: List[Rep[_]] => Rep[B], pre: List[Rep[_]] => Rep[Boolean], post: List[Rep[_]] => Rep[B] => Rep[Boolean])
+  case class TopLevel[B](name: String, mAs: List[Typ[_]], mB:Typ[B], f: List[Rep[_]] => Rep[B])
   val rec = new scala.collection.mutable.LinkedHashMap[String,TopLevel[_]]
+  def mkTopLevel[B](name: String, mAs: List[Typ[_]], mB:Typ[B], f: List[Rep[_]] => Rep[B], pre: List[Rep[_]] => Rep[Boolean], post: List[Rep[_]] => Rep[B] => Rep[Boolean]) =
+    TopLevel(name, mAs, mB, {xs =>
+      requires{pre(xs)}
+      ensures{r: Rep[B] => post(xs)(r)}(mB)
+      f(xs)
+    })
   def toplevel[A:Manifest:Typ,B:Manifest:Typ](name: String, f: Rep[A] => Rep[B], pre: Rep[A] => Rep[Boolean], post: Rep[A] => Rep[B] => Rep[Boolean]): Rep[A] => Rep[B] = {
     val g = (x: Rep[A]) => toplevelApply[B](name, List(x))
-    rec.getOrElseUpdate(name, TopLevel(name, List(implicitly[Typ[A]]), implicitly[Typ[B]], xs => f(xs(0).asInstanceOf[Rep[A]]), xs => pre(xs(0).asInstanceOf[Rep[A]]), (xs: List[Rep[_]]) => (r: Rep[B]) => post(xs(0).asInstanceOf[Rep[A]])(r)))
+    rec.getOrElseUpdate(name, mkTopLevel(name, List(implicitly[Typ[A]]), implicitly[Typ[B]], xs => f(xs(0).asInstanceOf[Rep[A]]), xs => pre(xs(0).asInstanceOf[Rep[A]]), (xs: List[Rep[_]]) => (r: Rep[B]) => post(xs(0).asInstanceOf[Rep[A]])(r)))
     g
   }
   def toplevel[A1:Manifest:Typ,A2:Manifest:Typ,B:Manifest:Typ](name: String, f: (Rep[A1], Rep[A2]) => Rep[B], pre: (Rep[A1], Rep[A2]) => Rep[Boolean], post: (Rep[A1], Rep[A2]) => Rep[B] => Rep[Boolean]): (Rep[A1], Rep[A2]) => Rep[B] = {
     val g = (x1: Rep[A1], x2: Rep[A2]) => toplevelApply[B](name, List(x1, x2))
-    rec.getOrElseUpdate(name, TopLevel(name, List(implicitly[Typ[A1]], implicitly[Typ[A2]]), implicitly[Typ[B]], xs => f(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]]), xs => pre(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]]), (xs: List[Rep[_]]) => (r: Rep[B]) => post(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]])(r)))
+    rec.getOrElseUpdate(name, mkTopLevel(name, List(implicitly[Typ[A1]], implicitly[Typ[A2]]), implicitly[Typ[B]], xs => f(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]]), xs => pre(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]]), (xs: List[Rep[_]]) => (r: Rep[B]) => post(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]])(r)))
     g
   }
   def toplevel[A1:Manifest:Typ,A2:Manifest:Typ,A3:Manifest:Typ,B:Manifest:Typ](name: String, f: (Rep[A1], Rep[A2], Rep[A3]) => Rep[B], pre: (Rep[A1], Rep[A2], Rep[A3]) => Rep[Boolean], post: (Rep[A1], Rep[A2], Rep[A3]) => Rep[B] => Rep[Boolean]): (Rep[A1], Rep[A2], Rep[A3]) => Rep[B] = {
     val g = (x1: Rep[A1], x2: Rep[A2], x3: Rep[A3]) => toplevelApply[B](name, List(x1, x2, x3))
-    rec.getOrElseUpdate(name, TopLevel(name, List(implicitly[Typ[A1]], implicitly[Typ[A2]], implicitly[Typ[A3]]), implicitly[Typ[B]], xs => f(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]]), xs => pre(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]]), (xs: List[Rep[_]]) => (r: Rep[B]) => post(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]])(r)))
+    rec.getOrElseUpdate(name, mkTopLevel(name, List(implicitly[Typ[A1]], implicitly[Typ[A2]], implicitly[Typ[A3]]), implicitly[Typ[B]], xs => f(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]]), xs => pre(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]]), (xs: List[Rep[_]]) => (r: Rep[B]) => post(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]])(r)))
     g
   }
 
   def toplevel[A1:Manifest:Typ,A2:Manifest:Typ,A3:Manifest:Typ,A4:Manifest:Typ,B:Manifest:Typ](name: String, f: (Rep[A1], Rep[A2], Rep[A3], Rep[A4]) => Rep[B], pre: (Rep[A1], Rep[A2], Rep[A3], Rep[A4]) => Rep[Boolean], post: (Rep[A1], Rep[A2], Rep[A3], Rep[A4]) => Rep[B] => Rep[Boolean]): (Rep[A1], Rep[A2], Rep[A3], Rep[A4]) => Rep[B] = {
     val g = (x1: Rep[A1], x2: Rep[A2], x3: Rep[A3], x4: Rep[A4]) => toplevelApply[B](name, List(x1, x2, x3, x4))
-    rec.getOrElseUpdate(name, TopLevel(name, List(implicitly[Typ[A1]], implicitly[Typ[A2]], implicitly[Typ[A3]], implicitly[Typ[A4]]), implicitly[Typ[B]], xs => f(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]], xs(3).asInstanceOf[Rep[A4]]), xs => pre(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]], xs(3).asInstanceOf[Rep[A4]]), (xs: List[Rep[_]]) => (r: Rep[B]) => post(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]], xs(3).asInstanceOf[Rep[A4]])(r)))
+    rec.getOrElseUpdate(name, mkTopLevel(name, List(implicitly[Typ[A1]], implicitly[Typ[A2]], implicitly[Typ[A3]], implicitly[Typ[A4]]), implicitly[Typ[B]], xs => f(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]], xs(3).asInstanceOf[Rep[A4]]), xs => pre(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]], xs(3).asInstanceOf[Rep[A4]]), (xs: List[Rep[_]]) => (r: Rep[B]) => post(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]], xs(3).asInstanceOf[Rep[A4]])(r)))
     g
   }
 
   def toplevel[A1:Manifest:Typ,A2:Manifest:Typ,A3:Manifest:Typ,A4:Manifest:Typ,A5:Manifest:Typ,A6:Manifest:Typ,A7:Manifest:Typ,A8:Manifest:Typ,A9:Manifest:Typ,B:Manifest:Typ](name: String, f: (Rep[A1], Rep[A2], Rep[A3], Rep[A4], Rep[A5], Rep[A6], Rep[A7], Rep[A8], Rep[A9]) => Rep[B], pre: (Rep[A1], Rep[A2], Rep[A3], Rep[A4], Rep[A5], Rep[A6], Rep[A7], Rep[A8], Rep[A9]) => Rep[Boolean], post: (Rep[A1], Rep[A2], Rep[A3], Rep[A4], Rep[A5], Rep[A6], Rep[A7], Rep[A8], Rep[A9]) => Rep[B] => Rep[Boolean]): (Rep[A1], Rep[A2], Rep[A3], Rep[A4], Rep[A5], Rep[A6], Rep[A7], Rep[A8], Rep[A9]) => Rep[B] = {
     val g = (x1: Rep[A1], x2: Rep[A2], x3: Rep[A3], x4: Rep[A4], x5: Rep[A5], x6: Rep[A6], x7: Rep[A7], x8: Rep[A8], x9: Rep[A9]) => toplevelApply[B](name, List(x1, x2, x3, x4, x5, x6, x7, x8, x9))
-    rec.getOrElseUpdate(name, TopLevel(name, List(implicitly[Typ[A1]], implicitly[Typ[A2]], implicitly[Typ[A3]], implicitly[Typ[A4]], implicitly[Typ[A5]], implicitly[Typ[A6]], implicitly[Typ[A7]], implicitly[Typ[A8]], implicitly[Typ[A9]]), implicitly[Typ[B]], xs => f(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]], xs(3).asInstanceOf[Rep[A4]], xs(4).asInstanceOf[Rep[A5]], xs(5).asInstanceOf[Rep[A6]], xs(6).asInstanceOf[Rep[A7]], xs(7).asInstanceOf[Rep[A8]], xs(8).asInstanceOf[Rep[A9]]), xs => pre(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]], xs(3).asInstanceOf[Rep[A4]], xs(4).asInstanceOf[Rep[A5]], xs(5).asInstanceOf[Rep[A6]], xs(6).asInstanceOf[Rep[A7]], xs(7).asInstanceOf[Rep[A8]], xs(8).asInstanceOf[Rep[A9]]), (xs: List[Rep[_]]) => (r: Rep[B]) => post(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]], xs(3).asInstanceOf[Rep[A4]], xs(4).asInstanceOf[Rep[A5]], xs(5).asInstanceOf[Rep[A6]], xs(6).asInstanceOf[Rep[A7]], xs(7).asInstanceOf[Rep[A8]], xs(8).asInstanceOf[Rep[A9]])(r)))
+    rec.getOrElseUpdate(name, mkTopLevel(name, List(implicitly[Typ[A1]], implicitly[Typ[A2]], implicitly[Typ[A3]], implicitly[Typ[A4]], implicitly[Typ[A5]], implicitly[Typ[A6]], implicitly[Typ[A7]], implicitly[Typ[A8]], implicitly[Typ[A9]]), implicitly[Typ[B]], xs => f(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]], xs(3).asInstanceOf[Rep[A4]], xs(4).asInstanceOf[Rep[A5]], xs(5).asInstanceOf[Rep[A6]], xs(6).asInstanceOf[Rep[A7]], xs(7).asInstanceOf[Rep[A8]], xs(8).asInstanceOf[Rep[A9]]), xs => pre(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]], xs(3).asInstanceOf[Rep[A4]], xs(4).asInstanceOf[Rep[A5]], xs(5).asInstanceOf[Rep[A6]], xs(6).asInstanceOf[Rep[A7]], xs(7).asInstanceOf[Rep[A8]], xs(8).asInstanceOf[Rep[A9]]), (xs: List[Rep[_]]) => (r: Rep[B]) => post(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]], xs(3).asInstanceOf[Rep[A4]], xs(4).asInstanceOf[Rep[A5]], xs(5).asInstanceOf[Rep[A6]], xs(6).asInstanceOf[Rep[A7]], xs(7).asInstanceOf[Rep[A8]], xs(8).asInstanceOf[Rep[A9]])(r)))
     g
   }
 
@@ -50,6 +56,9 @@ trait VerifyOps extends Base {
   def assigns(s: Rep[Any]): Unit
   def assigns(s: Rep[Any], r: Rep[Any]): Unit
 
+  def requires(c: => Rep[Boolean]): Unit
+  def ensures[B:Typ](c: Rep[B] => Rep[Boolean]): Unit
+
   def toplevelApply[B:Typ](name: String, args: List[Rep[_]]): Rep[B]
   def exists[A:Typ](f: Rep[A] => Rep[Boolean]): Rep[Boolean]
   def forall[A:Typ](f: Rep[A] => Rep[Boolean]): Rep[Boolean]
@@ -62,7 +71,7 @@ trait VerifyOps extends Base {
   def _assert(cond: =>Rep[Boolean])(implicit pos: SourceContext): Rep[Unit]
 }
 
-trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBoolean with ListOpsExp {
+trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBoolean with ListOpsExp with BooleanOpsExpOpt {
   implicit def anyTyp: Typ[Any] = manifestTyp
 
   var suspendCSE: Boolean = false
@@ -107,6 +116,25 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
   }
   def assigns(s: Rep[Any], r: Rep[Any]): Unit = {
     locs = Loc(s, Some(r))::locs
+  }
+
+  case class Cond(t: () => Exp[Boolean])
+  case class PostCond[A:Typ](t: Exp[A] => Exp[Boolean]) {
+    def apply[B:Typ](r: Exp[B]) = {
+      assert (implicitly[Typ[B]] == implicitly[Typ[A]])
+      Cond{() => t(r.asInstanceOf[Exp[A]])}
+    }
+  }
+  var preconds: List[Cond] = Nil
+  def requires(c: => Rep[Boolean]): Unit = {
+    preconds = Cond{() => c}::preconds
+  }
+  var postconds: List[PostCond[_]] = Nil
+  def ensures[B:Typ](c: Rep[B] => Rep[Boolean]): Unit = {
+    postconds = PostCond(c)::postconds
+  }
+  def reifyConds(cs: List[Cond]): Block[Boolean] = {
+    reifySpec(cs.foldLeft[Exp[Boolean]](unit(true)){case (b,Cond(t)) => boolean_and(t(), b)})
   }
 
   case class ToplevelApply[B:Typ](name: String, args: List[Rep[_]]) extends Def[B]
@@ -362,15 +390,17 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       }
     }
 
-    def emitVerify[B](f: List[Exp[_]] => Exp[B], pre: List[Exp[_]] => Exp[Boolean], post: List[Exp[_]] => Exp[B] => Exp[Boolean], functionName: String, out: PrintWriter)(mAs: List[Typ[_]], mB: Typ[B]): Unit = {
+    def emitVerify[B](f: List[Exp[_]] => Exp[B], functionName: String, out: PrintWriter)(mAs: List[Typ[_]], mB: Typ[B]): Unit = {
       val args = mAs.map(fresh(_))
       val r = fresh[B](mB)
       val oldFns = rec.keys.toSet
       val body = reifyBlock(f(args))(mB)
       val fns = rec.keys.toSet -- oldFns
       eff.getOrElseUpdate(functionName, (args, summarizeEffects(body)))
-      val preBody = reifySpec(pre(args))
-      val postBody = reifySpec(post(args)(r))
+      val preBody = reifyConds(preconds)
+      preconds = Nil
+      val postBody = reifyConds(postconds.map{f => f(r)(mB)})
+      postconds = Nil
       val sB = remapWithRef(mB).trim()
       val y = getBlockResult(body)
       val assignsNothing = autoAssignNothing && {
@@ -420,7 +450,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
     assert(codegen ne null) //careful about initialization order
     includes.foreach { i => stream.println("#include "+i) }
     rec.foreach { case (k,x) =>
-      codegen.emitVerify(x.f, x.pre, x.post.asInstanceOf[List[Exp[_]] => Exp[_] => Exp[Boolean]], x.name, stream)(x.mAs, mtype(x.mB))
+      codegen.emitVerify(x.f, x.name, stream)(x.mAs, mtype(x.mB))
     }
   }
   lazy val code: String = {

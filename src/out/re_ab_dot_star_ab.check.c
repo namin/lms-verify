@@ -27,155 +27,145 @@ int matcher(char  * x0) {
     x2 += 1;
     int x13 = x2;
     int x14 = x13 < x7;
-    int x18;
+    int x17;
     if (x14) {
       char x15 = x0[x13];
       int x16 = 'a' == x15;
-      int x17 = 0/*false*/ || x16;
-      x18 = x17;
+      x17 = x16;
     } else {
-      x18 = 0/*false*/;
+      x17 = 0/*false*/;
     }
-    int x104;
-    if (x18) {
-      int x19 = x13 + 1;
-      int x20 = x19 < x7;
-      int x24;
-      if (x20) {
-        char x21 = x0[x19];
-        int x22 = 'b' == x21;
-        int x23 = 0/*false*/ || x22;
-        x24 = x23;
+    int x96;
+    if (x17) {
+      int x18 = x13 + 1;
+      int x19 = x18 < x7;
+      int x22;
+      if (x19) {
+        char x20 = x0[x18];
+        int x21 = 'b' == x20;
+        x22 = x21;
       } else {
-        x24 = 0/*false*/;
+        x22 = 0/*false*/;
       }
-      int x103;
-      if (x24) {
-        int x25 = x19 + 1;
-        int x26 = x25;
-        int x27 = x26;
-        int x28 = x27 < x7;
-        int x32;
-        if (x28) {
-          char x29 = x0[x27];
-          int x30 = 'a' == x29;
-          int x31 = 0/*false*/ || x30;
-          x32 = x31;
+      int x95;
+      if (x22) {
+        int x23 = x18 + 1;
+        int x24 = x23;
+        int x25 = x24;
+        int x26 = x25 < x7;
+        int x29;
+        if (x26) {
+          char x27 = x0[x25];
+          int x28 = 'a' == x27;
+          x29 = x28;
         } else {
-          x32 = 0/*false*/;
+          x29 = 0/*false*/;
         }
-        int x41;
-        if (x32) {
-          int x33 = x27 + 1;
-          int x34 = x33 < x7;
-          int x38;
+        int x37;
+        if (x29) {
+          int x30 = x25 + 1;
+          int x31 = x30 < x7;
+          int x34;
+          if (x31) {
+            char x32 = x0[x30];
+            int x33 = 'b' == x32;
+            x34 = x33;
+          } else {
+            x34 = 0/*false*/;
+          }
+          int x36;
           if (x34) {
-            char x35 = x0[x33];
-            int x36 = 'b' == x35;
-            int x37 = 0/*false*/ || x36;
-            x38 = x37;
+            x36 = 1/*true*/;
           } else {
-            x38 = 0/*false*/;
+            x36 = 0/*false*/;
           }
-          int x40;
-          if (x38) {
-            x40 = 1/*true*/;
-          } else {
-            x40 = 0/*false*/;
-          }
-          x41 = x40;
+          x37 = x36;
         } else {
-          x41 = 0/*false*/;
+          x37 = 0/*false*/;
         }
-        int x42 = x41;
-        int x43 = 0/*false*/;
+        int x38 = x37;
+        int x39 = 0/*false*/;
         /*@
-        loop invariant ((x25<=x26) && (x26<=strlen(x0)));
-        loop assigns x26, x42, x43;
-        loop variant (strlen(x0)-x26);
+        loop invariant ((x23<=x24) && (x24<=strlen(x0)));
+        loop assigns x24, x38, x39;
+        loop variant (strlen(x0)-x24);
         */
         for (;;) {
-          int x44 = x43;
-          int x45 = !x44;
+          int x40 = x39;
+          int x41 = !x40;
+          int x45;
+          if (x41) {
+            int x42 = x38;
+            int x43 = !x42;
+            x45 = x43;
+          } else {
+            x45 = 0/*false*/;
+          }
           int x49;
           if (x45) {
-            int x46 = x42;
-            int x47 = !x46;
+            int x46 = x24;
+            int x47 = x46 < x7;
             x49 = x47;
           } else {
             x49 = 0/*false*/;
           }
-          int x53;
-          if (x49) {
-            int x50 = x26;
-            int x51 = x50 < x7;
-            x53 = x51;
+          if (!x49) break;
+          int x51 = x24;
+          x39 = 0/*false*/;
+          x24 += 1;
+          int x56 = x24;
+          int x57 = x56 < x7;
+          int x60;
+          if (x57) {
+            char x58 = x0[x56];
+            int x59 = 'a' == x58;
+            x60 = x59;
           } else {
-            x53 = 0/*false*/;
+            x60 = 0/*false*/;
           }
-          if (!x53) break;
-          int x55 = x26;
-          char x56 = x0[x55];
-          int x57 = '.' == x56;
-          int x58 = 1/*true*/ || x57;
-          int x59 = !x58;
-          x43 = x59;
-          x26 += 1;
-          int x62 = x26;
-          int x63 = x62 < x7;
-          int x67;
-          if (x63) {
-            char x64 = x0[x62];
-            int x65 = 'a' == x64;
-            int x66 = 0/*false*/ || x65;
-            x67 = x66;
-          } else {
-            x67 = 0/*false*/;
-          }
-          int x76;
-          if (x67) {
-            int x68 = x62 + 1;
-            int x69 = x68 < x7;
-            int x73;
-            if (x69) {
-              char x70 = x0[x68];
-              int x71 = 'b' == x70;
-              int x72 = 0/*false*/ || x71;
-              x73 = x72;
+          int x68;
+          if (x60) {
+            int x61 = x56 + 1;
+            int x62 = x61 < x7;
+            int x65;
+            if (x62) {
+              char x63 = x0[x61];
+              int x64 = 'b' == x63;
+              x65 = x64;
             } else {
-              x73 = 0/*false*/;
+              x65 = 0/*false*/;
             }
-            int x75;
-            if (x73) {
-              x75 = 1/*true*/;
+            int x67;
+            if (x65) {
+              x67 = 1/*true*/;
             } else {
-              x75 = 0/*false*/;
+              x67 = 0/*false*/;
             }
-            x76 = x75;
+            x68 = x67;
           } else {
-            x76 = 0/*false*/;
+            x68 = 0/*false*/;
           }
-          x42 = x76;
+          x38 = x68;
         }
-        int x97 = x43;
-        int x98 = !x97;
-        int x101;
-        if (x98) {
-          int x99 = x42;
-          x101 = x99;
+        int x89 = x39;
+        int x90 = !x89;
+        int x93;
+        if (x90) {
+          int x91 = x38;
+          x93 = x91;
         } else {
-          x101 = 0/*false*/;
+          x93 = 0/*false*/;
         }
-        x103 = x101;
+        x95 = x93;
       } else {
-        x103 = 0/*false*/;
+        x95 = 0/*false*/;
       }
-      x104 = x103;
+      x96 = x95;
     } else {
-      x104 = 0/*false*/;
+      x96 = 0/*false*/;
     }
-    x3 = x104;
+    x3 = x96;
   }
-  int x124 = x3;
-  return x124;
+  int x116 = x3;
+  return x116;
 }

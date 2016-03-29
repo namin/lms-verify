@@ -27,25 +27,24 @@ int matcher(char  * x0) {
     x2 += 1;
     int x13 = x2;
     int x14 = x13 < x7;
-    int x18;
+    int x17;
     if (x14) {
       char x15 = x0[x13];
       int x16 = 'a' == x15;
-      int x17 = 0/*false*/ || x16;
-      x18 = x17;
+      x17 = x16;
     } else {
-      x18 = 0/*false*/;
+      x17 = 0/*false*/;
     }
-    int x21;
-    if (x18) {
-      int x19 = x13 + 1;
-      int x20 = x19 == x7;
-      x21 = x20;
+    int x20;
+    if (x17) {
+      int x18 = x13 + 1;
+      int x19 = x18 == x7;
+      x20 = x19;
     } else {
-      x21 = 0/*false*/;
+      x20 = 0/*false*/;
     }
-    x3 = x21;
+    x3 = x20;
   }
-  int x41 = x3;
-  return x41;
+  int x40 = x3;
+  return x40;
 }
