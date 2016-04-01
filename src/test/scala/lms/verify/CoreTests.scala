@@ -185,6 +185,11 @@ class CoreTests extends TestSuite {
     trait Ex7 extends Dsl {
       toplevel("member",
         { (p: Rep[Array[Int]], n: Rep[Int], v: Rep[Int]) =>
+          requires{n>0 && valid(p, 0 until n)}
+          ensures{result: Rep[Int] =>
+            ((result == -1) ==> !(exists{i: Rep[Int] => 0 <= i && i < n && p(i)==v})) &&
+            ((result != -1) ==> (0 <= result && result < n && p(result)==v))}
+
           var r = -1;
           loop ({i: Rep[Int] =>
             ((0 <= i) && (i <= n)) &&
@@ -199,13 +204,6 @@ class CoreTests extends TestSuite {
             }
           }
           r
-        },
-        { (p: Rep[Array[Int]], n: Rep[Int], v: Rep[Int]) =>
-          n>0 && valid(p, 0 until n)
-        },
-        { (p: Rep[Array[Int]], n: Rep[Int], v: Rep[Int]) => result: Rep[Int] =>
-          ((result == -1) ==> !(exists{i: Rep[Int] => 0 <= i && i < n && p(i)==v})) &&
-          ((result != -1) ==> (0 <= result && result < n && p(result)==v))
         })
     }
     check("7", (new Ex7 with Impl).code)
