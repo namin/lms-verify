@@ -143,7 +143,7 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
     postconds = PostCond(c)::postconds
   }
   def reifyConds(cs: List[Cond]): Block[Boolean] = {
-    reifySpec(cs.foldLeft[Exp[Boolean]](unit(true)){case (b,Cond(t)) => boolean_and(t(), b)})
+    reifySpec(cs.foldRight[Exp[Boolean]](unit(true)){case (Cond(t), b) => boolean_and(b, t())})
   }
 
   case class ToplevelApply[B:Typ](name: String, args: List[Rep[_]]) extends Def[B]

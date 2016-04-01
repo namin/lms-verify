@@ -186,9 +186,8 @@ class CoreTests extends TestSuite {
       toplevel("member",
         { (p: Rep[Array[Int]], n: Rep[Int], v: Rep[Int]) =>
           requires{n>0 && valid(p, 0 until n)}
-          ensures{result: Rep[Int] =>
-            ((result == -1) ==> !(exists{i: Rep[Int] => 0 <= i && i < n && p(i)==v})) &&
-            ((result != -1) ==> (0 <= result && result < n && p(result)==v))}
+          ensures{result: Rep[Int] => ((result == -1) ==> !(exists{i: Rep[Int] => 0 <= i && i < n && p(i)==v}))}
+          ensures{result: Rep[Int] => ((result != -1) ==> (0 <= result && result < n && p(result)==v))}
 
           var r = -1;
           loop ({i: Rep[Int] =>
