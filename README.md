@@ -13,7 +13,7 @@ All the files in the `src/out` directory should verify with this command, except
 ### Docs
 * [frama-c wp manual (PDF)](http://frama-c.com/download/frama-c-wp-manual.pdf)
 * [acsl tutorial (PDF)](http://frama-c.com/download/acsl-tutorial.pdf)
-* [acsl implementation in frama-c (PDF)](http://frama-c.com/download/acsl-implementation-Sodium-20150201.pdf)
+* [acsl implementation in frama-c (PDF)](http://frama-c.com/download/acsl-implementation-Magnesium-20151002.pdf)
 
 ### Installation
 * Install CVC4, e.g. `brew install cvc4` on Mac OS X.
