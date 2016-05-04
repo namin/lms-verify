@@ -444,22 +444,27 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
         val x = rec(k)
         emitHeader(x.name, out)(x.mAs, mtype(x.mB))
       }
+      val sig = functionName+"("+(args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")+")"
+      val sig_app = functionName+"("+(args.map(s => quote(s))).mkString(", ")+")"
       withStream(out) {
         if (spec) {
-          stream.println("//@ predicate "+functionName+"("+(args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")+") = "+exprOfBlock[B](body, default_m)+";")
+          stream.println("//@ predicate "+sig+" = "+exprOfBlock[B](body, default_m)+";")
         }
         val preStr = exprOfBlock("requires", preBody)
         val postStr = exprOfBlock("ensures", postBody, Map(r -> "\\result"))
-        if (!preStr.isEmpty || assignsNothing || !customAssignsStr.isEmpty || !postStr.isEmpty) {
+        if (!preStr.isEmpty || assignsNothing || !customAssignsStr.isEmpty || !postStr.isEmpty || spec) {
           stream.println("/*@")
           stream.println(preStr)
           if (assignsNothing) stream.println("assigns \\nothing;")
           stream.println(postStr)
+          if (spec) {
+            stream.println("ensures \\result <==> "+sig_app+";")
+          }
           if (!customAssignsStr.isEmpty) stream.println(customAssignsStr)
           stream.println("*/")
         }
 
-        stream.println(sB+" "+functionName+"("+(args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")+") {")
+        stream.println(sB+" "+sig+" {")
         emitBlock(body)
 
         if (remap(y.tp) != "void")
