@@ -78,6 +78,8 @@ trait VerifyOps extends Base {
   def loop(invariant: => Rep[Boolean], assigns: => Rep[List[Any]], variant: => Rep[Int])(l: Rep[Unit]): Rep[Unit]
 
   def _assert(cond: =>Rep[Boolean])(implicit pos: SourceContext): Rep[Unit]
+
+  def predicate[A:Manifest](name: String, f: Rep[A] => Rep[Boolean]): Rep[A] => Rep[Boolean] = f // TODO
 }
 
 trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBoolean with ListOpsExp with BooleanOpsExpOpt {
