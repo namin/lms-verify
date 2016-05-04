@@ -4,11 +4,15 @@ import scala.lms.common._
 import scala.reflect.SourceContext
 import java.io.{PrintWriter,StringWriter,FileOutputStream}
 
-trait VerifyOps extends Base {
+trait VerifyOps extends Base with BooleanOps {
   def includes: List[String] = List("<limits.h>")
   def autoAssignNothing: Boolean = true
 
-  case class TopLevel[B](name: String, mAs: List[Typ[_]], mB:Typ[B], f: List[Rep[_]] => Rep[B])
+  case class TopLevel[B](name: String, mAs: List[Typ[_]], mB:Typ[B], f: List[Rep[_]] => Rep[B], spec: Boolean)
+  object TopLevel {
+    def apply[B](name: String, mAs: List[Typ[_]], mB:Typ[B], f: List[Rep[_]] => Rep[B]): TopLevel[B] =
+      TopLevel(name, mAs, mB, f, spec=false)
+  }
   val rec = new scala.collection.mutable.LinkedHashMap[String,TopLevel[_]]
   def mkTopLevel[B](name: String, mAs: List[Typ[_]], mB:Typ[B], f: List[Rep[_]] => Rep[B], pre: List[Rep[_]] => Rep[Boolean], post: List[Rep[_]] => Rep[B] => Rep[Boolean]) =
     TopLevel(name, mAs, mB, {xs =>
@@ -79,7 +83,11 @@ trait VerifyOps extends Base {
 
   def _assert(cond: =>Rep[Boolean])(implicit pos: SourceContext): Rep[Unit]
 
-  def predicate[A:Manifest](name: String, f: Rep[A] => Rep[Boolean]): Rep[A] => Rep[Boolean] = f // TODO
+  def predicate[A:Manifest:Typ](name: String, f: Rep[A] => Rep[Boolean]): Rep[A] => Rep[Boolean] = {
+    val g = (x: Rep[A]) => toplevelApply[Boolean](name, List(x))
+    rec.getOrElseUpdate(name, TopLevel(name, List(implicitly[Typ[A]]), implicitly[Typ[Boolean]], xs => f(xs(0).asInstanceOf[Rep[A]]), spec=true))
+    g
+  }
 }
 
 trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBoolean with ListOpsExp with BooleanOpsExpOpt {
@@ -284,6 +292,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
         stream.println(rhs + ";")
     }
 
+    val default_m =  Map[Sym[_], String]()
     val emitted = new scala.collection.mutable.LinkedHashSet[Sym[_]]
     def exprOfBlock[A](kw: String, e: Block[A], m: Map[Sym[_], String] = Map()): String = {
       val r = exprOfBlock(e, m)
@@ -295,6 +304,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
     def exprOfBlock[A](e: Block[A], m: Map[Sym[_], String]): String =
       exprOf(e.res, m)
     def exprOfDef[A](d: Def[A], m: Map[Sym[_], String]): String = d match {
+      case ToplevelApply(name, es) => name+"("+es.map(exprOf(_, m)).mkString(",")+")"
       case Old(v) => "\\old("+exprOf(v, m)+")"
       case Valid(p, or) => or match {
         case None => "\\valid("+exprOf(p, m)+")"
@@ -401,7 +411,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
       }
     }
 
-    def emitVerify[B](f: List[Exp[_]] => Exp[B], functionName: String, out: PrintWriter)(mAs: List[Typ[_]], mB: Typ[B]): Unit = {
+    def emitVerify[B](f: List[Exp[_]] => Exp[B], functionName: String, spec: Boolean, out: PrintWriter)(mAs: List[Typ[_]], mB: Typ[B]): Unit = {
       val args = mAs.map(fresh(_))
       val r = fresh[B](mB)
       val oldFns = rec.keys.toSet
@@ -435,6 +445,9 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
         emitHeader(x.name, out)(x.mAs, mtype(x.mB))
       }
       withStream(out) {
+        if (spec) {
+          stream.println("//@ predicate "+functionName+"("+(args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")+") = "+exprOfBlock[B](body, default_m)+";")
+        }
         val preStr = exprOfBlock("requires", preBody)
         val postStr = exprOfBlock("ensures", postBody, Map(r -> "\\result"))
         if (!preStr.isEmpty || assignsNothing || !customAssignsStr.isEmpty || !postStr.isEmpty) {
@@ -461,7 +474,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunction
     assert(codegen ne null) //careful about initialization order
     includes.foreach { i => stream.println("#include "+i) }
     rec.foreach { case (k,x) =>
-      codegen.emitVerify(x.f, x.name, stream)(x.mAs, mtype(x.mB))
+      codegen.emitVerify(x.f, x.name, x.spec, stream)(x.mAs, mtype(x.mB))
     }
   }
   lazy val code: String = {
