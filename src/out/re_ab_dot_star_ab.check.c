@@ -14,14 +14,13 @@ int matcher(char  * x0) {
   */
   for (;;) {
     int x4 = x3;
-    int x5 = !x4;
     int x10;
-    if (x5) {
+    if (x4) {
+      x10 = 0/*false*/;
+    } else {
       int x6 = x2;
       int x8 = x6 < x7;
       x10 = x8;
-    } else {
-      x10 = 0/*false*/;
     }
     if (!x10) break;
     x2 += 1;
@@ -92,14 +91,13 @@ int matcher(char  * x0) {
         */
         for (;;) {
           int x40 = x39;
-          int x41 = !x40;
           int x45;
-          if (x41) {
+          if (x40) {
+            x45 = 0/*false*/;
+          } else {
             int x42 = x38;
             int x43 = !x42;
             x45 = x43;
-          } else {
-            x45 = 0/*false*/;
           }
           int x49;
           if (x45) {
@@ -148,13 +146,12 @@ int matcher(char  * x0) {
           x38 = x68;
         }
         int x89 = x39;
-        int x90 = !x89;
         int x93;
-        if (x90) {
+        if (x89) {
+          x93 = 0/*false*/;
+        } else {
           int x91 = x38;
           x93 = x91;
-        } else {
-          x93 = 0/*false*/;
         }
         x95 = x93;
       } else {

@@ -14,14 +14,13 @@ int matcher(char  * x0) {
   */
   for (;;) {
     int x4 = x3;
-    int x5 = !x4;
     int x10;
-    if (x5) {
+    if (x4) {
+      x10 = 0/*false*/;
+    } else {
       int x6 = x2;
       int x8 = x6 < x7;
       x10 = x8;
-    } else {
-      x10 = 0/*false*/;
     }
     if (!x10) break;
     x2 += 1;
