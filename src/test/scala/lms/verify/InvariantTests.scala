@@ -14,10 +14,10 @@ class InvariantTests extends TestSuite {
       {x: (Pointer[T],Rep[Int]) => new Vec(x._1, x._2)}
     )
     implicit def vecInv[T:Inv] = invariant[Vec[T]] { x =>
-      unit(0) <= x.n && x.valid && ((unit(0) until x.n).forall{i: Rep[Int] => x(i).check})
+      0 <= x.n && x.valid && ((0 until x.n) forall {i => x(i).check})
     }
     implicit def vecEq[T:Eq:Iso] = equality[Vec[T]] { (x, y) =>
-      x.n == y.n && ((unit(0) until x.n).forall{i: Rep[Int] => x(i) deep_equal y(i)})
+      x.n == y.n && ((0 until x.n) forall {i => x(i) deep_equal y(i)})
     }
   }
 
