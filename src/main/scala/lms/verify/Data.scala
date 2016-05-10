@@ -1,6 +1,6 @@
 package lms.verify
 
-trait DataOps extends Dsl {
+trait DataOps extends Dsl { self =>
   class Pointer[T:Iso](val p: List[Rep[Array[_]]]) {
     val iso = implicitly[Iso[T]]
     val pmt = p zip (iso.memList zip iso.typList)
@@ -18,10 +18,15 @@ trait DataOps extends Dsl {
         a1(i) = b1
       }
     }
-    def reflectMutable = pmt.foreach{case (a,(m,t)) =>
+    def valid(r: Rep[Range]) = pmt.map{case (a,(m,t)) =>
       implicit val t1 = t.asInstanceOf[Typ[m.T]]
       val a1 = a.asInstanceOf[Rep[Array[m.T]]]
-      reflectMutableInput(a1)
+      self.valid(a1, r)
+    }.foldLeft[Rep[Boolean]](unit(true)){case (a,b) => boolean_and(a,b)}
+    def reflectMutableInput = pmt.foreach{case (a,(m,t)) =>
+      implicit val t1 = t.asInstanceOf[Typ[m.T]]
+      val a1 = a.asInstanceOf[Rep[Array[m.T]]]
+      self.reflectMutableInput(a1)
     }
   }
   implicit def iso_pointer[T:Iso]: Iso[Pointer[T]] = new Iso[Pointer[T]] {
@@ -42,6 +47,9 @@ trait DataOps extends Dsl {
   def invariant[T](f: T => Rep[Boolean]): Inv[T] = new Inv[T] {
     override def check(v: T) = f(v)
   }
+  implicit def inv_iso[T:Iso]: Inv[T] = new Inv[T] {
+    override def check(v: T) = implicitly[Iso[T]].check(v)
+  }
   implicit class CheckOps[T:Inv](v: T) {
     def check: Rep[Boolean] = {
       val o = implicitly[Inv[T]]
@@ -53,6 +61,9 @@ trait DataOps extends Dsl {
   }
   def equality[T](f: (T, T) => Rep[Boolean]) = new Eq[T] {
     override def eq(a: T, b: T) = f(a,b)
+  }
+  implicit def eq_rep[T:Typ]: Eq[Rep[T]] = new Eq[Rep[T]] {
+    override def eq(a: Rep[T], b: Rep[T]) = __equal(a,b)
   }
   implicit class EqOps[T:Eq](a: T) {
     def deep_equal(b: T): Rep[Boolean] = {

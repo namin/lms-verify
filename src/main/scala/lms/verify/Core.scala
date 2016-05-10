@@ -107,11 +107,11 @@ trait VerifyOps extends Base with BooleanOps {
     val b = f(a)
     ib.toRep(b)
   }
-  def toplevel[A:Iso,B:Iso1](name: String, f: A => B): A => B = {
+  def toplevel[A:Iso,B:Iso1](name: String, f: A => B, spec: Boolean = false): A => B = {
     val ia = implicitly[Iso[A]]
     val ib = implicitly[Iso1[B]]
     val g = (x: A) => ib.fromRep(toplevelApply[ib.G](name, ia.toRepList(x))(ib.typ))
-    rec.getOrElseUpdate(name, TopLevel(name, ia.typList, ib.typ, wrapf(f)(ia, ib)))
+    rec.getOrElseUpdate(name, TopLevel(name, ia.typList, ib.typ, wrapf(f)(ia, ib), spec))
     g
   }
   def toplevel[A:Iso,B:Iso1](name: String, f: A => B, pre: A => Rep[Boolean], post: A => B => Rep[Boolean]): A => B = {
@@ -175,10 +175,11 @@ trait VerifyOps extends Base with BooleanOps {
 
   def _assert(cond: =>Rep[Boolean])(implicit pos: SourceContext): Rep[Unit]
 
-  def predicate[A:Typ](name: String, f: Rep[A] => Rep[Boolean]): Rep[A] => Rep[Boolean] = {
-    val g = (x: Rep[A]) => toplevelApply[Boolean](name, List(x))
-    rec.getOrElseUpdate(name, TopLevel(name, List(implicitly[Typ[A]]), implicitly[Typ[Boolean]], xs => f(xs(0).asInstanceOf[Rep[A]]), spec=true))
-    g
+  def predicate[A:Iso](name: String, f: A => Rep[Boolean]): A => Rep[Boolean] = {
+    toplevel(name, f, spec=true)
+  }
+  def predicate[A1:Iso,A2:Iso](name: String, f: (A1,A2) => Rep[Boolean]): (A1,A2) => Rep[Boolean] = {
+    unwrap2(toplevel(name, wrap2(f), spec=true))
   }
 
   implicit class RangeForall(r: Rep[Range]) {
@@ -290,7 +291,19 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
   case class Within[A](p: Rep[Array[A]], r: Rep[Range]) extends Def[Any]
   def infix_within[A](p: Rep[Array[A]], r: Rep[Range]): Rep[Any] = Within[A](p, r)
 
-  override def range_forall(r: Rep[Range], f: Rep[Int] => Rep[Boolean]): Rep[Boolean] = ???
+  case class RangeForall(start: Exp[Int], end: Exp[Int], j: Sym[Int], i: Sym[Int], spec: Block[Boolean], body: Block[Boolean]) extends Def[Boolean]
+  override def range_forall(r: Rep[Range], f: Rep[Int] => Rep[Boolean]): Rep[Boolean] = {
+    val j = fresh[Int]
+    val i = fresh[Int]
+    val y = reifySpec(f(j))
+    val a = reifyEffects(f(i)) // TODO: check no effects?
+    y.res match {
+      case Const(true) => Const(true)
+      case Def(Reify(Const(true), _, _)) => Const(true)
+      case _ =>
+        reflectEffect(RangeForall(r.start, r.end, j, i, y, a), summarizeEffects(a).star)
+    }
+  }
 
   case class Loop(invariant: Block[Boolean], assigns: Block[List[Any]], variant: Block[Int]) extends Def[Unit]
   val loops = new scala.collection.mutable.LinkedHashMap[Sym[_], Loop]
@@ -321,26 +334,28 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
   override def syms(e: Any): List[Sym[Any]] = e match {
     case Assert(y) => syms(y)
     case Quantifier(k, x, y) => syms(y)
+    case RangeForall(start, end, j, i, spec, body) => syms(start):::syms(end):::syms(spec):::syms(body)
     case _ => super.syms(e)
   }
 
   override def boundSyms(e: Any): List[Sym[Any]] = e match {
     case Assert(y) => effectSyms(y)
     case Quantifier(k, x, y) => syms(x) ::: effectSyms(y)
+    case RangeForall(start, end, j, i, y, z) => j :: i :: effectSyms(y) ::: effectSyms(z)
     case _ => super.boundSyms(e)
   }
 
   override def symsFreq(e: Any): List[(Sym[Any], Double)] = e match {
     case Assert(y) => freqCold(y)
     case Quantifier(k, x, y) => freqCold(y)
+    case RangeForall(start, end, j, i, y, z) => freqNormal(start):::freqNormal(end):::freqCold(y):::freqHot(z)
     case _ => super.symsFreq(e)
   }
 }
 
 trait Dsl extends VerifyOps with ScalaOpsPkg with TupledFunctions with UncheckedOps with LiftPrimitives with LiftString with LiftVariables with LiftBoolean with LiftNumeric with ZeroVal {
   implicit def repStrToSeqOps(a: Rep[String]) = new SeqOpsCls(a.asInstanceOf[Rep[Seq[Char]]])
-  override def infix_&&(lhs: Rep[Boolean], rhs: => Rep[Boolean])(implicit pos: SourceContext): Rep[Boolean] =
-    __ifThenElse(lhs, rhs, unit(false))
+  override def infix_&&(lhs: Rep[Boolean], rhs: => Rep[Boolean])(implicit pos: SourceContext): Rep[Boolean] = __ifThenElse(lhs, rhs, unit(false))
 }
 
 trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpOpt with TupledFunctionsRecursiveExp with UncheckedOpsExp with ZeroValExp { self =>
@@ -425,6 +440,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
       case OrderingLT(a, b) => "("+exprOf(a, m)+"<"+exprOf(b, m)+")"
       case BooleanAnd(a, b) => "("+exprOf(a, m)+" && "+exprOf(b, m)+")"
       case IfThenElse(a, Block(Const(true)), Block(Const(false))) => exprOf(a, m)
+      case IfThenElse(a, Block(Def(Reify(Const(true), _, _))), Block(Const(false))) => exprOf(a, m)
       case IfThenElse(a, b, Block(Const(false))) => "("+exprOf(a, m)+" && "+exprOfBlock(b, m)+")"
       case BooleanOr(a, b) => "("+exprOf(a, m)+" || "+exprOf(b, m)+")"
       case BooleanNegate(a) => "(!"+exprOf(a, m)+")"
@@ -443,6 +459,8 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
       // FIXME: only works for strings / Seq[Char] / Array[Char]
       case SeqLength(x) => "strlen("+exprOf(x, m)+")"
       case ArrayLength(x) => "strlen("+exprOf(x, m)+")"
+      case RangeForall(z, n, j, _, y, _) =>
+        s"(\\forall int ${exprOf(j, m)}; (${exprOf(z, m)}<=${exprOf(j,m)}<${exprOf(n,m)}) ==> ${exprOfBlock(y, m)})"
       case _ => "TODO:Def:"+d
     }
     def exprOf[A](e: Exp[A], m: Map[Sym[_], String] = Map()): String = e match {
@@ -497,6 +515,16 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
           stream.println("loop variant "+quote(end)+"-"+quote(i)+";")
           stream.println("*/")
           super.emitNode(sym, rhs)
+        case RangeForall(start, end, j, i, y, body) =>
+          gen"""int $sym = 1;
+               |/*@ loop invariant (0 <= $i <= $end);
+               |    loop invariant \forall int $j; (0 <= $j < $i) ==> ${exprOfBlock("", y)}
+               |    loop assigns $i;
+               |    loop variant ($end-$i); */
+               |for (int $i = $start; $i < $end; $i++) {
+               |  ${nestedBlock(body)}
+               |  if (!${getBlockResult(body)}) { $sym = 0; break; }
+               |}"""
         case _ => super.emitNode(sym, rhs)
       }
     }
