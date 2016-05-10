@@ -16,21 +16,21 @@ class InvariantTests extends TestSuite {
     implicit def vecInv[T:Inv] = invariant[Vec[T]] { x =>
       unit(0) <= x.n && x.valid && ((unit(0) until x.n).forall{i: Rep[Int] => x(i).check})
     }
-    implicit def vecEq[T:Eq] = equality[Vec[T]] { (x, y) =>
+    implicit def vecEq[T:Eq:Iso] = equality[Vec[T]] { (x, y) =>
       x.n == y.n && ((unit(0) until x.n).forall{i: Rep[Int] => x(i) deep_equal y(i)})
     }
   }
 
   test("0") {
     trait Inv0 extends Vecs {
-      predicate("eq", { (x: Vec[Rep[Int]], y: Vec[Rep[Int]]) => x deep_equal y })
+      implicitly[Eq[Vec[Rep[Int]]]]
     }
     check("0", (new Inv0 with Impl).code)
   }
 
   test("1") {
     trait Inv1 extends Vecs {
-      predicate("eq", { (x: Vec[Vec[Rep[Int]]], y: Vec[Vec[Rep[Int]]]) => x deep_equal y })
+      implicitly[Eq[Vec[Vec[Rep[Int]]]]]
     }
     check("1", (new Inv1 with Impl).code)
   }

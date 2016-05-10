@@ -1,12 +1,12 @@
 #include <limits.h>
 //@ predicate inv_vec_Int(int  * x0, int  x1) = ((0<=x1) && ((x1==0) || ((x1>0) && \valid(x0+(0..x1-1)))));
-//@ predicate eq(int  * x18, int  x19, int  * x20, int  x21) = ((x19==x21) && (\forall int x25; (0<=x25<x19) ==> (x18[x25]==x20[x25])));
+//@ predicate eq_vec_Int(int  * x18, int  x19, int  * x20, int  x21) = ((x19==x21) && (\forall int x25; (0<=x25<x19) ==> (x18[x25]==x20[x25])));
 /*@
 requires (inv_vec_Int(x18,x19) && inv_vec_Int(x20,x21));
 assigns \nothing;
-ensures \result <==> eq(x18, x19, x20, x21);
+ensures \result <==> eq_vec_Int(x18, x19, x20, x21);
 */
-int eq(int  * x18, int  x19, int  * x20, int  x21) {
+int eq_vec_Int(int  * x18, int  x19, int  * x20, int  x21) {
   int x23 = x19 == x21;
   int x35;
   if (x23) {

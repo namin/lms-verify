@@ -60,8 +60,9 @@ trait DataOps extends Dsl { self =>
   trait Eq[T] {
     def eq(a: T, b: T): Rep[Boolean]
   }
-  def equality[T](f: (T, T) => Rep[Boolean]) = new Eq[T] {
-    override def eq(a: T, b: T) = f(a,b)
+  def equality[T:Iso](f: (T, T) => Rep[Boolean]) = new Eq[T] {
+    val eq_fun: (T, T) => Rep[Boolean] = predicate("eq_"+implicitly[Iso[T]].id, {(a: T, b: T) => f(a, b)})
+    override def eq(a: T, b: T) = eq_fun(a, b)
   }
   implicit def eq_rep[T:Typ]: Eq[Rep[T]] = new Eq[Rep[T]] {
     override def eq(a: Rep[T], b: Rep[T]) = __equal(a,b)

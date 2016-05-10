@@ -1,49 +1,59 @@
 #include <limits.h>
 //@ predicate inv_vec_Int(int  * x0, int  x1) = ((0<=x1) && ((x1==0) || ((x1>0) && \valid(x0+(0..x1-1)))));
-//@ predicate inv_vec_vec_Int(int  * * x18, int  * x19, int  x20) = (((0<=x20) && ((x20==0) || ((x20>0) && (\valid(x18+(0..x20-1)) && \valid(x19+(0..x20-1)))))) && (\forall int x32; (0<=x32<x20) ==> ((0<=x19[x32]) && ((x19[x32]==0) || ((x19[x32]>0) && \valid(x18[x32]+(0..x19[x32]-1)))))));
-//@ predicate eq(int  * * x75, int  * x76, int  x77, int  * * x78, int  * x79, int  x80) = ((x77==x80) && (\forall int x84; (0<=x84<x77) ==> ((x76[x84]==x79[x84]) && (\forall int x92; (0<=x92<x76[x84]) ==> (x75[x84][x92]==x78[x84][x92])))));
+//@ predicate eq_vec_Int(int  * x18, int  x19, int  * x20, int  x21) = ((x19==x21) && (\forall int x25; (0<=x25<x19) ==> (x18[x25]==x20[x25])));
 /*@
-requires (inv_vec_vec_Int(x75,x76,x77) && inv_vec_vec_Int(x78,x79,x80));
+requires (inv_vec_Int(x18,x19) && inv_vec_Int(x20,x21));
 assigns \nothing;
-ensures \result <==> eq(x75, x76, x77, x78, x79, x80);
+ensures \result <==> eq_vec_Int(x18, x19, x20, x21);
 */
-int eq(int  * * x75, int  * x76, int  x77, int  * * x78, int  * x79, int  x80) {
-  int x82 = x77 == x80;
-  int x124;
-  if (x82) {
-    int x123 = 1;
-    /*@ loop invariant (0 <= x85 <= x77);
-    loop invariant \forall int x84; (0 <= x84 < x85) ==>  ((x76[x84]==x79[x84]) && (\forall int x92; (0<=x92<x76[x84]) ==> (x75[x84][x92]==x78[x84][x92])));
-    loop assigns x85;
-    loop variant (x77-x85); */
-    for (int x85 = 0; x85 < x77; x85++) {
-      int x107 = x76[x85];
-      int x109 = x79[x85];
-      int x110 = x107 == x109;
-      int x122;
-      if (x110) {
-        int  *x106 = x75[x85];
-        int  *x108 = x78[x85];
-        int x121 = 1;
-        /*@ loop invariant (0 <= x113 <= x107);
-        loop invariant \forall int x112; (0 <= x112 < x113) ==>  (x106[x112]==x108[x112]);
-        loop assigns x113;
-        loop variant (x107-x113); */
-        for (int x113 = 0; x113 < x107; x113++) {
-          int x118 = x106[x113];
-          int x119 = x108[x113];
-          int x120 = x118 == x119;
-          if (!x120) { x121 = 0; break; }
-        }
-        x122 = x121;
-      } else {
-        x122 = 0/*false*/;
-      }
-      if (!x122) { x123 = 0; break; }
+int eq_vec_Int(int  * x18, int  x19, int  * x20, int  x21) {
+  int x23 = x19 == x21;
+  int x35;
+  if (x23) {
+    int x34 = 1;
+    /*@ loop invariant (0 <= x26 <= x19);
+    loop invariant \forall int x25; (0 <= x25 < x26) ==>  (x18[x25]==x20[x25]);
+    loop assigns x26;
+    loop variant (x19-x26); */
+    for (int x26 = 0; x26 < x19; x26++) {
+      int x31 = x18[x26];
+      int x32 = x20[x26];
+      int x33 = x31 == x32;
+      if (!x33) { x34 = 0; break; }
     }
-    x124 = x123;
+    x35 = x34;
   } else {
-    x124 = 0/*false*/;
+    x35 = 0/*false*/;
   }
-  return x124;
+  return x35;
+}
+//@ predicate inv_vec_vec_Int(int  * * x39, int  * x40, int  x41) = (((0<=x41) && ((x41==0) || ((x41>0) && (\valid(x39+(0..x41-1)) && \valid(x40+(0..x41-1)))))) && (\forall int x53; (0<=x53<x41) ==> inv_vec_Int(x39[x53],x40[x53])));
+//@ predicate eq_vec_vec_Int(int  * * x65, int  * x66, int  x67, int  * * x68, int  * x69, int  x70) = ((x67==x70) && (\forall int x74; (0<=x74<x67) ==> eq_vec_Int(x65[x74],x66[x74],x68[x74],x69[x74])));
+/*@
+requires (inv_vec_vec_Int(x65,x66,x67) && inv_vec_vec_Int(x68,x69,x70));
+assigns \nothing;
+ensures \result <==> eq_vec_vec_Int(x65, x66, x67, x68, x69, x70);
+*/
+int eq_vec_vec_Int(int  * * x65, int  * x66, int  x67, int  * * x68, int  * x69, int  x70) {
+  int x72 = x67 == x70;
+  int x88;
+  if (x72) {
+    int x87 = 1;
+    /*@ loop invariant (0 <= x75 <= x67);
+    loop invariant \forall int x74; (0 <= x74 < x75) ==>  eq_vec_Int(x65[x74],x66[x74],x68[x74],x69[x74]);
+    loop assigns x75;
+    loop variant (x67-x75); */
+    for (int x75 = 0; x75 < x67; x75++) {
+      int  *x82 = x65[x75];
+      int x83 = x66[x75];
+      int  *x84 = x68[x75];
+      int x85 = x69[x75];
+      int x86 = eq_vec_Int(x82,x83,x84,x85);
+      if (!x86) { x87 = 0; break; }
+    }
+    x88 = x87;
+  } else {
+    x88 = 0/*false*/;
+  }
+  return x88;
 }
