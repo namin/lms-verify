@@ -22,6 +22,10 @@ class InvariantTests extends TestSuite {
   }
   test("0") {
     trait Inv0 extends Vecs {
+      // TODO:
+      // We cannot generate impl for inv, since valid is only defined for spec.
+      // Should the inv predicate just be generated because it is used by eq?
+      // Right now, the uses of inv in eq are inlined.
       //predicate("inv", { x: Vec[Rep[Int]] => x.check })
       predicate("eq", { (x: Vec[Rep[Int]], y: Vec[Rep[Int]]) => x deep_equal y })
     }
