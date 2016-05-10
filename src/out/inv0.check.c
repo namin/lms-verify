@@ -1,29 +1,29 @@
 #include <limits.h>
-//@ predicate inv_vec_Int(int  * x0, int  x1) = ((0<=x1) && \valid(x0+(0..x1-1)));
-//@ predicate eq(int  * x14, int  x15, int  * x16, int  x17) = ((x15==x17) && (\forall int x21; (0<=x21<x15) ==> (x14[x21]==x16[x21])));
+//@ predicate inv_vec_Int(int  * x0, int  x1) = ((0<=x1) && ((x1==0) || ((x1>0) && \valid(x0+(0..x1-1)))));
+//@ predicate eq(int  * x18, int  x19, int  * x20, int  x21) = ((x19==x21) && (\forall int x25; (0<=x25<x19) ==> (x18[x25]==x20[x25])));
 /*@
-requires (inv_vec_Int(x14,x15) && inv_vec_Int(x16,x17));
+requires (inv_vec_Int(x18,x19) && inv_vec_Int(x20,x21));
 assigns \nothing;
-ensures \result <==> eq(x14, x15, x16, x17);
+ensures \result <==> eq(x18, x19, x20, x21);
 */
-int eq(int  * x14, int  x15, int  * x16, int  x17) {
-  int x19 = x15 == x17;
-  int x31;
-  if (x19) {
-    int x30 = 1;
-    /*@ loop invariant (0 <= x22 <= x15);
-    loop invariant \forall int x21; (0 <= x21 < x22) ==>  (x14[x21]==x16[x21]);
-    loop assigns x22;
-    loop variant (x15-x22); */
-    for (int x22 = 0; x22 < x15; x22++) {
-      int x27 = x14[x22];
-      int x28 = x16[x22];
-      int x29 = x27 == x28;
-      if (!x29) { x30 = 0; break; }
+int eq(int  * x18, int  x19, int  * x20, int  x21) {
+  int x23 = x19 == x21;
+  int x35;
+  if (x23) {
+    int x34 = 1;
+    /*@ loop invariant (0 <= x26 <= x19);
+    loop invariant \forall int x25; (0 <= x25 < x26) ==>  (x18[x25]==x20[x25]);
+    loop assigns x26;
+    loop variant (x19-x26); */
+    for (int x26 = 0; x26 < x19; x26++) {
+      int x31 = x18[x26];
+      int x32 = x20[x26];
+      int x33 = x31 == x32;
+      if (!x33) { x34 = 0; break; }
     }
-    x31 = x30;
+    x35 = x34;
   } else {
-    x31 = 0/*false*/;
+    x35 = 0/*false*/;
   }
-  return x31;
+  return x35;
 }
