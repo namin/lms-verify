@@ -1,9 +1,6 @@
 package lms.verify
 
 trait DataOps extends Dsl {
-  def infix_arrayTyp[T](t: Typ[T]): Typ[Array[T]]
-  def range_forall(r: Rep[Range], f: Rep[Int] => Rep[Boolean]): Rep[Boolean]
-
   class Pointer[T:Iso](val p: List[Rep[Array[_]]]) {
     val iso = implicitly[Iso[T]]
     val pmt = p zip (iso.memList zip iso.typList)
@@ -62,9 +59,6 @@ trait DataOps extends Dsl {
       val o = implicitly[Eq[T]]
       o.eq(a, b)
     }
-  }
-  implicit class RangeForall(r: Rep[Range]) {
-    def forall(f: Rep[Int] => Rep[Boolean]): Rep[Boolean] = range_forall(r, f)
   }
 
   implicit def isodata[A:Inv,B:Iso](ab: A => B, ba: B => A): Iso[A] = new Iso[A] {

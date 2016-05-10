@@ -148,6 +148,8 @@ trait VerifyOps extends Base with BooleanOps {
   }
 
   implicit def anyTyp: Typ[Any]
+  def infix_arrayTyp[T](t: Typ[T]) = typ_arrayTyp[T](t)
+  def typ_arrayTyp[T](t: Typ[T]): Typ[Array[T]]
 
   def valid[A](p: Rep[A]): Rep[Boolean]
   def valid[A](p: Rep[A], r: Rep[Any]): Rep[Boolean]
@@ -178,10 +180,16 @@ trait VerifyOps extends Base with BooleanOps {
     rec.getOrElseUpdate(name, TopLevel(name, List(implicitly[Typ[A]]), implicitly[Typ[Boolean]], xs => f(xs(0).asInstanceOf[Rep[A]]), spec=true))
     g
   }
+
+  implicit class RangeForall(r: Rep[Range]) {
+    def forall(f: Rep[Int] => Rep[Boolean]): Rep[Boolean] = range_forall(r, f)
+  }
+  def range_forall(r: Rep[Range], f: Rep[Int] => Rep[Boolean]): Rep[Boolean]
 }
 
 trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBoolean with ListOpsExp with BooleanOpsExpOpt {
   implicit def anyTyp: Typ[Any] = manifestTyp
+  def typ_arrayTyp[T](t: Typ[T]) = t.arrayTyp
 
   var suspendCSE: Boolean = false
   def reifySpec[A:Typ](block: => Exp[A]): Block[A] = {
@@ -282,6 +290,8 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
   case class Within[A](p: Rep[Array[A]], r: Rep[Range]) extends Def[Any]
   def infix_within[A](p: Rep[Array[A]], r: Rep[Range]): Rep[Any] = Within[A](p, r)
 
+  override def range_forall(r: Rep[Range], f: Rep[Int] => Rep[Boolean]): Rep[Boolean] = ???
+
   case class Loop(invariant: Block[Boolean], assigns: Block[List[Any]], variant: Block[Int]) extends Def[Unit]
   val loops = new scala.collection.mutable.LinkedHashMap[Sym[_], Loop]
   val loopsDone = new scala.collection.mutable.LinkedHashSet[Sym[_]]
@@ -325,7 +335,6 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
     case Quantifier(k, x, y) => freqCold(y)
     case _ => super.symsFreq(e)
   }
-
 }
 
 trait Dsl extends VerifyOps with ScalaOpsPkg with TupledFunctions with UncheckedOps with LiftPrimitives with LiftString with LiftVariables with LiftBoolean with LiftNumeric with ZeroVal {
