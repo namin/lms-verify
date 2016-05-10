@@ -311,7 +311,7 @@ trait Dsl extends VerifyOps with ScalaOpsPkg with TupledFunctions with Unchecked
     __ifThenElse(lhs, rhs, unit(false))
 }
 
-trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with TupledFunctionsRecursiveExp with UncheckedOpsExp with ZeroValExp { self =>
+trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpOpt with TupledFunctionsRecursiveExp with UncheckedOpsExp with ZeroValExp { self =>
   val codegen = new CCodeGenPkg with CGenVariables with CGenTupledFunctions with CGenUncheckedOps {
     var emitFileAndLine: Boolean = false
     override def quote(x: Exp[Any]) = x match {
