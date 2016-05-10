@@ -1,28 +1,29 @@
 #include <limits.h>
-//@ predicate eq(int  * x0, int  x1, int  * x2, int  x3) = ((x1==x3) && (\forall int x7; (0<=x7<x1) ==> (x0[x7]==x2[x7])));
+//@ predicate inv(int  * x0, int  x1) = ((0<=x1) && \valid(x0+(0..x1-1)));
+//@ predicate eq(int  * x28, int  x29, int  * x30, int  x31) = ((x29==x31) && (\forall int x35; (0<=x35<x29) ==> (x28[x35]==x30[x35])));
 /*@
-requires (((0<=x1) && \valid(x0+(0..x1-1))) && ((0<=x3) && \valid(x2+(0..x3-1))));
+requires (((0<=x29) && \valid(x28+(0..x29-1))) && ((0<=x31) && \valid(x30+(0..x31-1))));
 assigns \nothing;
-ensures \result <==> eq(x0, x1, x2, x3);
+ensures \result <==> eq(x28, x29, x30, x31);
 */
-int eq(int  * x0, int  x1, int  * x2, int  x3) {
-  int x5 = x1 == x3;
-  int x17;
-  if (x5) {
-    int x16 = 1;
-    /*@ loop invariant (0 <= x8 <= x1);
-    loop invariant \forall int x7; (0 <= x7 < x8) ==>  (x0[x7]==x2[x7]);
-    loop assigns x8;
-    loop variant (x1-x8); */
-    for (int x8 = 0; x8 < x1; x8++) {
-      int x13 = x0[x8];
-      int x14 = x2[x8];
-      int x15 = x13 == x14;
-      if (!x15) { x16 = 0; break; }
+int eq(int  * x28, int  x29, int  * x30, int  x31) {
+  int x33 = x29 == x31;
+  int x45;
+  if (x33) {
+    int x44 = 1;
+    /*@ loop invariant (0 <= x36 <= x29);
+    loop invariant \forall int x35; (0 <= x35 < x36) ==>  (x28[x35]==x30[x35]);
+    loop assigns x36;
+    loop variant (x29-x36); */
+    for (int x36 = 0; x36 < x29; x36++) {
+      int x41 = x28[x36];
+      int x42 = x30[x36];
+      int x43 = x41 == x42;
+      if (!x43) { x44 = 0; break; }
     }
-    x17 = x16;
+    x45 = x44;
   } else {
-    x17 = 0/*false*/;
+    x45 = 0/*false*/;
   }
-  return x17;
+  return x45;
 }

@@ -88,10 +88,10 @@ trait VerifyOps extends Base with BooleanOps {
     override def check(x:(A1,A2,A3,A4,A5,A6,A7,A8,A9)) = iso1.check(x._1) && iso2.check(x._2) && iso3.check(x._3) && iso4.check(x._4) && iso5.check(x._5) && iso6.check(x._6) && iso7.check(x._7) && iso8.check(x._8) && iso9.check(x._9)
   }
 
-  case class TopLevel[B](name: String, mAs: List[Typ[_]], mB:Typ[B], f: List[Rep[_]] => Rep[B], spec: Boolean)
+  case class TopLevel[B](name: String, mAs: List[Typ[_]], mB:Typ[B], f: List[Rep[_]] => Rep[B], spec: Boolean, code: Boolean)
   object TopLevel {
     def apply[B](name: String, mAs: List[Typ[_]], mB:Typ[B], f: List[Rep[_]] => Rep[B]): TopLevel[B] =
-      TopLevel(name, mAs, mB, f, spec=false)
+      TopLevel(name, mAs, mB, f, spec=false, code=true)
   }
   val rec = new scala.collection.mutable.LinkedHashMap[String,TopLevel[_]]
   def mkTopLevel[B](name: String, mAs: List[Typ[_]], mB:Typ[B], f: List[Rep[_]] => Rep[B], pre: List[Rep[_]] => Rep[Boolean], post: List[Rep[_]] => Rep[B] => Rep[Boolean]) =
@@ -107,11 +107,11 @@ trait VerifyOps extends Base with BooleanOps {
     val b = f(a)
     ib.toRep(b)
   }
-  def toplevel[A:Iso,B:Iso1](name: String, f: A => B, spec: Boolean = false): A => B = {
+  def toplevel[A:Iso,B:Iso1](name: String, f: A => B, spec: Boolean = false, code: Boolean = true): A => B = {
     val ia = implicitly[Iso[A]]
     val ib = implicitly[Iso1[B]]
     val g = (x: A) => ib.fromRep(toplevelApply[ib.G](name, ia.toRepList(x))(ib.typ))
-    rec.getOrElseUpdate(name, TopLevel(name, ia.typList, ib.typ, wrapf(f)(ia, ib), spec))
+    rec.getOrElseUpdate(name, TopLevel(name, ia.typList, ib.typ, wrapf(f)(ia, ib), spec, code))
     g
   }
   def toplevel[A:Iso,B:Iso1](name: String, f: A => B, pre: A => Rep[Boolean], post: A => B => Rep[Boolean]): A => B = {
@@ -175,8 +175,8 @@ trait VerifyOps extends Base with BooleanOps {
 
   def _assert(cond: =>Rep[Boolean])(implicit pos: SourceContext): Rep[Unit]
 
-  def predicate[A:Iso](name: String, f: A => Rep[Boolean]): A => Rep[Boolean] = {
-    toplevel(name, f, spec=true)
+  def predicate[A:Iso](name: String, f: A => Rep[Boolean], code: Boolean=true): A => Rep[Boolean] = {
+    toplevel(name, f, spec=true, code=code)
   }
   def predicate[A1:Iso,A2:Iso](name: String, f: (A1,A2) => Rep[Boolean]): (A1,A2) => Rep[Boolean] = {
     unwrap2(toplevel(name, wrap2(f), spec=true))
@@ -538,7 +538,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
       }
     }
 
-    def emitVerify[B](f: List[Exp[_]] => Exp[B], functionName: String, spec: Boolean, out: PrintWriter)(mAs: List[Typ[_]], mB: Typ[B]): Unit = {
+    def emitVerify[B](f: List[Exp[_]] => Exp[B], functionName: String, spec: Boolean, code: Boolean, out: PrintWriter)(mAs: List[Typ[_]], mB: Typ[B]): Unit = {
       val args = mAs.map(fresh(_))
       val r = fresh[B](mB)
       val oldFns = rec.keys.toSet
@@ -577,27 +577,29 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
         if (spec) {
           stream.println("//@ predicate "+sig+" = "+exprOfBlock[B](body, default_m)+";")
         }
-        val preStr = exprOfBlock("requires", preBody)
-        val postStr = exprOfBlock("ensures", postBody, Map(r -> "\\result"))
-        if (!preStr.isEmpty || assignsNothing || !customAssignsStr.isEmpty || !postStr.isEmpty || spec) {
-          stream.println("/*@")
-          stream.println(preStr)
-          if (assignsNothing) stream.println("assigns \\nothing;")
-          stream.println(postStr)
-          if (spec) {
-            stream.println("ensures \\result <==> "+sig_app+";")
+        if (code) {
+          val preStr = exprOfBlock("requires", preBody)
+          val postStr = exprOfBlock("ensures", postBody, Map(r -> "\\result"))
+          if (!preStr.isEmpty || assignsNothing || !customAssignsStr.isEmpty || !postStr.isEmpty || spec) {
+            stream.println("/*@")
+            stream.println(preStr)
+            if (assignsNothing) stream.println("assigns \\nothing;")
+            stream.println(postStr)
+            if (spec) {
+              stream.println("ensures \\result <==> "+sig_app+";")
+            }
+            if (!customAssignsStr.isEmpty) stream.println(customAssignsStr)
+            stream.println("*/")
           }
-          if (!customAssignsStr.isEmpty) stream.println(customAssignsStr)
-          stream.println("*/")
+
+          stream.println(sB+" "+sig+" {")
+          emitBlock(body)
+
+          if (remap(y.tp) != "void")
+            stream.println("return " + quote(y) + ";")
+
+          stream.println("}")
         }
-
-        stream.println(sB+" "+sig+" {")
-        emitBlock(body)
-
-        if (remap(y.tp) != "void")
-          stream.println("return " + quote(y) + ";")
-
-        stream.println("}")
       }
     }
     val IR: self.type = self
@@ -606,7 +608,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
     assert(codegen ne null) //careful about initialization order
     includes.foreach { i => stream.println("#include "+i) }
     rec.foreach { case (k,x) =>
-      codegen.emitVerify(x.f, x.name, x.spec, stream)(x.mAs, mtype(x.mB))
+      codegen.emitVerify(x.f, x.name, x.spec, x.code, stream)(x.mAs, mtype(x.mB))
     }
   }
   lazy val code: String = {
