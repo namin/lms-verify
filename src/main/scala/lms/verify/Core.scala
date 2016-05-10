@@ -35,7 +35,7 @@ trait VerifyOps extends Base with BooleanOps {
     override val typ = implicitly[Typ[G]]
     override def toRep(x: Rep[G]) = x
     override def fromRep(x: Rep[G]) = x
-    override def id = typ.toString
+    override def id = typ.toString // TODO: should be valid C identifier, e.g. no generic bracket chars [ ]
     override def check(x: Rep[G]) = unit(true)
   }
   class IsoTup(isos: List[Iso[_]]) {
