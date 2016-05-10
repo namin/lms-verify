@@ -9,6 +9,7 @@ class InvariantTests extends TestSuite {
       def valid = a.valid(0 until n)
     }
     implicit def vecIso[T:Iso](implicit ev: Inv[Vec[T]]) = isodata[Vec[T],(Pointer[T],Rep[Int])](
+      "vec_" + implicitly[Iso[T]].id,
       {x: Vec[T] => (x.a, x.n)},
       {x: (Pointer[T],Rep[Int]) => new Vec(x._1, x._2)}
     )

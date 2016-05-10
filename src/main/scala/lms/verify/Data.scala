@@ -32,6 +32,7 @@ trait DataOps extends Dsl { self =>
   implicit def iso_pointer[T:Iso]: Iso[Pointer[T]] = new Iso[Pointer[T]] {
     val iso = implicitly[Iso[T]]
     val mt = iso.memList zip iso.typList
+    def id = "p_"+iso.id
     def memList = iso.memList.map{m => new TypeMember { type T = Array[m.T] }}
     def typList = mt.map{case (m,t) =>
       val t1 = t.asInstanceOf[Typ[m.T]]
@@ -72,8 +73,9 @@ trait DataOps extends Dsl { self =>
     }
   }
 
-  implicit def isodata[A:Inv,B:Iso](ab: A => B, ba: B => A): Iso[A] = new Iso[A] {
+  implicit def isodata[A:Inv,B:Iso](id0: String, ab: A => B, ba: B => A): Iso[A] = new Iso[A] {
     val ib = implicitly[Iso[B]]
+    override def id = id0
     override def memList = ib.memList
     override def typList = ib.typList
     override def toRepList(x: A) = ib.toRepList(ab(x))
