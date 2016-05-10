@@ -8,7 +8,11 @@ trait VerifyOps extends Base with BooleanOps {
   def includes: List[String] = List("<limits.h>")
   def autoAssignNothing: Boolean = true
 
+  class TypeMember {
+    type T
+  }
   trait Iso[T] {
+    def memList: List[TypeMember]
     def typList: List[Typ[_]]
     def toRepList(x:T): List[Rep[_]]
     def fromRepList(xs: List[Rep[_]]): T
@@ -19,6 +23,7 @@ trait VerifyOps extends Base with BooleanOps {
     val typ: Typ[G]
     def toRep(x:T): Rep[G]
     def fromRep(x: Rep[G]): T
+    override def memList = List(new TypeMember { type T = G })
     override def typList = List(typ)
     override def toRepList(x: T) = List(toRep(x))
     override def fromRepList(xs: List[Rep[_]]) = fromRep(xs(0).asInstanceOf[Rep[G]])
@@ -34,45 +39,50 @@ trait VerifyOps extends Base with BooleanOps {
     val n = isos.length
     val lengths: List[Int] = for (iso <- isos) yield iso.typList.length
     val offsets: List[Int] = (for (i <- 0 to n) yield (lengths.slice(0, i).sum)).toList
+    def memList = isos.flatMap(_.memList)
     def typList = isos.flatMap(_.typList)
     def slice(xs: List[Rep[_]])(i: Int) = xs.slice(offsets(i), offsets(i+1))
   }
   implicit def iso_tup2[A1,A2](implicit iso1: Iso[A1], iso2: Iso[A2]): Iso[(A1,A2)] = new Iso[(A1,A2)] {
-    val isoTyp = new IsoTup(List(iso1, iso2))
-    override def typList = isoTyp.typList
+    val isoTup = new IsoTup(List(iso1, iso2))
+    override def memList = isoTup.memList
+    override def typList = isoTup.typList
     override def toRepList(x:(A1,A2)) = iso1.toRepList(x._1) ++ iso2.toRepList(x._2)
     override def fromRepList(xs: List[Rep[_]]) = {
-      val slice = isoTyp.slice(xs)_
+      val slice = isoTup.slice(xs)_
       (iso1.fromRepList(slice(0)), iso2.fromRepList(slice(1)))
     }
     override def check(x:(A1,A2)) = iso1.check(x._1) && iso2.check(x._2)
   }
   implicit def iso_tup3[A1,A2,A3](implicit iso1: Iso[A1], iso2: Iso[A2], iso3: Iso[A3]): Iso[(A1,A2,A3)] = new Iso[(A1,A2,A3)] {
-    val isoTyp = new IsoTup(List(iso1, iso2, iso3))
-    override def typList = isoTyp.typList
+    val isoTup = new IsoTup(List(iso1, iso2, iso3))
+    override def memList = isoTup.memList
+    override def typList = isoTup.typList
     override def toRepList(x:(A1,A2,A3)) = iso1.toRepList(x._1) ++ iso2.toRepList(x._2) ++ iso3.toRepList(x._3)
     override def fromRepList(xs: List[Rep[_]]) = {
-      val slice = isoTyp.slice(xs)_
+      val slice = isoTup.slice(xs)_
       (iso1.fromRepList(slice(0)), iso2.fromRepList(slice(1)), iso3.fromRepList(slice(2)))
     }
     override def check(x:(A1,A2,A3)) = iso1.check(x._1) && iso2.check(x._2) && iso3.check(x._3)
   }
   implicit def iso_tup4[A1,A2,A3,A4](implicit iso1: Iso[A1], iso2: Iso[A2], iso3: Iso[A3], iso4: Iso[A4]): Iso[(A1,A2,A3,A4)] = new Iso[(A1,A2,A3,A4)] {
-    val isoTyp = new IsoTup(List(iso1, iso2, iso3, iso4))
-    override def typList = isoTyp.typList
+    val isoTup = new IsoTup(List(iso1, iso2, iso3, iso4))
+    override def memList = isoTup.memList
+    override def typList = isoTup.typList
     override def toRepList(x:(A1,A2,A3,A4)) = iso1.toRepList(x._1) ++ iso2.toRepList(x._2) ++ iso3.toRepList(x._3) ++ iso4.toRepList(x._4)
     override def fromRepList(xs: List[Rep[_]]) = {
-      val slice = isoTyp.slice(xs)_
+      val slice = isoTup.slice(xs)_
       (iso1.fromRepList(slice(0)), iso2.fromRepList(slice(1)), iso3.fromRepList(slice(2)), iso4.fromRepList(slice(3)))
     }
     override def check(x:(A1,A2,A3,A4)) = iso1.check(x._1) && iso2.check(x._2) && iso3.check(x._3) && iso4.check(x._4)
   }
   implicit def iso_tup9[A1,A2,A3,A4,A5,A6,A7,A8,A9](implicit iso1: Iso[A1], iso2: Iso[A2], iso3: Iso[A3], iso4: Iso[A4], iso5: Iso[A5], iso6: Iso[A6], iso7: Iso[A7], iso8: Iso[A8], iso9: Iso[A9]): Iso[(A1,A2,A3,A4,A5,A6,A7,A8,A9)] = new Iso[(A1,A2,A3,A4,A5,A6,A7,A8,A9)] {
-    val isoTyp = new IsoTup(List(iso1, iso2, iso3, iso4, iso5, iso6, iso7, iso8, iso9))
-    override def typList = isoTyp.typList
+    val isoTup = new IsoTup(List(iso1, iso2, iso3, iso4, iso5, iso6, iso7, iso8, iso9))
+    override def memList = isoTup.memList
+    override def typList = isoTup.typList
     override def toRepList(x:(A1,A2,A3,A4,A5,A6,A7,A8,A9)) = iso1.toRepList(x._1) ++ iso2.toRepList(x._2) ++ iso3.toRepList(x._3) ++ iso4.toRepList(x._4) ++ iso5.toRepList(x._5) ++ iso6.toRepList(x._6) ++ iso7.toRepList(x._7) ++ iso8.toRepList(x._8) ++ iso9.toRepList(x._9)
     override def fromRepList(xs: List[Rep[_]]) = {
-      val slice = isoTyp.slice(xs)_
+      val slice = isoTup.slice(xs)_
       (iso1.fromRepList(slice(0)), iso2.fromRepList(slice(1)), iso3.fromRepList(slice(2)), iso4.fromRepList(slice(3)), iso5.fromRepList(slice(4)), iso6.fromRepList(slice(5)), iso7.fromRepList(slice(6)), iso8.fromRepList(slice(7)), iso9.fromRepList(slice(8)))
     }
     override def check(x:(A1,A2,A3,A4,A5,A6,A7,A8,A9)) = iso1.check(x._1) && iso2.check(x._2) && iso3.check(x._3) && iso4.check(x._4) && iso5.check(x._5) && iso6.check(x._6) && iso7.check(x._7) && iso8.check(x._8) && iso9.check(x._9)
