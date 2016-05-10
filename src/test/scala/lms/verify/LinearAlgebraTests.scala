@@ -139,7 +139,7 @@ class LinearAlgebraTests extends TestSuite {
                 }
               }
             }
-            r
+            r: Rep[Int]
           },
           { (v: Rep[Array[Int]], n: Rep[Int], o: Rep[Array[Int]]) => n > 0 && valid(v, 0 until n) && valid(o, 0 until n)},
           { (v: Rep[Array[Int]], n: Rep[Int], o: Rep[Array[Int]]) => (result: Rep[Int]) =>

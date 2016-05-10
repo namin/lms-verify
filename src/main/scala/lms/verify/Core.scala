@@ -8,6 +8,70 @@ trait VerifyOps extends Base with BooleanOps {
   def includes: List[String] = List("<limits.h>")
   def autoAssignNothing: Boolean = true
 
+  trait Iso[T] {
+    def typList: List[Typ[_]]
+    def toRepList(x:T): List[Rep[_]]
+    def fromRepList(xs: List[Rep[_]]): T
+  }
+  trait Iso1[T] extends Iso[T] {
+    type G
+    val typ: Typ[G]
+    def toRep(x:T): Rep[G]
+    def fromRep(x: Rep[G]): T
+    override def typList = List(typ)
+    override def toRepList(x: T) = List(toRep(x))
+    override def fromRepList(xs: List[Rep[_]]) = fromRep(xs(0).asInstanceOf[Rep[G]])
+  }
+  implicit def iso1_id[B:Typ]: Iso1[Rep[B]] = new Iso1[Rep[B]] {
+    override type G = B
+    override val typ = implicitly[Typ[G]]
+    override def toRep(x: Rep[G]) = x
+    override def fromRep(x: Rep[G]) = x
+  }
+  class IsoTup(isos: List[Iso[_]]) {
+    val n = isos.length
+    val lengths: List[Int] = for (iso <- isos) yield iso.typList.length
+    val offsets: List[Int] = (for (i <- 0 to n) yield (lengths.slice(0, i).sum)).toList
+    def typList = isos.flatMap(_.typList)
+    def slice(xs: List[Rep[_]])(i: Int) = xs.slice(offsets(i), offsets(i+1))
+  }
+  implicit def iso_tup2[A1,A2](implicit iso1: Iso[A1], iso2: Iso[A2]): Iso[(A1,A2)] = new Iso[(A1,A2)] {
+    val isoTyp = new IsoTup(List(iso1, iso2))
+    override def typList = isoTyp.typList
+    override def toRepList(x:(A1,A2)) = iso1.toRepList(x._1) ++ iso2.toRepList(x._2)
+    override def fromRepList(xs: List[Rep[_]]) = {
+      val slice = isoTyp.slice(xs)_
+      (iso1.fromRepList(slice(0)), iso2.fromRepList(slice(1)))
+    }
+  }
+  implicit def iso_tup3[A1,A2,A3](implicit iso1: Iso[A1], iso2: Iso[A2], iso3: Iso[A3]): Iso[(A1,A2,A3)] = new Iso[(A1,A2,A3)] {
+    val isoTyp = new IsoTup(List(iso1, iso2, iso3))
+    override def typList = isoTyp.typList
+    override def toRepList(x:(A1,A2,A3)) = iso1.toRepList(x._1) ++ iso2.toRepList(x._2) ++ iso3.toRepList(x._3)
+    override def fromRepList(xs: List[Rep[_]]) = {
+      val slice = isoTyp.slice(xs)_
+      (iso1.fromRepList(slice(0)), iso2.fromRepList(slice(1)), iso3.fromRepList(slice(2)))
+    }
+  }
+  implicit def iso_tup4[A1,A2,A3,A4](implicit iso1: Iso[A1], iso2: Iso[A2], iso3: Iso[A3], iso4: Iso[A4]): Iso[(A1,A2,A3,A4)] = new Iso[(A1,A2,A3,A4)] {
+    val isoTyp = new IsoTup(List(iso1, iso2, iso3, iso4))
+    override def typList = isoTyp.typList
+    override def toRepList(x:(A1,A2,A3,A4)) = iso1.toRepList(x._1) ++ iso2.toRepList(x._2) ++ iso3.toRepList(x._3) ++ iso4.toRepList(x._4)
+    override def fromRepList(xs: List[Rep[_]]) = {
+      val slice = isoTyp.slice(xs)_
+      (iso1.fromRepList(slice(0)), iso2.fromRepList(slice(1)), iso3.fromRepList(slice(2)), iso4.fromRepList(slice(3)))
+    }
+  }
+  implicit def iso_tup9[A1,A2,A3,A4,A5,A6,A7,A8,A9](implicit iso1: Iso[A1], iso2: Iso[A2], iso3: Iso[A3], iso4: Iso[A4], iso5: Iso[A5], iso6: Iso[A6], iso7: Iso[A7], iso8: Iso[A8], iso9: Iso[A9]): Iso[(A1,A2,A3,A4,A5,A6,A7,A8,A9)] = new Iso[(A1,A2,A3,A4,A5,A6,A7,A8,A9)] {
+    val isoTyp = new IsoTup(List(iso1, iso2, iso3, iso4, iso5, iso6, iso7, iso8, iso9))
+    override def typList = isoTyp.typList
+    override def toRepList(x:(A1,A2,A3,A4,A5,A6,A7,A8,A9)) = iso1.toRepList(x._1) ++ iso2.toRepList(x._2) ++ iso3.toRepList(x._3) ++ iso4.toRepList(x._4) ++ iso5.toRepList(x._5) ++ iso6.toRepList(x._6) ++ iso7.toRepList(x._7) ++ iso8.toRepList(x._8) ++ iso9.toRepList(x._9)
+    override def fromRepList(xs: List[Rep[_]]) = {
+      val slice = isoTyp.slice(xs)_
+      (iso1.fromRepList(slice(0)), iso2.fromRepList(slice(1)), iso3.fromRepList(slice(2)), iso4.fromRepList(slice(3)), iso5.fromRepList(slice(4)), iso6.fromRepList(slice(5)), iso7.fromRepList(slice(6)), iso8.fromRepList(slice(7)), iso9.fromRepList(slice(8)))
+    }
+  }
+
   case class TopLevel[B](name: String, mAs: List[Typ[_]], mB:Typ[B], f: List[Rep[_]] => Rep[B], spec: Boolean)
   object TopLevel {
     def apply[B](name: String, mAs: List[Typ[_]], mB:Typ[B], f: List[Rep[_]] => Rep[B]): TopLevel[B] =
@@ -20,41 +84,44 @@ trait VerifyOps extends Base with BooleanOps {
       ensures{r: Rep[B] => post(xs)(r)}(mB)
       f(xs)
     })
-  def toplevel[A:Typ,B:Typ](name: String, f: Rep[A] => Rep[B]): Rep[A] => Rep[B] = {
-    val g = (x: Rep[A]) => toplevelApply[B](name, List(x))
-    rec.getOrElseUpdate(name, TopLevel(name, List(implicitly[Typ[A]]), implicitly[Typ[B]], xs => f(xs(0).asInstanceOf[Rep[A]])))
+  def toplevel[A:Iso,B:Iso1](name: String, f: A => B): A => B = {
+    val ia = implicitly[Iso[A]]
+    val ib = implicitly[Iso1[B]]
+    val g = (x: A) => ib.fromRep(toplevelApply[ib.G](name, ia.toRepList(x))(ib.typ))
+    rec.getOrElseUpdate(name, TopLevel(name, ia.typList, ib.typ, xs => ib.toRep(f(ia.fromRepList(xs)))))
     g
   }
-  def toplevel[A1:Typ,A2:Typ,A3:Typ,B:Typ](name: String, f: (Rep[A1], Rep[A2], Rep[A3]) => Rep[B]): (Rep[A1], Rep[A2], Rep[A3]) => Rep[B] = {
-    val g = (x1: Rep[A1], x2: Rep[A2], x3: Rep[A3]) => toplevelApply[B](name, List(x1, x2, x3))
-    rec.getOrElseUpdate(name, TopLevel(name, List(implicitly[Typ[A1]], implicitly[Typ[A2]], implicitly[Typ[A3]]), implicitly[Typ[B]], xs => f(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]])))
+  def toplevel[A:Iso,B:Iso1](name: String, f: A => B, pre: A => Rep[Boolean], post: A => B => Rep[Boolean]): A => B = {
+    val ia = implicitly[Iso[A]]
+    val ib = implicitly[Iso1[B]]
+    val g = (x: A) => ib.fromRep(toplevelApply[ib.G](name, ia.toRepList(x))(ib.typ))
+    rec.getOrElseUpdate(name, mkTopLevel(name, ia.typList, ib.typ, xs => ib.toRep(f(ia.fromRepList(xs))), xs => pre(ia.fromRepList(xs)), (xs: List[Rep[_]]) => (r: Rep[ib.G]) => post(ia.fromRepList(xs))(ib.fromRep(r))))
     g
   }
 
-  def toplevel[A:Typ,B:Typ](name: String, f: Rep[A] => Rep[B], pre: Rep[A] => Rep[Boolean], post: Rep[A] => Rep[B] => Rep[Boolean]): Rep[A] => Rep[B] = {
-    val g = (x: Rep[A]) => toplevelApply[B](name, List(x))
-    rec.getOrElseUpdate(name, mkTopLevel(name, List(implicitly[Typ[A]]), implicitly[Typ[B]], xs => f(xs(0).asInstanceOf[Rep[A]]), xs => pre(xs(0).asInstanceOf[Rep[A]]), (xs: List[Rep[_]]) => (r: Rep[B]) => post(xs(0).asInstanceOf[Rep[A]])(r)))
-    g
+  def wrap2[A1,A2,B](f: (A1,A2) => B): ((A1,A2)) => B = {(x: (A1,A2)) => f(x._1, x._2)}
+  def unwrap2[A1,A2,B](g: ((A1,A2)) => B): (A1,A2) => B = {(x1: A1, x2: A2) => g((x1, x2))}
+  def wrap3[A1,A2,A3,B](f: (A1,A2,A3) => B): ((A1,A2,A3)) => B = {(x: (A1,A2,A3)) => f(x._1, x._2, x._3)}
+  def unwrap3[A1,A2,A3,B](g: ((A1,A2,A3)) => B): (A1,A2,A3) => B = {(x1: A1, x2: A2, x3: A3) => g((x1, x2, x3))}
+  def wrap4[A1,A2,A3,A4,B](f: (A1,A2,A3,A4) => B): ((A1,A2,A3,A4)) => B = {(x: (A1,A2,A3,A4)) => f(x._1, x._2, x._3, x._4)}
+  def unwrap4[A1,A2,A3,A4,B](g: ((A1,A2,A3,A4)) => B): (A1,A2,A3,A4) => B = {(x1: A1, x2: A2, x3: A3, x4: A4) => g((x1, x2, x3, x4))}
+  def wrap9[A1,A2,A3,A4,A5,A6,A7,A8,A9,B](f: (A1,A2,A3,A4,A5,A6,A7,A8,A9) => B): ((A1,A2,A3,A4,A5,A6,A7,A8,A9)) => B = {(x: (A1,A2,A3,A4,A5,A6,A7,A8,A9)) => f(x._1, x._2, x._3, x._4, x._5, x._6, x._7, x._8, x._9)}
+  def unwrap9[A1,A2,A3,A4,A5,A6,A7,A8,A9,B](g: ((A1,A2,A3,A4,A5,A6,A7,A8,A9)) => B): (A1,A2,A3,A4,A5,A6,A7,A8,A9) => B = {(x1: A1, x2: A2, x3: A3, x4: A4, x5: A5, x6: A6, x7: A7, x8: A8, x9: A9) => g((x1, x2, x3, x4, x5, x6, x7, x8, x9))}
+
+  def toplevel[A1:Iso,A2:Iso,A3:Iso,B:Iso1](name: String, f: (A1, A2, A3) => B): (A1, A2, A3) => B = {
+    unwrap3(toplevel(name, wrap3(f)))
   }
-  def toplevel[A1:Typ,A2:Typ,B:Typ](name: String, f: (Rep[A1], Rep[A2]) => Rep[B], pre: (Rep[A1], Rep[A2]) => Rep[Boolean], post: (Rep[A1], Rep[A2]) => Rep[B] => Rep[Boolean]): (Rep[A1], Rep[A2]) => Rep[B] = {
-    val g = (x1: Rep[A1], x2: Rep[A2]) => toplevelApply[B](name, List(x1, x2))
-    rec.getOrElseUpdate(name, mkTopLevel(name, List(implicitly[Typ[A1]], implicitly[Typ[A2]]), implicitly[Typ[B]], xs => f(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]]), xs => pre(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]]), (xs: List[Rep[_]]) => (r: Rep[B]) => post(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]])(r)))
-    g
+  def toplevel[A1:Iso,A2:Iso,B:Iso1](name: String, f: (A1,A2) => B, pre: (A1,A2) => Rep[Boolean], post: (A1,A2) => B => Rep[Boolean]): (A1,A2) => B = {
+    unwrap2(toplevel(name, wrap2(f), wrap2(pre), wrap2(post)))
   }
-  def toplevel[A1:Typ,A2:Typ,A3:Typ,B:Typ](name: String, f: (Rep[A1], Rep[A2], Rep[A3]) => Rep[B], pre: (Rep[A1], Rep[A2], Rep[A3]) => Rep[Boolean], post: (Rep[A1], Rep[A2], Rep[A3]) => Rep[B] => Rep[Boolean]): (Rep[A1], Rep[A2], Rep[A3]) => Rep[B] = {
-    val g = (x1: Rep[A1], x2: Rep[A2], x3: Rep[A3]) => toplevelApply[B](name, List(x1, x2, x3))
-    rec.getOrElseUpdate(name, mkTopLevel(name, List(implicitly[Typ[A1]], implicitly[Typ[A2]], implicitly[Typ[A3]]), implicitly[Typ[B]], xs => f(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]]), xs => pre(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]]), (xs: List[Rep[_]]) => (r: Rep[B]) => post(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]])(r)))
-    g
+  def toplevel[A1:Iso,A2:Iso,A3:Iso,B:Iso1](name: String, f: (A1,A2,A3) => B, pre: (A1,A2,A3) => Rep[Boolean], post: (A1,A2,A3) => B => Rep[Boolean]): (A1,A2,A3) => B = {
+    unwrap3(toplevel(name, wrap3(f), wrap3(pre), wrap3(post)))
   }
-  def toplevel[A1:Typ,A2:Typ,A3:Typ,A4:Typ,B:Typ](name: String, f: (Rep[A1], Rep[A2], Rep[A3], Rep[A4]) => Rep[B], pre: (Rep[A1], Rep[A2], Rep[A3], Rep[A4]) => Rep[Boolean], post: (Rep[A1], Rep[A2], Rep[A3], Rep[A4]) => Rep[B] => Rep[Boolean]): (Rep[A1], Rep[A2], Rep[A3], Rep[A4]) => Rep[B] = {
-    val g = (x1: Rep[A1], x2: Rep[A2], x3: Rep[A3], x4: Rep[A4]) => toplevelApply[B](name, List(x1, x2, x3, x4))
-    rec.getOrElseUpdate(name, mkTopLevel(name, List(implicitly[Typ[A1]], implicitly[Typ[A2]], implicitly[Typ[A3]], implicitly[Typ[A4]]), implicitly[Typ[B]], xs => f(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]], xs(3).asInstanceOf[Rep[A4]]), xs => pre(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]], xs(3).asInstanceOf[Rep[A4]]), (xs: List[Rep[_]]) => (r: Rep[B]) => post(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]], xs(3).asInstanceOf[Rep[A4]])(r)))
-    g
+  def toplevel[A1:Iso,A2:Iso,A3:Iso,A4:Iso,B:Iso1](name: String, f: (A1,A2,A3,A4) => B, pre: (A1,A2,A3,A4) => Rep[Boolean], post: (A1,A2,A3,A4) => B => Rep[Boolean]): (A1,A2,A3,A4) => B = {
+    unwrap4(toplevel(name, wrap4(f), wrap4(pre), wrap4(post)))
   }
-  def toplevel[A1:Typ,A2:Typ,A3:Typ,A4:Typ,A5:Typ,A6:Typ,A7:Typ,A8:Typ,A9:Typ,B:Typ](name: String, f: (Rep[A1], Rep[A2], Rep[A3], Rep[A4], Rep[A5], Rep[A6], Rep[A7], Rep[A8], Rep[A9]) => Rep[B], pre: (Rep[A1], Rep[A2], Rep[A3], Rep[A4], Rep[A5], Rep[A6], Rep[A7], Rep[A8], Rep[A9]) => Rep[Boolean], post: (Rep[A1], Rep[A2], Rep[A3], Rep[A4], Rep[A5], Rep[A6], Rep[A7], Rep[A8], Rep[A9]) => Rep[B] => Rep[Boolean]): (Rep[A1], Rep[A2], Rep[A3], Rep[A4], Rep[A5], Rep[A6], Rep[A7], Rep[A8], Rep[A9]) => Rep[B] = {
-    val g = (x1: Rep[A1], x2: Rep[A2], x3: Rep[A3], x4: Rep[A4], x5: Rep[A5], x6: Rep[A6], x7: Rep[A7], x8: Rep[A8], x9: Rep[A9]) => toplevelApply[B](name, List(x1, x2, x3, x4, x5, x6, x7, x8, x9))
-    rec.getOrElseUpdate(name, mkTopLevel(name, List(implicitly[Typ[A1]], implicitly[Typ[A2]], implicitly[Typ[A3]], implicitly[Typ[A4]], implicitly[Typ[A5]], implicitly[Typ[A6]], implicitly[Typ[A7]], implicitly[Typ[A8]], implicitly[Typ[A9]]), implicitly[Typ[B]], xs => f(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]], xs(3).asInstanceOf[Rep[A4]], xs(4).asInstanceOf[Rep[A5]], xs(5).asInstanceOf[Rep[A6]], xs(6).asInstanceOf[Rep[A7]], xs(7).asInstanceOf[Rep[A8]], xs(8).asInstanceOf[Rep[A9]]), xs => pre(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]], xs(3).asInstanceOf[Rep[A4]], xs(4).asInstanceOf[Rep[A5]], xs(5).asInstanceOf[Rep[A6]], xs(6).asInstanceOf[Rep[A7]], xs(7).asInstanceOf[Rep[A8]], xs(8).asInstanceOf[Rep[A9]]), (xs: List[Rep[_]]) => (r: Rep[B]) => post(xs(0).asInstanceOf[Rep[A1]], xs(1).asInstanceOf[Rep[A2]], xs(2).asInstanceOf[Rep[A3]], xs(3).asInstanceOf[Rep[A4]], xs(4).asInstanceOf[Rep[A5]], xs(5).asInstanceOf[Rep[A6]], xs(6).asInstanceOf[Rep[A7]], xs(7).asInstanceOf[Rep[A8]], xs(8).asInstanceOf[Rep[A9]])(r)))
-    g
+  def toplevel[A1:Iso,A2:Iso,A3:Iso,A4:Iso,A5:Iso,A6:Iso,A7:Iso,A8:Iso,A9:Iso,B:Iso1](name: String, f: (A1,A2,A3,A4,A5,A6,A7,A8,A9) => B, pre: (A1,A2,A3,A4,A5,A6,A7,A8,A9) => Rep[Boolean], post: (A1,A2,A3,A4,A5,A6,A7,A8,A9) => B => Rep[Boolean]): (A1,A2,A3,A4,A5,A6,A7,A8,A9) => B = {
+    unwrap9(toplevel(name, wrap9(f), wrap9(pre), wrap9(post)))
   }
 
   implicit def anyTyp: Typ[Any]

@@ -31,7 +31,7 @@ class CoreTests extends TestSuite {
   test("2") {
     trait Ex2 extends Dsl {
       val pick_index = toplevel("pick_index",
-        { n: Rep[Int] => 0 },
+        { n: Rep[Int] => unit(0) },
         { n: Rep[Int] => n > 0 },
         { n: Rep[Int] => result: Rep[Int] => 0 <= result && result < n})
 
@@ -202,7 +202,7 @@ class CoreTests extends TestSuite {
               }
             }
           }
-          r
+          r: Rep[Int]
         })
     }
     check("7", (new Ex7 with Impl).code)

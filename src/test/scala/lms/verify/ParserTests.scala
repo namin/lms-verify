@@ -348,7 +348,7 @@ trait HttpParser extends StagedParser {  import Parser._
       http(in).apply(
         (v, next) => if (next.atEnd) r = v,
         _ => unit(()))
-      r
+      r: Rep[Int]
     },
     { in: Rep[Input] => valid_input(in) },
     { in: Rep[Input] => result: Rep[Int] => unit(true) })
@@ -393,7 +393,7 @@ trait ToplevelAcceptParser extends StagedParser { import Parser._
       p(in).apply(
         (_, next) => out = next,
              next => out = unit(0).asInstanceOf[Rep[Input]]) // ignore next on failure
-      out
+      out: Rep[Input]
     },
     { in: Rep[Input] => valid_input(in) },
     { in: Rep[Input] => out: Rep[Input] => unit(0) == out || valid_input(out) }))
