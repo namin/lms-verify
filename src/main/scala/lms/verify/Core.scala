@@ -383,7 +383,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
     override def remap[A](m: Typ[A]): String = {
       val s = m.toString
       if (s.startsWith("Array["))
-        return remap(m.typeArguments.head)+" "
+        return remapWithRef(m.typeArguments.head)
       val tpe = super.remap(m)
       if (tpe.startsWith("int") || tpe.startsWith("uint") || tpe=="bool")
         if (s == "Char") "char" else "int"

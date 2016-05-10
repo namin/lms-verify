@@ -28,12 +28,10 @@ class InvariantTests extends TestSuite {
     check("0", (new Inv0 with Impl).code)
   }
 
-  /*
   test("1") {
     trait Inv1 extends Vecs {
       predicate("eq", { (x: Vec[Vec[Rep[Int]]], y: Vec[Vec[Rep[Int]]]) => x deep_equal y })
     }
     check("1", (new Inv1 with Impl).code)
   }
-  */
 }
