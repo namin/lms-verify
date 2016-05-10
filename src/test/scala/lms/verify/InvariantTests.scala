@@ -34,4 +34,18 @@ class InvariantTests extends TestSuite {
     }
     check("1", (new Inv1 with Impl).code)
   }
+
+  test("2") {
+    trait Inv2 extends Vecs {
+      toplevel("sum", { x: Vec[Rep[Int]] =>
+        var r = 0;
+        for (i <- 0 until x.n) {
+          val a = x(i) // memory safe because invariant on x is auto-required
+          r = r+a // verifies except for overflow
+        }
+        r: Rep[Int]
+      })
+    }
+    check("2", (new Inv2 with Impl).code)
+  }
 }
