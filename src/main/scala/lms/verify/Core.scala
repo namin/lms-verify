@@ -578,6 +578,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
       val fns = rec.keys.toSet -- oldFns
       fns.foreach { case k =>
         val x = rec(k)
+        assert(!x.spec) // TODO
         if (x.code)
           emitHeader(x.name, out)(x.mAs, mtype(x.mB))
       }
