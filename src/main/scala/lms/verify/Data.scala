@@ -75,11 +75,12 @@ trait DataOps extends Dsl { self =>
 
   implicit def isodata[A:Inv,B:Iso](id0: String, ab: A => B, ba: B => A): Iso[A] = new Iso[A] {
     val ib = implicitly[Iso[B]]
+    val inv_check: A => Rep[Boolean] = predicate("inv_"+id0,{x0: A => x0.check},code=false)(this)
     override def id = id0
     override def memList = ib.memList
     override def typList = ib.typList
     override def toRepList(x: A) = ib.toRepList(ab(x))
     override def fromRepList(xs: List[Rep[_]]) = ba(ib.fromRepList(xs))
-    override def check(x: A) = x.check
+    override def check(x: A) = inv_check(x)
   }
 }

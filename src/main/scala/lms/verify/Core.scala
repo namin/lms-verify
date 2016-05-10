@@ -541,8 +541,9 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
       val args = mAs.map(fresh(_))
       val r = fresh[B](mB)
       val sB = remapWithRef(mB).trim()
+      val sig = functionName+"("+(args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")+")"
       withStream(out) {
-        stream.println(sB+" "+functionName+"("+(args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")+");")
+        stream.println(sB+" "+sig+";");
       }
     }
 
@@ -551,7 +552,6 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
       val r = fresh[B](mB)
       val oldFns = rec.keys.toSet
       val body = reifyBlock(f(args))(mB)
-      val fns = rec.keys.toSet -- oldFns
       eff.getOrElseUpdate(functionName, (args, summarizeEffects(body)))
       val preBody = reifyConds(preconds)
       preconds = Nil
@@ -575,9 +575,11 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
         } else ""
       locs = Nil // reset
 
+      val fns = rec.keys.toSet -- oldFns
       fns.foreach { case k =>
         val x = rec(k)
-        emitHeader(x.name, out)(x.mAs, mtype(x.mB))
+        if (x.code)
+          emitHeader(x.name, out)(x.mAs, mtype(x.mB))
       }
       val sig = functionName+"("+(args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")+")"
       val sig_app = functionName+"("+(args.map(s => quote(s))).mkString(", ")+")"
