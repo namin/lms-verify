@@ -12,6 +12,7 @@ trait VerifyOps extends Base with BooleanOps {
     def typList: List[Typ[_]]
     def toRepList(x:T): List[Rep[_]]
     def fromRepList(xs: List[Rep[_]]): T
+    def check(x:T): Rep[Boolean]
   }
   trait Iso1[T] extends Iso[T] {
     type G
@@ -27,6 +28,7 @@ trait VerifyOps extends Base with BooleanOps {
     override val typ = implicitly[Typ[G]]
     override def toRep(x: Rep[G]) = x
     override def fromRep(x: Rep[G]) = x
+    override def check(x: Rep[G]) = unit(true)
   }
   class IsoTup(isos: List[Iso[_]]) {
     val n = isos.length
@@ -43,6 +45,7 @@ trait VerifyOps extends Base with BooleanOps {
       val slice = isoTyp.slice(xs)_
       (iso1.fromRepList(slice(0)), iso2.fromRepList(slice(1)))
     }
+    override def check(x:(A1,A2)) = iso1.check(x._1) && iso2.check(x._2)
   }
   implicit def iso_tup3[A1,A2,A3](implicit iso1: Iso[A1], iso2: Iso[A2], iso3: Iso[A3]): Iso[(A1,A2,A3)] = new Iso[(A1,A2,A3)] {
     val isoTyp = new IsoTup(List(iso1, iso2, iso3))
@@ -52,6 +55,7 @@ trait VerifyOps extends Base with BooleanOps {
       val slice = isoTyp.slice(xs)_
       (iso1.fromRepList(slice(0)), iso2.fromRepList(slice(1)), iso3.fromRepList(slice(2)))
     }
+    override def check(x:(A1,A2,A3)) = iso1.check(x._1) && iso2.check(x._2) && iso3.check(x._3)
   }
   implicit def iso_tup4[A1,A2,A3,A4](implicit iso1: Iso[A1], iso2: Iso[A2], iso3: Iso[A3], iso4: Iso[A4]): Iso[(A1,A2,A3,A4)] = new Iso[(A1,A2,A3,A4)] {
     val isoTyp = new IsoTup(List(iso1, iso2, iso3, iso4))
@@ -61,6 +65,7 @@ trait VerifyOps extends Base with BooleanOps {
       val slice = isoTyp.slice(xs)_
       (iso1.fromRepList(slice(0)), iso2.fromRepList(slice(1)), iso3.fromRepList(slice(2)), iso4.fromRepList(slice(3)))
     }
+    override def check(x:(A1,A2,A3,A4)) = iso1.check(x._1) && iso2.check(x._2) && iso3.check(x._3) && iso4.check(x._4)
   }
   implicit def iso_tup9[A1,A2,A3,A4,A5,A6,A7,A8,A9](implicit iso1: Iso[A1], iso2: Iso[A2], iso3: Iso[A3], iso4: Iso[A4], iso5: Iso[A5], iso6: Iso[A6], iso7: Iso[A7], iso8: Iso[A8], iso9: Iso[A9]): Iso[(A1,A2,A3,A4,A5,A6,A7,A8,A9)] = new Iso[(A1,A2,A3,A4,A5,A6,A7,A8,A9)] {
     val isoTyp = new IsoTup(List(iso1, iso2, iso3, iso4, iso5, iso6, iso7, iso8, iso9))
@@ -70,6 +75,7 @@ trait VerifyOps extends Base with BooleanOps {
       val slice = isoTyp.slice(xs)_
       (iso1.fromRepList(slice(0)), iso2.fromRepList(slice(1)), iso3.fromRepList(slice(2)), iso4.fromRepList(slice(3)), iso5.fromRepList(slice(4)), iso6.fromRepList(slice(5)), iso7.fromRepList(slice(6)), iso8.fromRepList(slice(7)), iso9.fromRepList(slice(8)))
     }
+    override def check(x:(A1,A2,A3,A4,A5,A6,A7,A8,A9)) = iso1.check(x._1) && iso2.check(x._2) && iso3.check(x._3) && iso4.check(x._4) && iso5.check(x._5) && iso6.check(x._6) && iso7.check(x._7) && iso8.check(x._8) && iso9.check(x._9)
   }
 
   case class TopLevel[B](name: String, mAs: List[Typ[_]], mB:Typ[B], f: List[Rep[_]] => Rep[B], spec: Boolean)
@@ -84,18 +90,25 @@ trait VerifyOps extends Base with BooleanOps {
       ensures{r: Rep[B] => post(xs)(r)}(mB)
       f(xs)
     })
+  def wrapf[A,B](f: A => B)(implicit ia: Iso[A], ib: Iso1[B]): List[Rep[_]] => Rep[ib.G] = {xs =>
+    val a = ia.fromRepList(xs)
+    requires{ia.check(a)}
+    ensures{r: Rep[ib.G] => ib.check(ib.fromRep(r))}(ib.typ)
+    val b = f(a)
+    ib.toRep(b)
+  }
   def toplevel[A:Iso,B:Iso1](name: String, f: A => B): A => B = {
     val ia = implicitly[Iso[A]]
     val ib = implicitly[Iso1[B]]
     val g = (x: A) => ib.fromRep(toplevelApply[ib.G](name, ia.toRepList(x))(ib.typ))
-    rec.getOrElseUpdate(name, TopLevel(name, ia.typList, ib.typ, xs => ib.toRep(f(ia.fromRepList(xs)))))
+    rec.getOrElseUpdate(name, TopLevel(name, ia.typList, ib.typ, wrapf(f)(ia, ib)))
     g
   }
   def toplevel[A:Iso,B:Iso1](name: String, f: A => B, pre: A => Rep[Boolean], post: A => B => Rep[Boolean]): A => B = {
     val ia = implicitly[Iso[A]]
     val ib = implicitly[Iso1[B]]
     val g = (x: A) => ib.fromRep(toplevelApply[ib.G](name, ia.toRepList(x))(ib.typ))
-    rec.getOrElseUpdate(name, mkTopLevel(name, ia.typList, ib.typ, xs => ib.toRep(f(ia.fromRepList(xs))), xs => pre(ia.fromRepList(xs)), (xs: List[Rep[_]]) => (r: Rep[ib.G]) => post(ia.fromRepList(xs))(ib.fromRep(r))))
+    rec.getOrElseUpdate(name, mkTopLevel(name, ia.typList, ib.typ, wrapf(f)(ia, ib), xs => pre(ia.fromRepList(xs)), (xs: List[Rep[_]]) => (r: Rep[ib.G]) => post(ia.fromRepList(xs))(ib.fromRep(r))))
     g
   }
 
