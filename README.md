@@ -18,7 +18,7 @@ We write a high-level HTTP parser, using a small staged parser combinator librar
 
 The generated C code is verified using frama-c wp as follows:
 
-```frama-c -wp -wp-rte -wp-prover cvc4,alt-ergo <file.c>```
+```frama-c -wp -wp-rte -wp-prover cvc4,alt-ergo -wp-alt-ergo-opt="-backward-compat" <file.c>```
 
 All the files in the `src/out` directory should verify with this command, except those ending with `_bad.c` and except some `_overflow` goals.
 
