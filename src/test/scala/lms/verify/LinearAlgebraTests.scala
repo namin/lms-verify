@@ -1,6 +1,71 @@
 package lms.verify
 
 class LinearAlgebraTests extends TestSuite {
+  val under = "linp"
+
+  trait Matrices extends Dsl with DataOps {
+    val N = 100
+    // like for the low-level versions, verifying that the calculated index
+    // is within the valid range only works when it's extracted out...
+    val index_fun = toplevel("index",
+      { (rows: Rep[Int], cols: Rep[Int], r: Rep[Int], c: Rep[Int]) =>
+        requires(0 < rows && rows < N && 0 < cols && cols < N && 0 <= r && 0 <= c && r < rows && c < cols)
+        ensures{result: Rep[Int] => 0 <= result && result < rows*cols}
+        r*cols+c
+      })
+
+    class Matrix[T:Iso](val a: Pointer[T], val rows: Rep[Int], val cols: Rep[Int]) {
+      def size = rows*cols
+      def index(r: Rep[Int], c: Rep[Int]) = index_fun(rows, cols, r, c)
+      def apply(r: Rep[Int], c: Rep[Int]) = a(index(r,c))
+      def update(p: (Rep[Int],Rep[Int]), v: T): Rep[Unit] = {
+        val r = p._1; val c = p._2
+        a(index(r, c)) = v
+      }
+      def valid = size>0 && a.valid(0 until size)
+      def reflectMutableInput = a.reflectMutableInput(0 until size)
+    }
+    implicit def matrixIso[T:Iso](implicit ev: Inv[Matrix[T]]) = isodata[Matrix[T],(Pointer[T],Rep[Int],Rep[Int])](
+      "matrix_" + implicitly[Iso[T]].id,
+      {x: Matrix[T] => (x.a, x.rows, x.cols)},
+      {x: (Pointer[T],Rep[Int],Rep[Int]) => new Matrix(x._1, x._2, x._3)}
+    )
+    implicit def matrixInv[T:Inv] = invariant[Matrix[T]] { x =>
+      x.rows < N && x.cols < N && // needed for overflow in index calculation
+      0 < x.rows && 0 < x.cols && x.valid && (
+      (0 until x.rows).forall{ r => (0 until x.cols).forall{ c => x(r,c).check }})
+    }
+    implicit def matrixEq[T:Eq:Iso] = equality[Matrix[T]] { (x, y) =>
+      x.rows == y.rows && x.cols == y.cols && (
+        (0 until x.rows).forall{ r => (0 until x.cols).forall{ c =>
+          x(r,c) deep_equal y(r,c) }})
+    }
+  }
+
+  test("1") {
+    trait Linp1 extends Matrices {
+      type X = Rep[Boolean]
+      def zero: Rep[Boolean] = unit(false)
+      def infix_+(x1: X, x2: X): X = x1 || x2
+      def infix_*(x1: X, x2: X): X = x1 && x2
+      toplevel("mult", { (a: Matrix[X], b: Matrix[X], o: Matrix[X]) =>
+        requires(a.cols == b.rows && a.rows == o.rows && b.cols == o.cols)
+        o.reflectMutableInput
+        for (r <- 0 until a.rows) {
+          for (c <- 0 until b.cols) {
+            o((r,c)) = zero
+            for (i <- 0 until a.cols) {
+              o((r,c)) = o(r,c) + a(r,i) * b(i,c)
+            }
+          }
+        }
+      })
+    }
+    check("1", (new Linp1 with Impl).code)
+  }
+}
+
+class LowLinearAlgebraTests extends TestSuite {
   val under = "lina"
 
   test("1") {

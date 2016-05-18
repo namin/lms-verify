@@ -142,6 +142,9 @@ trait VerifyOps extends Base with BooleanOps {
   def toplevel[A1:Iso,A2:Iso,A3:Iso,B:Iso1](name: String, f: (A1, A2, A3) => B): (A1, A2, A3) => B = {
     unwrap3(toplevel(name, wrap3(f)))
   }
+  def toplevel[A1:Iso,A2:Iso,A3:Iso,A4:Iso,B:Iso1](name: String, f: (A1,A2,A3,A4) => B): (A1,A2,A3,A4) => B = {
+    unwrap4(toplevel(name, wrap4(f)))
+  }
   def toplevel[A1:Iso,A2:Iso,B:Iso1](name: String, f: (A1,A2) => B, pre: (A1,A2) => Rep[Boolean], post: (A1,A2) => B => Rep[Boolean]): (A1,A2) => B = {
     unwrap2(toplevel(name, wrap2(f), wrap2(pre), wrap2(post)))
   }

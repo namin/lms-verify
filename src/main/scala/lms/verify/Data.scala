@@ -28,6 +28,11 @@ trait DataOps extends Dsl { self =>
       val a1 = a.asInstanceOf[Rep[Array[m.T]]]
       self.reflectMutableInput(a1)
     }
+    def reflectMutableInput(r: Rep[Range]) = pmt.foreach{case (a,(m,t)) =>
+      implicit val t1 = t.asInstanceOf[Typ[m.T]]
+      val a1 = a.asInstanceOf[Rep[Array[m.T]]]
+      self.reflectMutableInput(a1, r)
+    }
   }
   implicit def iso_pointer[T:Iso]: Iso[Pointer[T]] = new Iso[Pointer[T]] {
     val iso = implicitly[Iso[T]]
