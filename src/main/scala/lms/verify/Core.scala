@@ -271,18 +271,21 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
   def toplevelApply[B:Typ](name: String, args: List[Rep[_]]): Rep[B] = {
     eff.get(name) match {
       case Some((params,es)) =>
-        val m = params.zip(args.map(_.asInstanceOf[Sym[Any]])).toMap
+        val m = params.zip(args.map{x => x match {
+          case s:Sym[Any] => s
+          case _ => null
+        }}).toMap
         val es2 = replaceInSummary(m, es)
         reflectEffect(ToplevelApply[B](name, args), es2)
       case None => reflectEffect(ToplevelApply[B](name, args))
     }
   }
   def replaceInSummary(m: Map[Sym[Any], Sym[Any]], es: Summary) = {
-    def r1(x: Sym[Any]) = m.get(x) match {
-      case Some(y) if y != null => y
-      case None => x
+    def r1(x: Sym[Any]): List[Sym[Any]] = m.get(x) match {
+      case Some(y) if y != null => y::Nil
+      case _ => Nil
     }
-    def r(xs: List[Sym[Any]]) = xs.map(r1)
+    def r(xs: List[Sym[Any]]) = xs.flatMap(r1)
     Summary(es.maySimple, es.mstSimple, es.mayGlobal, es.mstGlobal, es.resAlloc, es.control, r(es.mayRead), r(es.mstRead), r(es.mayWrite), r(es.mstWrite))
   }
 

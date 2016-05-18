@@ -66,6 +66,30 @@ class LinearAlgebraTests extends TestSuite {
     }
     check("1", (new Linp1 with Impl).code)
   }
+
+  test("2") {
+    trait Linp2 extends Matrices with BoolAlgebra {
+      val add = toplevel("add", { (a: Matrix[X], b: Matrix[X], o: Matrix[X]) =>
+        requires(a.rows == b.rows && a.rows == o.rows && a.cols == b.cols && a.cols == o.cols)
+        o.reflectMutableInput
+        for (r <- 0 until a.rows) {
+          for (c <- 0 until a.cols) {
+            o((r,c)) = a(r,c) + b(r,c)
+          }
+        }
+      })
+      val scalar_mult = toplevel("scalar_mult", { (a: X, b: Matrix[X], o: Matrix[X]) =>
+        requires(b.rows == o.rows && b.cols == o.cols)
+        o.reflectMutableInput
+        for (r <- 0 until b.rows) {
+          for (c <- 0 until b.cols) {
+            o((r,c)) = a*b(r,c)
+          }
+        }
+      })
+    }
+    check("2", (new Linp2 with Impl).code)
+  }
 }
 
 class LowLinearAlgebraTests extends TestSuite {
