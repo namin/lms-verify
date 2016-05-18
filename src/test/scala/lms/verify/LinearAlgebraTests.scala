@@ -42,12 +42,15 @@ class LinearAlgebraTests extends TestSuite {
     }
   }
 
+  trait BoolAlgebra extends Dsl {
+    type X = Rep[Boolean]
+    def zero: Rep[Boolean] = unit(false)
+    def infix_+(x1: X, x2: X): X = x1 || x2
+    def infix_*(x1: X, x2: X): X = x1 && x2
+  }
+
   test("1") {
-    trait Linp1 extends Matrices {
-      type X = Rep[Boolean]
-      def zero: Rep[Boolean] = unit(false)
-      def infix_+(x1: X, x2: X): X = x1 || x2
-      def infix_*(x1: X, x2: X): X = x1 && x2
+    trait Linp1 extends Matrices with BoolAlgebra {
       toplevel("mult", { (a: Matrix[X], b: Matrix[X], o: Matrix[X]) =>
         requires(a.cols == b.rows && a.rows == o.rows && b.cols == o.cols)
         o.reflectMutableInput
