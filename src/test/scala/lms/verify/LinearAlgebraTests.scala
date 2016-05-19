@@ -32,17 +32,30 @@ class LinearAlgebraTests extends TestSuite {
           }
         }
       }
-      def setFrom[A:Iso](f: List[A] => T, ms: List[Matrix[A]]) = {
+      def setFrom[A:Iso](f: List[A] => T, ms: List[Matrix[A]])(implicit eq: Eq[T]) = {
+        def r(i: Rep[Int]): T = f(ms.map{m => m.a(i)})
         ms.foreach{m => requires(this.rows == m.rows && this.cols == m.cols)}
+        // TODO: higher-level separation?
+        requires(and_list(ms.map{m => forall{i: Rep[Int] => forall{j: Rep[Int] =>
+          ((0 <= i && i < this.size) && (0 <= j && j < m.size)) ==>
+          separated(this.a, i, m.a, j)
+        }}}))
         this.reflectMutableInput
+        // for the From2 example, it helps to reinforce separation...
+        ms.foreach{m => _assert(separated(this.a, 0, m.a, 0))}
         for (i <- 0 until this.size) {
-          this.a(i) = f(ms.map{m => m.a(i)})
+          loop_invariant{forall{j: Rep[Int] => (0 <= j && j < i) ==> (
+            this.a(j) deep_equal r(j)
+          )}}
+          this.a(i) = r(i)
+          // ditto for From2...
+          ms.foreach{m => _assert(separated(this.a, i, m.a, i))}
         }
       }
-      def setFrom1[A:Iso](f: A => T, m: Matrix[A]) = {
+      def setFrom1[A:Iso](f: A => T, m: Matrix[A])(implicit eq: Eq[T]) = {
         setFrom[A]({ms => f(ms(0))}, scala.collection.immutable.List(m))
       }
-      def setFrom2[A:Iso](f: (A,A) => T, m1: Matrix[A], m2: Matrix[A]) = {
+      def setFrom2[A:Iso](f: (A,A) => T, m1: Matrix[A], m2: Matrix[A])(implicit eq: Eq[T]) = {
         setFrom[A]({ms => f(ms(0), ms(1))}, scala.collection.immutable.List(m1, m2))
       }
     }

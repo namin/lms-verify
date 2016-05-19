@@ -1,6 +1,8 @@
 package lms.verify
 
 trait DataOps extends Dsl { self =>
+  def and_list(bs: List[Rep[Boolean]]): Rep[Boolean] =
+    bs.foldLeft[Rep[Boolean]](unit(true)){case (a,b) => boolean_and(a,b)}
   class Pointer[T:Iso](val p: List[Rep[Array[_]]]) {
     val iso = implicitly[Iso[T]]
     val pmt = p zip (iso.memList zip iso.typList)
@@ -18,11 +20,11 @@ trait DataOps extends Dsl { self =>
         a1(i) = b1
       }
     }
-    def valid(r: Rep[Range]) = pmt.map{case (a,(m,t)) =>
+    def valid(r: Rep[Range]) = and_list(pmt.map{case (a,(m,t)) =>
       implicit val t1 = t.asInstanceOf[Typ[m.T]]
       val a1 = a.asInstanceOf[Rep[Array[m.T]]]
       self.valid(a1, r)
-    }.foldLeft[Rep[Boolean]](unit(true)){case (a,b) => boolean_and(a,b)}
+    })
     def reflectMutableInput = pmt.foreach{case (a,(m,t)) =>
       implicit val t1 = t.asInstanceOf[Typ[m.T]]
       val a1 = a.asInstanceOf[Rep[Array[m.T]]]
@@ -34,6 +36,15 @@ trait DataOps extends Dsl { self =>
       self.reflectMutableInput(a1, r)
     }
   }
+  def separated[T1:Iso,T2:Iso](p1: Pointer[T1], i1: Rep[Int], p2: Pointer[T2], i2: Rep[Int]): Rep[Boolean] = and_list(p1.pmt.map{case (a01,(m01,t01)) =>
+    implicit val t1 = t01.asInstanceOf[Typ[m01.T]]
+    val a1 = a01.asInstanceOf[Rep[Array[m01.T]]]
+    and_list(p2.pmt.map{case (a02,(m02,t02)) =>
+      implicit val t2 = t02.asInstanceOf[Typ[m02.T]]
+      val a2 = a02.asInstanceOf[Rep[Array[m02.T]]]
+      separated(a1, i1, a2, i2)})
+    })
+
   implicit def iso_pointer[T:Iso]: Iso[Pointer[T]] = new Iso[Pointer[T]] {
     val iso = implicitly[Iso[T]]
     val mt = iso.memList zip iso.typList

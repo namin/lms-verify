@@ -165,6 +165,7 @@ trait VerifyOps extends Base with BooleanOps {
   def valid[A](p: Rep[A]): Rep[Boolean]
   def valid[A](p: Rep[A], r: Rep[Any]): Rep[Boolean]
   def old[A:Typ](v: Rep[A]): Rep[A]
+  def separated[A,B](p1: Rep[A], i1: Rep[Int], p2: Rep[B], i2: Rep[Int]): Rep[Boolean]
 
   def reflectMutableInput[A](v: Rep[A]): Rep[A]
   def reflectMutableInput[A](v: Rep[A], r: Rep[Range]): Rep[A]
@@ -226,10 +227,12 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
 
   case class Valid[A](p: Rep[A], r: Option[Rep[Any]]) extends Def[Boolean]
   case class Old[A](v: Rep[A]) extends Def[A]
+  case class Separated[A,B](p1: Rep[A], i1: Rep[Int], p2: Rep[B], i2: Rep[Int]) extends Def[Boolean]
 
   def valid[A](p: Rep[A]): Rep[Boolean] = Valid[A](p, None)
   def valid[A](p: Rep[A], r: Rep[Any]): Rep[Boolean] = Valid[A](p, Some(r))
   def old[A:Typ](v: Rep[A]): Rep[A] = Old[A](v)
+  def separated[A,B](p1: Rep[A], i1: Rep[Int], p2: Rep[B], i2: Rep[Int]) = Separated[A,B](p1, i1, p2, i2)
 
   def reflectMutableInput[A](v: Rep[A]): Rep[A] =
     reflectMutableSym(v.asInstanceOf[Sym[A]])
@@ -460,6 +463,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
         case None => "\\valid("+exprOf(p, m)+")"
         case Some(r) => "\\valid("+exprOf(p, m)+"+"+exprOf(r, m)+")"
       }
+      case Separated(p1, i1, p2, i2) => "\\separated("+exprOf(p1, m)+"+"+exprOf(i1, m)+","+exprOf(p2, m)+"+"+exprOf(i2, m)+")"
       case Until(a, b) => b match {
         case Const(c:Int) => "("+exprOf(a, m)+".."+(c-1)+")"
         case Def(IntPlus(c1, Const(1))) => "("+exprOf(a, m)+".."+exprOf(c1, m)+")"
