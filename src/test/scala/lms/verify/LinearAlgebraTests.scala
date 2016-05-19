@@ -34,19 +34,22 @@ class LinearAlgebraTests extends TestSuite {
       }
       def setFrom[A:Iso](f: List[A] => T, ms: List[Matrix[A]])(implicit eq: Eq[T]) = {
         def r(i: Rep[Int]): T = f(ms.map{m => m.a(i)})
+        def p(n: Rep[Int]): Rep[Boolean] = forall{j: Rep[Int] => (0 <= j && j < n) ==> (
+          this.a(j) deep_equal r(j)
+        )}
         ms.foreach{m => requires(this.rows == m.rows && this.cols == m.cols)}
         // TODO: higher-level separation?
         requires(and_list(ms.map{m => forall{i: Rep[Int] => forall{j: Rep[Int] =>
           ((0 <= i && i < this.size) && (0 <= j && j < m.size)) ==>
           separated(this.a, i, m.a, j)
         }}}))
+        // TODO: using 'ensures' limits how setFrom can be used...
+        ensures{result: Rep[Unit] => p(this.size)}
         this.reflectMutableInput
         // for the From2 example, it helps to reinforce separation...
         ms.foreach{m => _assert(separated(this.a, 0, m.a, 0))}
         for (i <- 0 until this.size) {
-          loop_invariant{forall{j: Rep[Int] => (0 <= j && j < i) ==> (
-            this.a(j) deep_equal r(j)
-          )}}
+          loop_invariant(p(i))
           this.a(i) = r(i)
           // ditto for From2...
           ms.foreach{m => _assert(separated(this.a, i, m.a, i))}

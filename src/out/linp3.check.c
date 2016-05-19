@@ -12,6 +12,7 @@ int index(int  x0, int  x1, int  x2, int  x3) {
 //@ predicate inv_matrix_Boolean(int  * x36, int  x37, int  x38) = (((((x37<100) && (x38<100)) && (0<x37)) && (0<x38)) && (((x37*x38)>0) && \valid(x36+(0..(x37*x38)-1))));
 /*@
 requires (((((inv_matrix_Boolean(x76,x77,x78) && inv_matrix_Boolean(x79,x80,x81)) && inv_matrix_Boolean(x82,x83,x84)) && ((x83==x77) && (x84==x78))) && ((x83==x80) && (x84==x81))) && ((\forall int  x138; (\forall int  x139; ((((0<=x138) && (x138<(x83*x84))) && ((0<=x139) && (x139<(x77*x78)))) ==> \separated(x82+x138,x76+x139)))) && (\forall int  x158; (\forall int  x159; ((((0<=x158) && (x158<(x83*x84))) && ((0<=x159) && (x159<(x80*x81)))) ==> \separated(x82+x158,x79+x159))))));
+ensures (\forall int  x182; (((0<=x182) && (x182<(x83*x84))) ==> (x82[x182]==(x76[x182] || x79[x182]))));
 */
 void add(int  * x76, int  x77, int  x78, int  * x79, int  x80, int  x81, int  * x82, int  x83, int  x84) {
   //@assert \separated(x82+0,x76+0);
@@ -33,26 +34,27 @@ void add(int  * x76, int  x77, int  x78, int  * x79, int  x80, int  x81, int  * 
   }
 }
 /*@
-requires (((inv_matrix_Boolean(x182,x183,x184) && inv_matrix_Boolean(x185,x186,x187)) && ((x186==x183) && (x187==x184))) && (\forall int  x226; (\forall int  x227; ((((0<=x226) && (x226<(x186*x187))) && ((0<=x227) && (x227<(x183*x184)))) ==> \separated(x185+x226,x182+x227)))));
+requires (((inv_matrix_Boolean(x197,x198,x199) && inv_matrix_Boolean(x200,x201,x202)) && ((x201==x198) && (x202==x199))) && (\forall int  x241; (\forall int  x242; ((((0<=x241) && (x241<(x201*x202))) && ((0<=x242) && (x242<(x198*x199)))) ==> \separated(x200+x241,x197+x242)))));
+ensures (\forall int  x264; (((0<=x264) && (x264<(x201*x202))) ==> (x200[x264]==(x196 && x197[x264]))));
 */
-void scalar_mult(int  x181, int  * x182, int  x183, int  x184, int  * x185, int  x186, int  x187) {
-  //@assert \separated(x185+0,x182+0);
-  int x189 = x186 * x187;
+void scalar_mult(int  x196, int  * x197, int  x198, int  x199, int  * x200, int  x201, int  x202) {
+  //@assert \separated(x200+0,x197+0);
+  int x204 = x201 * x202;
   /*@
-  loop invariant 0<=x194<=x189;
-  loop invariant (\forall int  x195; (((0<=x195) && (x195<x194)) ==> (x185[x195]==(x181 && x182[x195]))));
-  loop assigns x194, x185[(0..x189-1)];
-  loop variant x189-x194;
+  loop invariant 0<=x209<=x204;
+  loop invariant (\forall int  x210; (((0<=x210) && (x210<x209)) ==> (x200[x210]==(x196 && x197[x210]))));
+  loop assigns x209, x200[(0..x204-1)];
+  loop variant x204-x209;
   */
-  for(int x194=0; x194 < x189; x194++) {
-    int x209;
-    if (x181) {
-      int x208 = x182[x194];
-      x209 = x208;
+  for(int x209=0; x209 < x204; x209++) {
+    int x224;
+    if (x196) {
+      int x223 = x197[x209];
+      x224 = x223;
     } else {
-      x209 = 0/*false*/;
+      x224 = 0/*false*/;
     }
-    x185[x194] = x209;
-    //@assert \separated(x185+x194,x182+x194);
+    x200[x209] = x224;
+    //@assert \separated(x200+x209,x197+x209);
   }
 }
