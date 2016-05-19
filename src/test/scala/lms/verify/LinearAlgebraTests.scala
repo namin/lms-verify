@@ -32,20 +32,18 @@ class LinearAlgebraTests extends TestSuite {
           }
         }
       }
-      def setFrom[A:Iso](f: A => T, m: Matrix[A]) = {
-        requires(this.rows == m.rows && this.cols == m.cols)
+      def setFrom[A:Iso](f: List[A] => T, ms: List[Matrix[A]]) = {
+        ms.foreach{m => requires(this.rows == m.rows && this.cols == m.cols)}
         this.reflectMutableInput
         for (i <- 0 until this.size) {
-          this.a(i) = f(m.a(i))
+          this.a(i) = f(ms.map{m => m.a(i)})
         }
       }
-      def setFrom2[A1:Iso,A2:Iso](f: (A1,A2) => T, m1: Matrix[A1], m2: Matrix[A2]) = {
-        requires(this.rows == m1.rows && this.cols == m1.cols)
-        requires(this.rows == m2.rows && this.cols == m2.cols)
-        this.reflectMutableInput
-        for (i <- 0 until this.size) {
-          this.a(i) = f(m1.a(i), m2.a(i))
-        }
+      def setFrom1[A:Iso](f: A => T, m: Matrix[A]) = {
+        setFrom[A]({ms => f(ms(0))}, scala.collection.immutable.List(m))
+      }
+      def setFrom2[A:Iso](f: (A,A) => T, m1: Matrix[A], m2: Matrix[A]) = {
+        setFrom[A]({ms => f(ms(0), ms(1))}, scala.collection.immutable.List(m1, m2))
       }
     }
     implicit def matrixIso[T:Iso](implicit ev: Inv[Matrix[T]]) = isodata[Matrix[T],(Pointer[T],Rep[Int],Rep[Int])](
@@ -114,7 +112,7 @@ class LinearAlgebraTests extends TestSuite {
         o.setFrom2({ (ai: X, bi: X) => ai + bi }, a, b)
       })
       val scalar_mult = toplevel("scalar_mult", { (a: X, b: Matrix[X], o: Matrix[X]) =>
-        o.setFrom({ (bi: X) => a*bi }, b)
+        o.setFrom1({ (bi: X) => a*bi }, b)
       })
     }
     check("3", (new Linp3 with Impl).code)
