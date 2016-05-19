@@ -183,6 +183,7 @@ trait VerifyOps extends Base with BooleanOps {
 
   def loop(invariant: Rep[Int] => Rep[Boolean], assigns: Rep[Int] => Rep[List[Any]], variant: Rep[Int] => Rep[Int])(l: Rep[Unit]): Rep[Unit]
   def loop(invariant: => Rep[Boolean], assigns: => Rep[List[Any]], variant: => Rep[Int])(l: Rep[Unit]): Rep[Unit]
+  def loop_invariant(invariant: => Rep[Boolean]): Unit
 
   def _assert(cond: =>Rep[Boolean])(implicit pos: SourceContext): Rep[Unit]
 
@@ -336,6 +337,27 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
     val r = Loop(y1, y2, y3)
     loops.getOrElseUpdate(l.asInstanceOf[Sym[Unit]], r)
     l
+  }
+
+  val loopsExtraInvariants = new scala.collection.mutable.LinkedHashMap[Sym[_], List[Block[Boolean]]]
+  var lp_invariants: List[Block[Boolean]] = Nil
+  def loop_invariant(c: => Rep[Boolean]): Unit = {
+    lp_invariants = reifySpec(c)::lp_invariants
+  }
+  def reifyInvariants(b: => Exp[Unit]): Exp[Unit] = {
+    val save = lp_invariants
+    lp_invariants = Nil
+    try {
+      val r = b
+      if (!lp_invariants.isEmpty)
+        loopsExtraInvariants.getOrElseUpdate(r.asInstanceOf[Sym[Unit]], lp_invariants)
+      return r
+    } finally {
+      lp_invariants = save
+    }
+  }
+  override def range_foreach(r: Exp[Range], block: Exp[Int] => Exp[Unit])(implicit pos: SourceContext) : Exp[Unit] = {
+    reifyInvariants{super.range_foreach(r, block)(pos)}
   }
 
   case class Assert(y: Block[Boolean]) extends Def[Unit]
@@ -495,6 +517,12 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
         val s = quotePos(sym).split("//")(0).split(":")
         stream.println(s"""#line ${s(1)} "${s(0)}" """)
       }
+      def printExtraLoopInvariants() = loopsExtraInvariants.get(sym) match {
+        case None =>
+        case Some(ys) => ys.reverse.foreach{ y =>
+          stream.println(exprOfBlock("loop invariant", y))
+        }
+      }
       rhs match {
         case ToplevelApply(name, args) => emitValDef(sym, name+args.map(quote).mkString("(", ",", ")"))
         case Assert(y) => stream.println(exprOfBlock("//@assert", y))
@@ -511,6 +539,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
           val Loop(invariant, assigns, variant) = loops.get(sym).get
           stream.println("/*@")
           stream.println(exprOfBlock("loop invariant", invariant))
+          printExtraLoopInvariants()
           stream.println(exprOfBlock("loop assigns", assigns))
           if (!variant.res.isInstanceOf[Const[_]])
             stream.println(exprOfBlock("loop variant", variant))
@@ -525,6 +554,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
             case Some(r) => quote(x)+"["+exprOf(r)+"]"
             case None => quote(x)
           })
+          printExtraLoopInvariants()
           stream.println("loop assigns "+quote(i)+(if (xs.isEmpty) "" else ", ")+xs.mkString(", ")+";")
           stream.println("loop variant "+quote(end)+"-"+quote(i)+";")
           stream.println("*/")
