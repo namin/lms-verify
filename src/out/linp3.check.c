@@ -35,7 +35,7 @@ void add(int  * x76, int  x77, int  x78, int  * x79, int  x80, int  x81, int  * 
 }
 /*@
 requires (((inv_matrix_Boolean(x197,x198,x199) && inv_matrix_Boolean(x200,x201,x202)) && ((x201==x198) && (x202==x199))) && (\forall int  x241; (\forall int  x242; ((((0<=x241) && (x241<(x201*x202))) && ((0<=x242) && (x242<(x198*x199)))) ==> \separated(x200+x241,x197+x242)))));
-ensures ((\forall int  x264; (((0<=x264) && (x264<(x201*x202))) ==> (x200[x264]==(x196 && x197[x264])))) && ((x196==0) ==> (x200[0]==0)));
+ensures (((\forall int  x264; (((0<=x264) && (x264<(x201*x202))) ==> (x200[x264]==(x196 && x197[x264])))) && ((x196==0) ==> (x200[0]==0))) && ((x196==0) ==> (\forall int x283; (0<=x283<x201) ==> (\forall int x286; (0<=x286<x202) ==> (x200[((x283*x202)+x286)]==0)))));
 */
 void scalar_mult(int  x196, int  * x197, int  x198, int  x199, int  * x200, int  x201, int  x202) {
   //@assert \separated(x200+0,x197+0);
