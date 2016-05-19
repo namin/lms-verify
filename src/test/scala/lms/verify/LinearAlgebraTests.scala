@@ -32,6 +32,21 @@ class LinearAlgebraTests extends TestSuite {
           }
         }
       }
+      def setFrom[A:Iso](f: A => T, m: Matrix[A]) = {
+        requires(this.rows == m.rows && this.cols == m.cols)
+        this.reflectMutableInput
+        for (i <- 0 until this.size) {
+          this.a(i) = f(m.a(i))
+        }
+      }
+      def setFrom2[A1:Iso,A2:Iso](f: (A1,A2) => T, m1: Matrix[A1], m2: Matrix[A2]) = {
+        requires(this.rows == m1.rows && this.cols == m1.cols)
+        requires(this.rows == m2.rows && this.cols == m2.cols)
+        this.reflectMutableInput
+        for (i <- 0 until this.size) {
+          this.a(i) = f(m1.a(i), m2.a(i))
+        }
+      }
     }
     implicit def matrixIso[T:Iso](implicit ev: Inv[Matrix[T]]) = isodata[Matrix[T],(Pointer[T],Rep[Int],Rep[Int])](
       "matrix_" + implicitly[Iso[T]].id,
@@ -91,6 +106,18 @@ class LinearAlgebraTests extends TestSuite {
       })
     }
     check("2", (new Linp2 with Impl).code)
+  }
+
+  test("3") {
+    trait Linp3 extends Matrices with BoolAlgebra {
+      val add = toplevel("add", { (a: Matrix[X], b: Matrix[X], o: Matrix[X]) =>
+        o.setFrom2({ (ai: X, bi: X) => ai + bi }, a, b)
+      })
+      val scalar_mult = toplevel("scalar_mult", { (a: X, b: Matrix[X], o: Matrix[X]) =>
+        o.setFrom({ (bi: X) => a*bi }, b)
+      })
+    }
+    check("3", (new Linp3 with Impl).code)
   }
 }
 
