@@ -128,7 +128,13 @@ class LinearAlgebraTests extends TestSuite {
         o.setFrom2({ (ai: X, bi: X) => ai + bi }, a, b)
       })
       val scalar_mult = toplevel("scalar_mult", { (a: X, b: Matrix[X], o: Matrix[X]) =>
-        o.setFrom1({ (bi: X) => a*bi }, b)
+        try {
+          o.setFrom1({ (bi: X) => a*bi }, b)
+        } finally {
+          // now easy to prove,
+          // thanks to all the annotations added by setFrom
+          ensures{result: Rep[Unit] => (a == zero) ==> (o.a(0) == zero)}
+        }
       })
     }
     check("3", (new Linp3 with Impl).code)
