@@ -447,7 +447,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
     def exprOfBlock[A](kw: String, e: Block[A], m: Map[Sym[_], String] = Map()): String = {
       val r = exprOfBlock(e, m)
       r match {
-        case "true" => ""
+        case "1" => ""
         case _ => kw + " " + r + ";"
       }
     }
@@ -500,7 +500,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
       case _ => "TODO:Def:"+d
     }
     def exprOf[A](e: Exp[A], m: Map[Sym[_], String] = Map()): String = e match {
-      case Const(b: Boolean) => b.toString
+      case Const(b: Boolean) => if (b) "1" else "0"
       case Const(_) => quote(e)
       case s@Sym(n) => s match {
         case Def(d) if !emitted(s) => exprOfDef(d, m)
