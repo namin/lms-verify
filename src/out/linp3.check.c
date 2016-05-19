@@ -35,7 +35,7 @@ void add(int  * x79, int  x80, int  x81, int  * x82, int  x83, int  x84, int  * 
 }
 /*@
 requires (((inv_matrix_Boolean(x200,x201,x202) && inv_matrix_Boolean(x203,x204,x205)) && ((x204==x201) && (x205==x202))) && (\forall int  x244; (\forall int  x245; ((((0<=x244) && (x244<(x204*x205))) && ((0<=x245) && (x245<(x201*x202)))) ==> \separated(x203+x244,x200+x245)))));
-ensures ((\forall int  x267; (((0<=x267) && (x267<(x204*x205))) ==> (x203[x267]==(x199 && x200[x267])))) && ((x199==0) ==> (\forall int x281; (0<=x281<x204) ==> (\forall int x284; (0<=x284<x205) ==> (x203[((x281*x205)+x284)]==0)))));
+ensures ((\forall int  x267; (((0<=x267) && (x267<(x204*x205))) ==> (x203[x267]==(x199 && x200[x267])))) && ((x199==\false) ==> (\forall int x281; (0<=x281<x204) ==> (\forall int x284; (0<=x284<x205) ==> (x203[((x281*x205)+x284)]==\false)))));
 */
 void scalar_mult(int  x199, int  * x200, int  x201, int  x202, int  * x203, int  x204, int  x205) {
   //@assert \separated(x203+0,x200+0);
