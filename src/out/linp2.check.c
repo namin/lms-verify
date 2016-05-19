@@ -15,17 +15,17 @@ requires (((inv_matrix_Boolean(x76,x77,x78) && inv_matrix_Boolean(x79,x80,x81)) 
 */
 void add(int  * x76, int  x77, int  x78, int  * x79, int  x80, int  x81, int  * x82, int  x83, int  x84) {
   /*@
-  loop invariant 0<=x89<=x77;
+  loop invariant 0<=x89<=x83;
   loop assigns x89, x82[(0..(x83*x84)-1)];
-  loop variant x77-x89;
+  loop variant x83-x89;
   */
-  for(int x89=0; x89 < x77; x89++) {
+  for(int x89=0; x89 < x83; x89++) {
     /*@
-    loop invariant 0<=x91<=x78;
+    loop invariant 0<=x91<=x84;
     loop assigns x91, x82[(0..(x83*x84)-1)];
-    loop variant x78-x91;
+    loop variant x84-x91;
     */
-    for(int x91=0; x91 < x78; x91++) {
+    for(int x91=0; x91 < x84; x91++) {
       int x92 = index(x77,x78,x89,x91);
       int x93 = x76[x92];
       int x94 = index(x80,x81,x89,x91);
@@ -41,17 +41,17 @@ requires ((inv_matrix_Boolean(x123,x124,x125) && inv_matrix_Boolean(x126,x127,x1
 */
 void scalar_mult(int  x122, int  * x123, int  x124, int  x125, int  * x126, int  x127, int  x128) {
   /*@
-  loop invariant 0<=x133<=x124;
+  loop invariant 0<=x133<=x127;
   loop assigns x133, x126[(0..(x127*x128)-1)];
-  loop variant x124-x133;
+  loop variant x127-x133;
   */
-  for(int x133=0; x133 < x124; x133++) {
+  for(int x133=0; x133 < x127; x133++) {
     /*@
-    loop invariant 0<=x135<=x125;
+    loop invariant 0<=x135<=x128;
     loop assigns x135, x126[(0..(x127*x128)-1)];
-    loop variant x125-x135;
+    loop variant x128-x135;
     */
-    for(int x135=0; x135 < x125; x135++) {
+    for(int x135=0; x135 < x128; x135++) {
       int x138;
       if (x122) {
         int x136 = index(x124,x125,x133,x135);

@@ -24,6 +24,14 @@ class LinearAlgebraTests extends TestSuite {
       }
       def valid = size>0 && a.valid(0 until size)
       def reflectMutableInput = a.reflectMutableInput(0 until size)
+      def setEach(f: (Rep[Int], Rep[Int]) => T) = {
+        this.reflectMutableInput
+        for (r <- 0 until this.rows) {
+          for (c <- 0 until this.cols) {
+            this((r,c)) = f(r,c)
+          }
+        }
+      }
     }
     implicit def matrixIso[T:Iso](implicit ev: Inv[Matrix[T]]) = isodata[Matrix[T],(Pointer[T],Rep[Int],Rep[Int])](
       "matrix_" + implicitly[Iso[T]].id,
@@ -71,20 +79,14 @@ class LinearAlgebraTests extends TestSuite {
     trait Linp2 extends Matrices with BoolAlgebra {
       val add = toplevel("add", { (a: Matrix[X], b: Matrix[X], o: Matrix[X]) =>
         requires(a.rows == b.rows && a.rows == o.rows && a.cols == b.cols && a.cols == o.cols)
-        o.reflectMutableInput
-        for (r <- 0 until a.rows) {
-          for (c <- 0 until a.cols) {
-            o((r,c)) = a(r,c) + b(r,c)
-          }
+        o.setEach{ (r: Rep[Int], c: Rep[Int]) =>
+          a(r,c) + b(r,c)
         }
       })
       val scalar_mult = toplevel("scalar_mult", { (a: X, b: Matrix[X], o: Matrix[X]) =>
         requires(b.rows == o.rows && b.cols == o.cols)
-        o.reflectMutableInput
-        for (r <- 0 until b.rows) {
-          for (c <- 0 until b.cols) {
-            o((r,c)) = a*b(r,c)
-          }
+        o.setEach{ (r: Rep[Int], c: Rep[Int]) =>
+          a*b(r,c)
         }
       })
     }
