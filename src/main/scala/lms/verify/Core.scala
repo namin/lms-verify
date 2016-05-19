@@ -273,6 +273,21 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
   case class ToplevelApply[B:Typ](name: String, args: List[Rep[_]]) extends Def[B]
   val eff = new scala.collection.mutable.LinkedHashMap[String,(List[Sym[Any]], Summary)]
   def toplevelApply[B:Typ](name: String, args: List[Rep[_]]): Rep[B] = {
+    if (suspendCSE) { // in spec
+      rec.get(name) match {
+        case Some(t) if !t.spec =>
+          // inline and ignore contract???
+          val oldPreconds = preconds
+          val oldPostconds = postconds
+          try {
+            return t.f(args).asInstanceOf[Rep[B]]
+          } finally {
+            preconds = oldPreconds
+            postconds = oldPostconds
+          }
+        case _ =>
+      }
+    }
     eff.get(name) match {
       case Some((params,es)) =>
         val m = params.zip(args.map{x => x match {

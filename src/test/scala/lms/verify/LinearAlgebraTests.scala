@@ -133,13 +133,10 @@ class LinearAlgebraTests extends TestSuite {
         } finally {
           // now easy to prove,
           // thanks to all the annotations added by setFrom
-          ensures{result: Rep[Unit] => (a == zero) ==> (o.a(0) == zero)}
           ensures{result: Rep[Unit] => (a == zero) ==>
             (0 until o.rows).forall{r =>
             (0 until o.cols).forall{c =>
-              o.a(r*o.cols+c) == zero
-              // TODO: index should be available in spec
-              //       -- either as a spec function or inlined automatically
+              o(r,c) == zero
             }}
           }
         }
