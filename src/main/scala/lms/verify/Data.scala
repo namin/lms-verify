@@ -35,6 +35,16 @@ trait DataOps extends Dsl { self =>
       val a1 = a.asInstanceOf[Rep[Array[m.T]]]
       self.reflectMutableInput(a1, r)
     }
+    def assigns(r: Rep[Range]) = pmt.foreach{case (a,(m,t)) =>
+      implicit val t1 = t.asInstanceOf[Typ[m.T]]
+      val a1 = a.asInstanceOf[Rep[Array[m.T]]]
+      self.assigns(a1, r)
+    }
+    def within(r: Rep[Range]): List[Rep[Any]] = pmt.map{case (a,(m,t)) =>
+      implicit val t1 = t.asInstanceOf[Typ[m.T]]
+      val a1 = a.asInstanceOf[Rep[Array[m.T]]]
+      infix_within[m.T](a1, r)
+    }
   }
   def separated[T1:Iso,T2:Iso](p1: Pointer[T1], i1: Rep[Int], p2: Pointer[T2], i2: Rep[Int]): Rep[Boolean] = and_list(p1.pmt.map{case (a01,(m01,t01)) =>
     implicit val t1 = t01.asInstanceOf[Typ[m01.T]]

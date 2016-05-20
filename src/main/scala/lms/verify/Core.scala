@@ -139,6 +139,9 @@ trait VerifyOps extends Base with BooleanOps {
   def wrap9[A1,A2,A3,A4,A5,A6,A7,A8,A9,B](f: (A1,A2,A3,A4,A5,A6,A7,A8,A9) => B): ((A1,A2,A3,A4,A5,A6,A7,A8,A9)) => B = {(x: (A1,A2,A3,A4,A5,A6,A7,A8,A9)) => f(x._1, x._2, x._3, x._4, x._5, x._6, x._7, x._8, x._9)}
   def unwrap9[A1,A2,A3,A4,A5,A6,A7,A8,A9,B](g: ((A1,A2,A3,A4,A5,A6,A7,A8,A9)) => B): (A1,A2,A3,A4,A5,A6,A7,A8,A9) => B = {(x1: A1, x2: A2, x3: A3, x4: A4, x5: A5, x6: A6, x7: A7, x8: A8, x9: A9) => g((x1, x2, x3, x4, x5, x6, x7, x8, x9))}
 
+  def toplevel[A1:Iso,A2:Iso,B:Iso1](name: String, f: (A1,A2) => B): (A1,A2) => B = {
+    unwrap2(toplevel(name, wrap2(f)))
+  }
   def toplevel[A1:Iso,A2:Iso,A3:Iso,B:Iso1](name: String, f: (A1, A2, A3) => B): (A1, A2, A3) => B = {
     unwrap3(toplevel(name, wrap3(f)))
   }
