@@ -537,6 +537,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
         case Some(r) => "\\valid("+exprOf(p, m)+"+"+exprOf(r, m)+")"
       }
       case Separated(p1, i1, p2, i2) => "\\separated("+exprOf(p1, m)+"+"+exprOf(i1, m)+","+exprOf(p2, m)+"+"+exprOf(i2, m)+")"
+      case At(a, lc) => "\\at("+exprOf(a, m)+","+lc+")"
       case Until(a, b) => b match {
         case Const(c:Int) => "("+exprOf(a, m)+".."+(c-1)+")"
         case Def(IntPlus(c1, Const(1))) => "("+exprOf(a, m)+".."+exprOf(c1, m)+")"

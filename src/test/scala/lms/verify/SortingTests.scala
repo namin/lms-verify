@@ -4,7 +4,7 @@ class SortingTests extends TestSuite {
   val under = "srt"
 
   trait Sorting extends Dsl with DataOps {
-    def permut[T:Iso] = inductive[(Lc,Lc),(Pointer[T],Rep[Int])](
+    def permut[T:Iso:Eq] = inductive[(Lc,Lc),(Pointer[T],Rep[Int])](
       implicitly[Iso[T]].id+"_Permut", { p =>
         add_case[Lc1,(Pointer[T],Rep[Int])]("refl", { ls => an =>
           p((ls._1,ls._1))(an)
@@ -21,11 +21,11 @@ class SortingTests extends TestSuite {
           val (a,n) = an
           forall{i: Rep[Int] => forall{j: Rep[Int] =>
             (0 <= i && i < n && 0 <= j && j < n &&
-              ((at(a(i),l1)) == (at(a(j),l2))) &&
-              ((at(a(j),l1)) == (at(a(i),l2))) &&
+              ((at(a(i),l1)) deep_equal (at(a(j),l2))) &&
+              ((at(a(j),l1)) deep_equal (at(a(i),l2))) &&
               forall{k: Rep[Int] =>
                 (0 <= k && k < n && k != i && k != j) ==>
-                ((at(a(k),l1)) == (at(a(k),l2)))}) ==>
+                ((at(a(k),l1)) deep_equal (at(a(k),l2)))}) ==>
             (p(ls)(an))
           }}
         })
