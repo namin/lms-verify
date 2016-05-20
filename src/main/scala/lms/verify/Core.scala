@@ -199,6 +199,16 @@ trait VerifyOps extends Base with BooleanOps {
     def forall(f: Rep[Int] => Rep[Boolean]): Rep[Boolean] = range_forall(r, f)
   }
   def range_forall(r: Rep[Range], f: Rep[Int] => Rep[Boolean]): Rep[Boolean]
+
+
+  // TODO
+  type Lc = String
+  def inductive[A,B:Iso](id: String, ks: (A => B => Rep[Boolean]) => Unit):
+      (A => B => Rep[Boolean]) = {
+    {a => b => unit(true)}
+  }
+  def add_case[A,B:Iso](id: String, k: A => B => Rep[Boolean]): Unit = {}
+  def at[A:Iso](a: A, lc: Lc): A = a
 }
 
 trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBoolean with ListOpsExp with BooleanOpsExpOpt {
