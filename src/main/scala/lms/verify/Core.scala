@@ -668,7 +668,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
       val sig = x.name+"("+(args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")+")"
       out.println(s"inductive $sig {")
       x.ks.foreach{ k =>
-        emitVerify(k.f, k.name, spec=true, code=false, indcase=true, out)(k.mAs, k.mB)
+        emitVerify(k.f, x.name+"_"+k.name, spec=true, code=false, indcase=true, out)(k.mAs, k.mB)
       }
       out.println("}")
       inInd = false
