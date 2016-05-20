@@ -223,7 +223,8 @@ trait VerifyOps extends Base with BooleanOps {
   }
   def add_case[A<:Product,B:Iso](id: String, k: A => B => Rep[Boolean])(implicit a0: A): Unit = {
     val ib = implicitly[Iso[B]]
-    _add_case(id, a0.productArity, ib.typList, {xs => k(a0)(ib.fromRepList(xs))})
+    val name = id+lc_id(a0)
+    _add_case(name, a0.productArity, ib.typList, {xs => k(a0)(ib.fromRepList(xs))})
   }
   def at[A:Iso](a: A, lc: Lc): A = {
     val ia = implicitly[Iso[A]]
@@ -242,8 +243,8 @@ trait VerifyOps extends Base with BooleanOps {
   }
   var pendingIndCases: List[IndCase] = Nil
   type IndCase = TopLevel[Boolean]
-  def _add_case(id: String, n: Int, bs: List[Typ[_]], k: List[Rep[_]] => Rep[Boolean]): Unit = {
-    pendingIndCases = TopLevel(id, bs, implicitly[Typ[Boolean]], k, true, false) :: pendingIndCases
+  def _add_case(name: String, n: Int, bs: List[Typ[_]], k: List[Rep[_]] => Rep[Boolean]): Unit = {
+    pendingIndCases = TopLevel(name, bs, implicitly[Typ[Boolean]], k, true, false) :: pendingIndCases
   }
 
   def _at[A:Typ](a: Rep[A], lc: Lc): Rep[A]
