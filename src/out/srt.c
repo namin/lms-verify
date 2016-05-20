@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 /*@ inductive Permut{L1,L2}(int* a, integer n) {
   @  case Permut_refl{L}:
   @   \forall int* a, integer n; Permut{L,L}(a, n) ;
@@ -68,20 +66,4 @@ void insort(int * p, int n) {
     inswap(p, m-1, maxi, n);
     //@assert (m <= n-1 ==> p[m-1] <= p[m]);
   }
-}
-
-int main(void) {
-  int a[] = {5, 2, 3, 1, 4};
-  int* p = a;
-  int n = 5;
-  insort(p, n);
-  /*@
-    loop invariant (0 <= i <= n);
-    loop invariant \valid(p+(0..n-1));
-    loop variant n-i;
-   */
-  for (int i=0; i<n; i++) {
-    printf("%d ", p[i]);
-  }
-  printf("\n");
 }
