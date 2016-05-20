@@ -49,6 +49,6 @@ class SortingTests extends TestSuite {
         unit(())
       })
     }
-    //check("1", (new Srt1 with Impl).code)
+    check("1", (new Srt1 with Impl).code)
   }
 }

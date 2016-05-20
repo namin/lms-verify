@@ -663,13 +663,17 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
     var inInd: Boolean = false;
     def emitInductive(x: Inductive, out: PrintWriter): Unit = {
       inInd = true
-      val args = x.bs.map(fresh(_))
-      val sig = x.name+x.suffix+"("+(args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")+")"
-      out.println(s"inductive $sig {")
-      x.ks.foreach{ k =>
-        emitVerify(k.f, x.name+"_"+k.name, spec=true, code=false, indcase=true, out)(k.mAs, k.mB)
+      withStream(out) {
+        stream.println("/*@")
+        val args = x.bs.map(fresh(_))
+        val sig = x.name+x.suffix+"("+(args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")+")"
+        stream.println(s"inductive $sig {")
+        x.ks.foreach{ k =>
+          emitVerify(k.f, x.name+"_"+k.name, spec=true, code=false, indcase=true, out)(k.mAs, k.mB)
+        }
+        stream.println("}")
+        stream.println("*/")
       }
-      out.println("}")
       inInd = false
     }
 
@@ -708,11 +712,18 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
         if (x.code)
           emitHeader(x.name, out)(x.mAs, mtype(x.mB))
       }
-      val sig = functionName+"("+(args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")+")"
+      val sig_args = (args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")
+      val sig = functionName+"("+sig_args+")"
       val sig_app = functionName+"("+(args.map(s => quote(s))).mkString(", ")+")"
       withStream(out) {
         if (spec) {
-          stream.println("//@ predicate "+sig+" = "+exprOfBlock[B](body, default_m)+";")
+          if (!indcase)
+            stream.println("//@ predicate "+sig+" = "+exprOfBlock[B](body, default_m)+";")
+          else {
+            stream.println(s"case $functionName:")
+            if (args.nonEmpty) stream.print(s"\\forall $sig_args; ")
+            stream.println(exprOfBlock[B](body, default_m)+";")
+          }
         }
         if (code) {
           val preStr = exprOfBlock("requires", preBody)
