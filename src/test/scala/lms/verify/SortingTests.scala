@@ -6,8 +6,8 @@ class SortingTests extends TestSuite {
   trait Sorting extends Dsl with DataOps {
     def permut[T:Iso] = inductive[(Lc,Lc),(Pointer[T],Rep[Int])](
       implicitly[Iso[T]].id+"_Permut", { p =>
-        add_case[Lc,(Pointer[T],Rep[Int])]("refl", { lc => an =>
-          p((lc,lc))(an)
+        add_case[Lc1,(Pointer[T],Rep[Int])]("refl", { ls => an =>
+          p((ls._1,ls._1))(an)
         })
         add_case[(Lc,Lc),(Pointer[T],Rep[Int])]("sym", { ls => an =>
           (p((ls._1, ls._2))(an)) ==> (p((ls._2, ls._1))(an))
@@ -49,6 +49,6 @@ class SortingTests extends TestSuite {
         unit(())
       })
     }
-    check("1", (new Srt1 with Impl).code)
+    //check("1", (new Srt1 with Impl).code)
   }
 }

@@ -203,12 +203,41 @@ trait VerifyOps extends Base with BooleanOps {
 
   // TODO
   type Lc = String
-  def inductive[A,B:Iso](id: String, ks: (A => B => Rep[Boolean]) => Unit):
+  type Lc1 = Product1[Lc]
+  implicit def lc1: Lc1 = Tuple1("L")
+  implicit def lc2: (Lc,Lc) = ("L1","L2")
+  implicit def lc3: (Lc,Lc,Lc) = ("L1","L2","L3")
+  def lc_id[A<:Product](a: A): String =
+    a.productIterator.map(_.toString).mkString("{", ",", "}")
+  def inductive[A<:Product,B:Iso](id: String, ks: (A => B => Rep[Boolean]) => Unit)
+      (implicit a0: A):
       (A => B => Rep[Boolean]) = {
-    {a => b => unit(true)}
+    val ib = implicitly[Iso[B]]
+    val r = {a: A => b: B =>
+      toplevelApply[Boolean](
+        id+lc_id(a),
+        ib.toRepList(b))
+    }
+    val name = id+lc_id(a0)
+    _add_inductive(name, a0.productArity, ib.typList, ks(r))
+    r
   }
-  def add_case[A,B:Iso](id: String, k: A => B => Rep[Boolean]): Unit = {}
-  def at[A:Iso](a: A, lc: Lc): A = a
+  def add_case[A<:Product,B:Iso](id: String, k: A => B => Rep[Boolean])(implicit a0: A): Unit = {
+    val ib = implicitly[Iso[B]]
+    _add_case(id, a0.productArity, ib.typList, {xs => k(a0)(ib.fromRepList(xs))})
+  }
+  def at[A:Iso](a: A, lc: Lc): A = {
+    val ia = implicitly[Iso[A]]
+    ia.fromRepList(ia.toRepList(a).map{x => _at(x, lc)})
+  }
+  def _add_inductive(name: String, n: Int, bs: List[Typ[_]], ks: => Unit): Unit = {
+
+  }
+  def _add_case(id: String, n: Int, bs: List[Typ[_]], k: List[Rep[_]] => Rep[Boolean]): Unit = {
+
+  }
+  def _at[A](a: Rep[A], lc: Lc) = a
+
 }
 
 trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBoolean with ListOpsExp with BooleanOpsExpOpt {
