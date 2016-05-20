@@ -33,6 +33,7 @@ class SortingTests extends TestSuite {
   }
 
   test("1") {
+    // TODO: make generic on T:Iso instead of Rep[Int].
     trait Srt1 extends Sorting {
       val Permut = permut[Rep[Int]]
       val inswap = toplevel("inswap", { (p: Pointer[Rep[Int]], i: Rep[Int], j: Rep[Int], n: Rep[Int]) =>
