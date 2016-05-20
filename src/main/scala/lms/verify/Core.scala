@@ -217,8 +217,7 @@ trait VerifyOps extends Base with BooleanOps {
         id+lc_id(a),
         ib.toRepList(b))
     }
-    val name = id+lc_id(a0)
-    _add_inductive(name, a0.productArity, ib.typList, ks(r))
+    _add_inductive(id, lc_id(a0), a0.productArity, ib.typList, ks(r))
     r
   }
   def add_case[A<:Product,B:Iso](id: String, k: A => B => Rep[Boolean])(implicit a0: A): Unit = {
@@ -231,12 +230,12 @@ trait VerifyOps extends Base with BooleanOps {
     ia.fromRepList(ia.toRepList(a).zip(ia.typList.zip(ia.memList)).map{case (x,(t,m)) => _at(x.asInstanceOf[Rep[m.T]], lc)(t.asInstanceOf[Typ[m.T]])})
   }
 
-  case class Inductive(name: String, bs: List[Typ[_]], ks: List[IndCase])
+  case class Inductive(name: String, suffix: String, bs: List[Typ[_]], ks: List[IndCase])
   val ind = new scala.collection.mutable.LinkedHashMap[String,Inductive]
-  def _add_inductive(name: String, n: Int, bs: List[Typ[_]], ks: => Unit): Unit = {
+  def _add_inductive(name: String, suffix: String, n: Int, bs: List[Typ[_]], ks: => Unit): Unit = {
     assert (pendingIndCases.isEmpty)
     ks
-    val r = Inductive(name, bs, pendingIndCases.reverse)
+    val r = Inductive(name, suffix, bs, pendingIndCases.reverse)
     pendingIndCases = Nil
     ind.getOrElseUpdate(name, r)
     ()
@@ -665,7 +664,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
     def emitInductive(x: Inductive, out: PrintWriter): Unit = {
       inInd = true
       val args = x.bs.map(fresh(_))
-      val sig = x.name+"("+(args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")+")"
+      val sig = x.name+x.suffix+"("+(args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")+")"
       out.println(s"inductive $sig {")
       x.ks.foreach{ k =>
         emitVerify(k.f, x.name+"_"+k.name, spec=true, code=false, indcase=true, out)(k.mAs, k.mB)
