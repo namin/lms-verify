@@ -488,6 +488,13 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
       else if (tpe == "string") "char "
       else tpe
     }
+    override def remapWithRef[A](m: Typ[A]): String = {
+      val r = super.remapWithRef[A](m)
+      // the remapping in core LMS seems very convoluted...
+      if (inInd && r.startsWith("int")) {
+        if (r.contains("*")) r.replace("integer ", "int ") else r.replace("int ", "integer ")
+      } else r
+    }
     override def isPrimitiveType(tpe: String): Boolean = {
       tpe match {
         case "int" | "uint" | "char" => true
