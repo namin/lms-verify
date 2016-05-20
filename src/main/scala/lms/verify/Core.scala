@@ -201,7 +201,6 @@ trait VerifyOps extends Base with BooleanOps {
   def range_forall(r: Rep[Range], f: Rep[Int] => Rep[Boolean]): Rep[Boolean]
 
 
-  // TODO
   type Lc = String
   type Lc1 = Product1[Lc]
   implicit def lc1: Lc1 = Tuple1("L")
@@ -228,16 +227,26 @@ trait VerifyOps extends Base with BooleanOps {
   }
   def at[A:Iso](a: A, lc: Lc): A = {
     val ia = implicitly[Iso[A]]
-    ia.fromRepList(ia.toRepList(a).map{x => _at(x, lc)})
+    ia.fromRepList(ia.toRepList(a).zip(ia.typList.zip(ia.memList)).map{case (x,(t,m)) => _at(x.asInstanceOf[Rep[m.T]], lc)(t.asInstanceOf[Typ[m.T]])})
   }
+
+  case class Inductive(name: String, bs: List[Typ[_]], ks: List[IndCase])
+  val ind = new scala.collection.mutable.LinkedHashMap[String,Inductive]
   def _add_inductive(name: String, n: Int, bs: List[Typ[_]], ks: => Unit): Unit = {
-
+    assert (pendingIndCases.isEmpty)
+    ks
+    val r = Inductive(name, bs, pendingIndCases.reverse)
+    pendingIndCases = Nil
+    ind.getOrElseUpdate(name, r)
+    ()
   }
+  var pendingIndCases: List[IndCase] = Nil
+  type IndCase = TopLevel[Boolean]
   def _add_case(id: String, n: Int, bs: List[Typ[_]], k: List[Rep[_]] => Rep[Boolean]): Unit = {
-
+    pendingIndCases = TopLevel(id, bs, implicitly[Typ[Boolean]], k, true, false) :: pendingIndCases
   }
-  def _at[A](a: Rep[A], lc: Lc) = a
 
+  def _at[A:Typ](a: Rep[A], lc: Lc): Rep[A]
 }
 
 trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBoolean with ListOpsExp with BooleanOpsExpOpt {
@@ -444,6 +453,9 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
     case RangeForall(start, end, j, i, y, z) => freqNormal(start):::freqNormal(end):::freqCold(y):::freqHot(z)
     case _ => super.symsFreq(e)
   }
+
+  case class At[A](a: Rep[A], lc: Lc) extends Def[A]
+  def _at[A:Typ](a: Exp[A], lc: Lc): Exp[A] = At[A](a, lc)
 }
 
 trait Dsl extends VerifyOps with ScalaOpsPkg with TupledFunctions with UncheckedOps with LiftPrimitives with LiftString with LiftVariables with LiftBoolean with LiftNumeric with ZeroVal {
@@ -641,7 +653,20 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
       }
     }
 
-    def emitVerify[B](f: List[Exp[_]] => Exp[B], functionName: String, spec: Boolean, code: Boolean, out: PrintWriter)(mAs: List[Typ[_]], mB: Typ[B]): Unit = {
+    var inInd: Boolean = false;
+    def emitInductive(x: Inductive, out: PrintWriter): Unit = {
+      inInd = true
+      val args = x.bs.map(fresh(_))
+      val sig = x.name+"("+(args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")+")"
+      out.println(s"inductive $sig {")
+      x.ks.foreach{ k =>
+        emitVerify(k.f, k.name, spec=true, code=false, indcase=true, out)(k.mAs, k.mB)
+      }
+      out.println("}")
+      inInd = false
+    }
+
+    def emitVerify[B](f: List[Exp[_]] => Exp[B], functionName: String, spec: Boolean, code: Boolean, indcase: Boolean, out: PrintWriter)(mAs: List[Typ[_]], mB: Typ[B]): Unit = {
       val args = mAs.map(fresh(_))
       val r = fresh[B](mB)
       val oldFns = rec.keys.toSet
@@ -712,8 +737,11 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
   def emitAll(stream: java.io.PrintWriter): Unit = {
     assert(codegen ne null) //careful about initialization order
     includes.foreach { i => stream.println("#include "+i) }
+    ind.foreach { case (k,x) =>
+      codegen.emitInductive(x, stream)
+    }
     rec.foreach { case (k,x) =>
-      codegen.emitVerify(x.f, x.name, x.spec, x.code, stream)(x.mAs, mtype(x.mB))
+      codegen.emitVerify(x.f, x.name, x.spec, x.code, indcase=false, stream)(x.mAs, mtype(x.mB))
     }
   }
   lazy val code: String = {
