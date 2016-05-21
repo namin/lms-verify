@@ -102,7 +102,7 @@ class SortingTests extends TestSuite {
         implicit val t2 = t02.asInstanceOf[Typ[m02.T]]
         val a2 = a02.asInstanceOf[Rep[Array[m02.T]]]
         forall{i1: Rep[Int] => forall{i2: Rep[Int] =>
-          0 <= i1 && i1 < n && 0 <= i2 && i2 < n &&
+          (0 <= i1 && i1 < n && 0 <= i2 && i2 < n) ==>
           separated(a1, i1, a2, i2)
         }}}).toList)
     }
