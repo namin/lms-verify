@@ -24,13 +24,13 @@ void inswap_Int(int  * x80, int  x81, int  x82, int  x83) {
 }
 /*@
 requires ((x121>0) && \valid(x120+(0..x121-1)));
-ensures ((\forall int  x315; (((0<=x315) && (x315<(x121-1))) ==> (x120[x315]>=x120[(x315+1)]))) && Int_Permut{Old,Post}(x120,x121));
+ensures ((\forall int  x317; (((0<=x317) && (x317<(x121-1))) ==> (x120[x317]>=x120[(x317+1)]))) && Int_Permut{Old,Post}(x120,x121));
 assigns x120[(0..x121-1)];
 */
 void insort(int  * x120, int  x121) {
   int x124 = x121;
   /*@
-  loop invariant (((((0<=x124) && (x124<=x121)) && ((x124<(x121-1)) ==> (\forall int  x260; (((x124<=x260) && (x260<(x121-1))) ==> (x120[x260]>=x120[(x260+1)]))))) && (\forall int  x277; ((((0<=x277) && (x277<x124)) && (x124<=(x121-1))) ==> (x120[x277]>=x120[x124])))) && Int_Permut{Pre,Here}(x120,x121));
+  loop invariant (((((0<=x124) && (x124<=x121)) && ((x124<(x121-1)) ==> (\forall int  x261; (((x124<=x261) && (x261<(x121-1))) ==> (x120[x261]>=x120[(x261+1)]))))) && (\forall int  x278; ((((0<=x278) && (x278<x124)) && (x124<=(x121-1))) ==> (x120[x278]>=x120[x124])))) && Int_Permut{Pre,Here}(x120,x121));
   loop assigns x124, x120[(0..x121-1)];
   loop variant x124;
   */
@@ -56,12 +56,12 @@ void insort(int  * x120, int  x121) {
         //@assert (x120[x131]>=x120[x128]);
       }
     }
-    int x201 = x128;
-    int x200 = x129 - 1;
-    inswap_Int(x120,x200,x201,x121);
-    //@assert (\forall int  x203; ((((x124-1)<x203) && (x203<(x121-1))) ==> (x120[x203]>=x120[(x203+1)])));
+    int x202 = x128;
+    int x201 = x129 - 1;
+    inswap_Int(x120,x201,x202,x121);
+    //@assert (\forall int  x204; ((((x124-1)<x204) && (x204<(x121-1))) ==> (x120[x204]>=x120[(x204+1)])));
     //@assert ((x124<=(x121-1)) ==> (x120[(x124-1)]>=x120[x124]));
-    //@assert (\forall int  x232; (((0<=x232) && (x232<x124)) ==> (x120[x232]>=x120[(x124-1)])));
-    x124 = x200;
+    //@assert (\forall int  x233; (((0<=x233) && (x233<x124)) ==> (x120[x233]>=x120[(x124-1)])));
+    x124 = x201;
   }
 }

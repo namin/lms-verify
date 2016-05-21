@@ -34,12 +34,11 @@ class SortingTests extends TestSuite {
     class Routine[T:Iso:Eq](infix_cmp: (T,T) => Rep[Boolean]) {
       def id = implicitly[Iso[T]].id
       def id_by(s: String) = id+(if (s.isEmpty) "" else "_by_"+s)
-      def requires_separation(p: Pointer[T], n: Rep[Int]): Unit = {}
       val Permut = permut[T]
       val inswap = toplevel("inswap_"+id, { (p: Pointer[T], i: Rep[Int], j: Rep[Int], n: Rep[Int]) =>
         requires(n>0 && 0 <= i && i < n && 0 <= j && j < n)
         requires(p.valid(0 until n))
-        requires_separation(p, n)
+        requires(separation(p, n))
         ensures{result: Rep[Unit] => (p(i) deep_equal old(p(j))) && (p(j) deep_equal old(p(i)))}
         ensures{result: Rep[Unit] => Permut(("Old","Post"))((p, n))}
         p.reflectMutableInput
@@ -52,16 +51,18 @@ class SortingTests extends TestSuite {
       })
       val insort = { (p: Pointer[T], n: Rep[Int]) =>
         requires(n>0 && p.valid(0 until n))
-        requires_separation(p, n)
+        requires(separation(p, n))
         ensures{result: Rep[Unit] => forall{i: Rep[Int] => (0 <= i && i < n-1) ==> (p(i) cmp p(i+1))}}
         ensures{result: Rep[Unit] => Permut(("Old","Post"))((p, n))}
+        ensures{result: Rep[Unit] => separation(p, n)}
         p.reflectMutableInput
         p.assigns(0 until n)
         var m = n
         loop (unit(0) <= m && m <= n &&
           ((m < n-1) ==> (forall{i: Rep[Int] => (m <= i && i < n-1) ==> (p(i) cmp p(i+1))})) &&
           forall{i: Rep[Int] => (0 <= i && i < m && m <= n-1) ==> (p(i) cmp p(m))} &&
-          Permut(("Pre","Here"))((p, n)),
+          Permut(("Pre","Here"))((p, n)) &&
+          separation(p, n),
           list_new(readVar(m)::(p within (0 until n))),
           readVar(m)) {
             while (m > 1) {
@@ -70,7 +71,8 @@ class SortingTests extends TestSuite {
                 0 <= i && i <= m &&
                 unit(0) <= maxi && maxi <= m-1 && m-1 < n &&
                 forall{j: Rep[Int] => (0 <= j && j < i) ==> (p(j) cmp p(maxi))} &&
-                Permut(("Pre","Here"))((p, n))},
+                Permut(("Pre","Here"))((p, n)) &&
+                separation(p, n)},
                 {i: Rep[Int] => List(i, maxi)},
                 {i: Rep[Int] => m-i}) {
                 for (i <- 0 until m) {
@@ -131,10 +133,7 @@ class SortingTests extends TestSuite {
     trait Srt3 extends Sorting {
       val r = new Routine[(Rep[Int],Rep[Int])]({ (a: (Rep[Int],Rep[Int]), b: (Rep[Int],Rep[Int])) =>
         (a._1<=b._1) || (a._2<=b._2)
-      }) {
-        override def requires_separation(p: Pointer[(Rep[Int],Rep[Int])], n: Rep[Int]) =
-          requires(separation(p, n))
-      }
+      })
       toplevel("insort_pairs", r.insort)
     }
     check("3", (new Srt3 with Impl).code)
@@ -144,10 +143,7 @@ class SortingTests extends TestSuite {
     trait Srt4 extends Sorting {
       val r = new Routine[(Rep[Int],Rep[Int])]({ (a: (Rep[Int],Rep[Int]), b: (Rep[Int],Rep[Int])) =>
         (a._1 < b._1) || ((a._1==b._1) && b._1 <= b._2)
-      }) {
-        override def requires_separation(p: Pointer[(Rep[Int],Rep[Int])], n: Rep[Int]) =
-          requires(separation(p, n))
-      }
+      })
       toplevel("insort_pairs", r.insort)
     }
     check("4", (new Srt4 with Impl).code)
