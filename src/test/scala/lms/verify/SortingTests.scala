@@ -87,6 +87,25 @@ class SortingTests extends TestSuite {
         }
       }
     }
+
+    def pointWise[T](p: (T,T) => Rep[Boolean]) = { (a: (T,T), b: (T,T)) =>
+      p(a._1, b._1) && p(a._2, b._2)
+    }
+    implicit def eq_pair[T:Eq:Iso] = equality[(T,T)](pointWise(_ deep_equal _))
+    def separation[T:Iso](x: Pointer[T], n: Rep[Int]): Rep[Boolean] = {
+      val n: Int = x.p.size
+      and_list((for (i <- 0 until n: Range; j <- (i+1) until n: Range) yield {
+        val (a01,(m01,t01)) = x.pmt(i)
+        val (a02,(m02,t02)) = x.pmt(j)
+        implicit val t1 = t01.asInstanceOf[Typ[m01.T]]
+        val a1 = a01.asInstanceOf[Rep[Array[m01.T]]]
+        implicit val t2 = t02.asInstanceOf[Typ[m02.T]]
+        val a2 = a02.asInstanceOf[Rep[Array[m02.T]]]
+        forall{i1: Rep[Int] => forall{i2: Rep[Int] =>
+          0 <= i1 && i1 < n && 0 <= i2 && i2 < n &&
+          separated(a1, i1, a2, i2)
+        }}}).toList)
+    }
   }
 
   test("1") {
@@ -107,24 +126,6 @@ class SortingTests extends TestSuite {
 
   test("3") {
     trait Srt3 extends Sorting {
-      def pointWise[T](p: (T,T) => Rep[Boolean]) = { (a: (T,T), b: (T,T)) =>
-        p(a._1, b._1) && p(a._2, b._2)
-      }
-      implicit def eq_pair[T:Eq:Iso] = equality[(T,T)](pointWise(_ deep_equal _))
-      def separation[T:Iso](x: Pointer[T], n: Rep[Int]): Rep[Boolean] = {
-        val n: Int = x.p.size
-        and_list((for (i <- 0 until n: Range; j <- (i+1) until n: Range) yield {
-          val (a01,(m01,t01)) = x.pmt(i)
-          val (a02,(m02,t02)) = x.pmt(j)
-          implicit val t1 = t01.asInstanceOf[Typ[m01.T]]
-          val a1 = a01.asInstanceOf[Rep[Array[m01.T]]]
-          implicit val t2 = t02.asInstanceOf[Typ[m02.T]]
-          val a2 = a02.asInstanceOf[Rep[Array[m02.T]]]
-          forall{i1: Rep[Int] => forall{i2: Rep[Int] =>
-            0 <= i1 && i1 < n && 0 <= i2 && i2 < n &&
-            separated(a1, i1, a2, i2)
-          }}}).toList)
-      }
       // pointWise comparison is not very good,
       // because many pairs are incomparable, e.g. (5,0) vs (1,7)
       // Also verify that sort is stable?
