@@ -102,4 +102,22 @@ class SortingTests extends TestSuite {
     }
     check("2", (new Srt2 with Impl).code)
   }
+
+  test("3") {
+    trait Srt3 extends Sorting {
+      def pointWise[T](p: (T,T) => Rep[Boolean]) = { (a: (T,T), b: (T,T)) =>
+        p(a._1, b._1) && p(a._2, b._2)
+      }
+      implicit def pairEq[T:Eq:Iso] = equality[(T,T)](pointWise(_ deep_equal _))
+      val r = new Routine[(Rep[Int],Rep[Int])](pointWise(_ <= _))
+      toplevel("insort_pairs", r.insort)
+    }
+    //TODO: does not quite work, because
+    // (1) Permut inductive definition uses pairEq, and yet
+    //     they are generated in the wrong order.
+    // (2) Verification fails. Generic sorting does not scale? Need to investigate.
+    //     Maybe need to postulate non-interference between the fst and snd pointers
+    //     of a pair pointer.
+    //check("3", (new Srt3 with Impl).code)
+  }
 }
