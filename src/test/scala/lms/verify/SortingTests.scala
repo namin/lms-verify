@@ -31,7 +31,7 @@ class SortingTests extends TestSuite {
         })
       })
 
-    class Routine[T:Iso:Eq](infix_cmp: (T,T) => Rep[Boolean], cmp_id: String = "") {
+    class Routine[T:Iso:Eq](infix_cmp: (T,T) => Rep[Boolean]) {
       def id = implicitly[Iso[T]].id
       def id_by(s: String) = id+(if (s.isEmpty) "" else "_by_"+s)
       val Permut = permut[T]
@@ -48,7 +48,7 @@ class SortingTests extends TestSuite {
         p(j) = tmp
         unit(())
       })
-      val insort = toplevel("insort_"+id_by(cmp_id), { (p: Pointer[T], n: Rep[Int]) =>
+      val insort = { (p: Pointer[T], n: Rep[Int]) =>
         requires(n>0 && p.valid(0 until n))
         val x = p(0) cmp p(1)
         ensures{result: Rep[Unit] => forall{i: Rep[Int] => (0 <= i && i < n-1) ==> (p(i) cmp p(i+1))}}
@@ -83,14 +83,23 @@ class SortingTests extends TestSuite {
               m = m - 1
             }
         }
-      })
+      }
     }
   }
 
   test("1") {
     trait Srt1 extends Sorting {
       val r = new Routine[Rep[Int]](_ <= _)
+      toplevel("insort", r.insort)
     }
     check("1", (new Srt1 with Impl).code)
+  }
+
+  test("2") {
+    trait Srt2 extends Sorting {
+      val r = new Routine[Rep[Int]](_ >= _)
+      toplevel("insort", r.insort)
+    }
+    check("2", (new Srt2 with Impl).code)
   }
 }
