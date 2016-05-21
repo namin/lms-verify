@@ -24,13 +24,13 @@ void inswap_Int(int  * x80, int  x81, int  x82, int  x83) {
 }
 /*@
 requires ((x121>0) && \valid(x120+(0..x121-1)));
-ensures ((\forall int  x308; (((0<=x308) && (x308<(x121-1))) ==> (x120[x308]<=x120[(x308+1)]))) && Int_Permut{Old,Post}(x120,x121));
+ensures ((\forall int  x309; (((0<=x309) && (x309<(x121-1))) ==> (x120[x309]<=x120[(x309+1)]))) && Int_Permut{Old,Post}(x120,x121));
 assigns x120[(0..x121-1)];
 */
 void insort(int  * x120, int  x121) {
   int x124 = x121;
   /*@
-  loop invariant (((((0<=x124) && (x124<=x121)) && ((x124<(x121-1)) ==> (\forall int  x253; (((x124<=x253) && (x253<(x121-1))) ==> (x120[x253]<=x120[(x253+1)]))))) && (\forall int  x270; ((((0<=x270) && (x270<x124)) && (x124<=(x121-1))) ==> (x120[x270]<=x120[x124])))) && Int_Permut{Pre,Here}(x120,x121));
+  loop invariant (((((0<=x124) && (x124<=x121)) && ((x124<(x121-1)) ==> (\forall int  x254; (((x124<=x254) && (x254<(x121-1))) ==> (x120[x254]<=x120[(x254+1)]))))) && (\forall int  x271; ((((0<=x271) && (x271<x124)) && (x124<=(x121-1))) ==> (x120[x271]<=x120[x124])))) && Int_Permut{Pre,Here}(x120,x121));
   loop assigns x124, x120[(0..x121-1)];
   loop variant x124;
   */
@@ -41,26 +41,26 @@ void insort(int  * x120, int  x121) {
     int x128 = 0;
     int x129 = x124;
     /*@
-    loop invariant (((((((((0<=x124) && (x124<=x121)) && (0<=x131)) && (x131<=x124)) && (0<=x128)) && (x128<=(x124-1))) && ((x124-1)<x121)) && (\forall int  x169; (((0<=x169) && (x169<x131)) ==> (x120[x169]<=x120[x128])))) && Int_Permut{Pre,Here}(x120,x121));
+    loop invariant (((((((((0<=x124) && (x124<=x121)) && (0<=x131)) && (x131<=x124)) && (0<=x128)) && (x128<=(x124-1))) && ((x124-1)<x121)) && (\forall int  x170; (((0<=x170) && (x170<x131)) ==> (x120[x170]<=x120[x128])))) && Int_Permut{Pre,Here}(x120,x121));
     loop assigns x131, x128;
     loop variant (x124-x131);
     */
     for(int x131=0; x131 < x129; x131++) {
-      int x132 = x128;
-      int x133 = x120[x132];
-      int x134 = x120[x131];
-      int x135 = x133 <= x134;
+      int x132 = x120[x131];
+      int x133 = x128;
+      int x134 = x120[x133];
+      int x135 = x132 <= x134;
       if (x135) {
-        x128 = x131;
       } else {
+        x128 = x131;
       }
     }
-    int x194 = x128;
-    int x193 = x129 - 1;
-    inswap_Int(x120,x193,x194,x121);
-    //@assert (\forall int  x196; ((((x124-1)<x196) && (x196<(x121-1))) ==> (x120[x196]<=x120[(x196+1)])));
+    int x195 = x128;
+    int x194 = x129 - 1;
+    inswap_Int(x120,x194,x195,x121);
+    //@assert (\forall int  x197; ((((x124-1)<x197) && (x197<(x121-1))) ==> (x120[x197]<=x120[(x197+1)])));
     //@assert ((x124<=(x121-1)) ==> (x120[(x124-1)]<=x120[x124]));
-    //@assert (\forall int  x225; (((0<=x225) && (x225<x124)) ==> (x120[x225]<=x120[(x124-1)])));
-    x124 = x193;
+    //@assert (\forall int  x226; (((0<=x226) && (x226<x124)) ==> (x120[x226]<=x120[(x124-1)])));
+    x124 = x194;
   }
 }

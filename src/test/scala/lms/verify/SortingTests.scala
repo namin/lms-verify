@@ -74,7 +74,7 @@ class SortingTests extends TestSuite {
                 {i: Rep[Int] => List(i, maxi)},
                 {i: Rep[Int] => m-i}) {
                 for (i <- 0 until m) {
-                  if (p(maxi) cmp p(i))
+                  if (!(p(i) cmp p(maxi)))
                     maxi = i
                 }
               }
@@ -125,6 +125,9 @@ class SortingTests extends TestSuite {
             separated(a1, i1, a2, i2)
           }}}).toList)
       }
+      // pointWise comparison is not very good,
+      // because many pairs are incomparable, e.g. (5,0) vs (1,7)
+      // Also verify that sort is stable?
       val r = new Routine[(Rep[Int],Rep[Int])](pointWise(_ <= _)) {
         override def requires_separation(p: Pointer[(Rep[Int],Rep[Int])], n: Rep[Int]) =
           requires(separation(p, n))
