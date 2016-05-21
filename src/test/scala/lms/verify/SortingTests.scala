@@ -30,16 +30,15 @@ class SortingTests extends TestSuite {
           }}
         })
       })
-  }
 
-  test("1") {
-    // TODO: make generic on T:Iso instead of Rep[Int].
-    trait Srt1 extends Sorting {
-      val Permut = permut[Rep[Int]]
-      val inswap = toplevel("inswap", { (p: Pointer[Rep[Int]], i: Rep[Int], j: Rep[Int], n: Rep[Int]) =>
+    class Routine[T:Iso:Eq](infix_cmp: (T,T) => Rep[Boolean], cmp_id: String = "") {
+      def id = implicitly[Iso[T]].id
+      def id_by(s: String) = id+(if (s.isEmpty) "" else "_by_"+s)
+      val Permut = permut[T]
+      val inswap = toplevel("inswap_"+id, { (p: Pointer[T], i: Rep[Int], j: Rep[Int], n: Rep[Int]) =>
         requires(n>0 && 0 <= i && i < n && 0 <= j && j < n)
         requires(p.valid(0 until n))
-        ensures{result: Rep[Unit] => (p(i) == old(p(j))) && (p(j) == old(p(i)))}
+        ensures{result: Rep[Unit] => (p(i) deep_equal old(p(j))) && (p(j) deep_equal old(p(i)))}
         ensures{result: Rep[Unit] => Permut(("Old","Post"))((p, n))}
         p.reflectMutableInput
         assigns(p(i))
@@ -49,16 +48,17 @@ class SortingTests extends TestSuite {
         p(j) = tmp
         unit(())
       })
-      val insort = toplevel("insort", { (p: Pointer[Rep[Int]], n: Rep[Int]) =>
+      val insort = toplevel("insort_"+id_by(cmp_id), { (p: Pointer[T], n: Rep[Int]) =>
         requires(n>0 && p.valid(0 until n))
-        ensures{result: Rep[Unit] => forall{i: Rep[Int] => (0 <= i && i < n-1) ==> p(i) <= p(i+1)}}
+        val x = p(0) cmp p(1)
+        ensures{result: Rep[Unit] => forall{i: Rep[Int] => (0 <= i && i < n-1) ==> (p(i) cmp p(i+1))}}
         ensures{result: Rep[Unit] => Permut(("Old","Post"))((p, n))}
         p.reflectMutableInput
         p.assigns(0 until n)
         var m = n
         loop (unit(0) <= m && m <= n &&
-          ((m < n-1) ==> (forall{i: Rep[Int] => (m <= i && i < n-1) ==> (p(i) <= p(i+1))})) &&
-          forall{i: Rep[Int] => (0 <= i && i < m && m <= n-1) ==> (p(i) <= p(m))} &&
+          ((m < n-1) ==> (forall{i: Rep[Int] => (m <= i && i < n-1) ==> (p(i) cmp p(i+1))})) &&
+          forall{i: Rep[Int] => (0 <= i && i < m && m <= n-1) ==> (p(i) cmp p(m))} &&
           Permut(("Pre","Here"))((p, n)),
           list_new(readVar(m)::(p within (0 until n))),
           readVar(m)) {
@@ -67,23 +67,29 @@ class SortingTests extends TestSuite {
               loop ({i: Rep[Int] => unit(0) <= m && m <= n &&
                 0 <= i && i <= m &&
                 unit(0) <= maxi && maxi <= m-1 && m-1 < n &&
-                forall{j: Rep[Int] => (0 <= j && j < i) ==> (p(j) <= p(maxi))} &&
+                forall{j: Rep[Int] => (0 <= j && j < i) ==> (p(j) cmp p(maxi))} &&
                 Permut(("Pre","Here"))((p, n))},
                 {i: Rep[Int] => List(i, maxi)},
                 {i: Rep[Int] => m-i}) {
                 for (i <- 0 until m) {
-                  if (p(i) >= p(maxi))
+                  if (p(maxi) cmp p(i))
                     maxi = i
                 }
               }
               inswap(p, m-1, maxi, n)
-              _assert (forall{i: Rep[Int] => ((m-1 < i) && (i < (n-unit(1)))) ==> (p(i) <= p(i+1))})
-              _assert((m <= n-1) ==> (p(m-1) <= p(m)))
-              _assert(forall{i: Rep[Int] => (0 <= i && i < m) ==> (p(i) <= p(m-1))})
+              _assert (forall{i: Rep[Int] => ((m-1 < i) && (i < (n-unit(1)))) ==> (p(i) cmp p(i+1))})
+              _assert((m <= n-1) ==> (p(m-1) cmp p(m)))
+              _assert(forall{i: Rep[Int] => (0 <= i && i < m) ==> (p(i) cmp p(m-1))})
               m = m - 1
             }
         }
       })
+    }
+  }
+
+  test("1") {
+    trait Srt1 extends Sorting {
+      val r = new Routine[Rep[Int]](_ <= _)
     }
     check("1", (new Srt1 with Impl).code)
   }

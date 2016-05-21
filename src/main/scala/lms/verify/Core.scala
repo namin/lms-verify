@@ -232,6 +232,14 @@ trait VerifyOps extends Base with BooleanOps {
     val ia = implicitly[Iso[A]]
     ia.fromRepList(ia.toRepList(a).zip(ia.typList.zip(ia.memList)).map{case (x,(t,m)) => _at(x.asInstanceOf[Rep[m.T]], lc)(t.asInstanceOf[Typ[m.T]])})
   }
+  def old[A:Iso](a: A): A = {
+    val ia = implicitly[Iso[A]]
+    ia.fromRepList(ia.toRepList(a).zip(ia.typList.zip(ia.memList)).map{case (x,(t,m)) => old[m.T](x.asInstanceOf[Rep[m.T]])(t.asInstanceOf[Typ[m.T]])})
+  }
+  def assigns[A:Iso](a: A): Unit = {
+    val ia = implicitly[Iso[A]]
+    ia.toRepList(a).foreach{x => assigns(x)}
+  }
 
   case class Inductive(name: String, suffix: String, bs: List[Typ[_]], ks: List[IndCase])
   val ind = new scala.collection.mutable.LinkedHashMap[String,Inductive]
