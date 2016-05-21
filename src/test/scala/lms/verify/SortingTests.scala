@@ -40,10 +40,13 @@ class SortingTests extends TestSuite {
         requires(p.valid(0 until n))
         requires(separation(p, n))
         ensures{result: Rep[Unit] => (p(i) deep_equal old(p(j))) && (p(j) deep_equal old(p(i)))}
+        ensures{result: Rep[Unit] => forall{x: Rep[Int] => ((0 <= x && x < n) && (x != i && x != j)) ==> (p(x) deep_equal old(p(x)))}}
         ensures{result: Rep[Unit] => Permut(("Old","Post"))((p, n))}
+        ensures{result: Rep[Unit] => separation(p, n)}
         p.reflectMutableInput
-        assigns(p(i))
-        assigns(p(j))
+        p.assigns(0 until n) // less precise, but helps insort in non-first class pointer case...
+        //assigns(p(i))
+        //assigns(p(j))
         val tmp = p(i)
         p(i) = p(j)
         p(j) = tmp
@@ -84,7 +87,7 @@ class SortingTests extends TestSuite {
                 }
               }
               inswap(p, m-1, maxi, n)
-              _assert (forall{i: Rep[Int] => ((m-1 < i) && (i < (n-unit(1)))) ==> (p(i) cmp p(i+1))})
+              _assert(forall{i: Rep[Int] => ((m-1 < i) && (i < (n-unit(1)))) ==> (p(i) cmp p(i+1))})
               _assert((m <= n-1) ==> (p(m-1) cmp p(m)))
               _assert(forall{i: Rep[Int] => (0 <= i && i < m) ==> (p(i) cmp p(m-1))})
               m = m - 1
@@ -132,7 +135,7 @@ class SortingTests extends TestSuite {
   test("3") {
     trait Srt3 extends Sorting {
       val r = new Routine[(Rep[Int],Rep[Int])]({ (a: (Rep[Int],Rep[Int]), b: (Rep[Int],Rep[Int])) =>
-        (a._1<=b._1) || (a._2<=b._2)
+        (a._1<=b._1)
       })
       toplevel("insort_pairs", r.insort)
     }
@@ -147,5 +150,15 @@ class SortingTests extends TestSuite {
       toplevel("insort_pairs", r.insort)
     }
     check("4", (new Srt4 with Impl).code)
+  }
+
+  test("5") {
+    trait Srt5 extends Sorting {
+      val r = new Routine[(Rep[Int],Rep[Int])]({ (a: (Rep[Int],Rep[Int]), b: (Rep[Int],Rep[Int])) =>
+        (a._1<=b._1) || (a._2<=b._2)
+      })
+      toplevel("insort_pairs", r.insort)
+    }
+    check("5", (new Srt5 with Impl).code)
   }
 }
