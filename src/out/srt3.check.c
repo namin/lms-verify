@@ -28,7 +28,7 @@ inductive __Int_Int___Permut{L1,L2}(int  * x8, int  * x9, integer  x10) {
 }
 */
 /*@
-requires (((((((x109>0) && (0<=x107)) && (x107<x109)) && (0<=x108)) && (x108<x109)) && (\valid(x105+(0..x109-1)) && \valid(x106+(0..x109-1)))) && (\forall int  x138; (\forall int  x139; (((((0<=x138) && (x138<2)) && (0<=x139)) && (x139<2)) && \separated(x105+x138,x106+x139)))));
+requires (((((((x109>0) && (0<=x107)) && (x107<x109)) && (0<=x108)) && (x108<x109)) && (\valid(x105+(0..x109-1)) && \valid(x106+(0..x109-1)))) && (\forall int  x138; (\forall int  x139; (((((0<=x138) && (x138<x109)) && (0<=x139)) && (x139<x109)) && \separated(x105+x138,x106+x139)))));
 ensures ((eq___Int_Int__(x105[x107],x106[x107],\old(x105[x108]),\old(x106[x108])) && eq___Int_Int__(x105[x108],x106[x108],\old(x105[x107]),\old(x106[x107]))) && __Int_Int___Permut{Old,Post}(x105,x106,x109));
 assigns x105[x107], x106[x107], x105[x108], x106[x108];
 */
@@ -43,7 +43,7 @@ void inswap___Int_Int__(int  * x105, int  * x106, int  x107, int  x108, int  x10
   x106[x108] = x112;
 }
 /*@
-requires (((x180>0) && (\valid(x178+(0..x180-1)) && \valid(x179+(0..x180-1)))) && (\forall int  x404; (\forall int  x405; (((((0<=x404) && (x404<2)) && (0<=x405)) && (x405<2)) && \separated(x178+x404,x179+x405)))));
+requires (((x180>0) && (\valid(x178+(0..x180-1)) && \valid(x179+(0..x180-1)))) && (\forall int  x404; (\forall int  x405; (((((0<=x404) && (x404<x180)) && (0<=x405)) && (x405<x180)) && \separated(x178+x404,x179+x405)))));
 ensures ((\forall int  x425; (((0<=x425) && (x425<(x180-1))) ==> ((x178[x425]<=x178[(x425+1)]) && (x179[x425]<=x179[(x425+1)])))) && __Int_Int___Permut{Old,Post}(x178,x179,x180));
 assigns x178[(0..x180-1)], x179[(0..x180-1)];
 */

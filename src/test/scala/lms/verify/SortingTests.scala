@@ -93,8 +93,8 @@ class SortingTests extends TestSuite {
     }
     implicit def eq_pair[T:Eq:Iso] = equality[(T,T)](pointWise(_ deep_equal _))
     def separation[T:Iso](x: Pointer[T], n: Rep[Int]): Rep[Boolean] = {
-      val n: Int = x.p.size
-      and_list((for (i <- 0 until n: Range; j <- (i+1) until n: Range) yield {
+      val pn: Int = x.p.size
+      and_list((for (i <- 0 until pn: Range; j <- (i+1) until pn: Range) yield {
         val (a01,(m01,t01)) = x.pmt(i)
         val (a02,(m02,t02)) = x.pmt(j)
         implicit val t1 = t01.asInstanceOf[Typ[m01.T]]
