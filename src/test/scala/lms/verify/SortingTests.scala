@@ -50,7 +50,6 @@ class SortingTests extends TestSuite {
       })
       val insort = { (p: Pointer[T], n: Rep[Int]) =>
         requires(n>0 && p.valid(0 until n))
-        val x = p(0) cmp p(1)
         ensures{result: Rep[Unit] => forall{i: Rep[Int] => (0 <= i && i < n-1) ==> (p(i) cmp p(i+1))}}
         ensures{result: Rep[Unit] => Permut(("Old","Post"))((p, n))}
         p.reflectMutableInput
