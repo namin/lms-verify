@@ -151,14 +151,4 @@ class SortingTests extends TestSuite {
     }
     check("4", (new Srt4 with Impl).code)
   }
-
-  test("5") {
-    trait Srt5 extends Sorting {
-      val r = new Routine[(Rep[Int],Rep[Int])]({ (a: (Rep[Int],Rep[Int]), b: (Rep[Int],Rep[Int])) =>
-        (a._1<=b._1) || (a._2<=b._2)
-      })
-      toplevel("insort_pairs", r.insort)
-    }
-    check("5", (new Srt5 with Impl).code)
-  }
 }
