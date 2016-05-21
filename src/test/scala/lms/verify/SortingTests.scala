@@ -137,4 +137,17 @@ class SortingTests extends TestSuite {
     }
     check("3", (new Srt3 with Impl).code)
   }
+
+  test("4") {
+    trait Srt4 extends Sorting {
+      val r = new Routine[(Rep[Int],Rep[Int])]({ (a: (Rep[Int],Rep[Int]), b: (Rep[Int],Rep[Int])) =>
+        (a._1 < b._1) || ((a._1==b._1) && b._1 <= b._2)
+      }) {
+        override def requires_separation(p: Pointer[(Rep[Int],Rep[Int])], n: Rep[Int]) =
+          requires(separation(p, n))
+      }
+      toplevel("insort_pairs", r.insort)
+    }
+    check("4", (new Srt4 with Impl).code)
+  }
 }
