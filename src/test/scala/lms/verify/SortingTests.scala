@@ -34,10 +34,12 @@ class SortingTests extends TestSuite {
     class Routine[T:Iso:Eq](infix_cmp: (T,T) => Rep[Boolean]) {
       def id = implicitly[Iso[T]].id
       def id_by(s: String) = id+(if (s.isEmpty) "" else "_by_"+s)
+      def requires_separation(p: Pointer[T], n: Rep[Int]): Unit = {}
       val Permut = permut[T]
       val inswap = toplevel("inswap_"+id, { (p: Pointer[T], i: Rep[Int], j: Rep[Int], n: Rep[Int]) =>
         requires(n>0 && 0 <= i && i < n && 0 <= j && j < n)
         requires(p.valid(0 until n))
+        requires_separation(p, n)
         ensures{result: Rep[Unit] => (p(i) deep_equal old(p(j))) && (p(j) deep_equal old(p(i)))}
         ensures{result: Rep[Unit] => Permut(("Old","Post"))((p, n))}
         p.reflectMutableInput
@@ -50,6 +52,7 @@ class SortingTests extends TestSuite {
       })
       val insort = { (p: Pointer[T], n: Rep[Int]) =>
         requires(n>0 && p.valid(0 until n))
+        requires_separation(p, n)
         ensures{result: Rep[Unit] => forall{i: Rep[Int] => (0 <= i && i < n-1) ==> (p(i) cmp p(i+1))}}
         ensures{result: Rep[Unit] => Permut(("Old","Post"))((p, n))}
         p.reflectMutableInput
@@ -107,14 +110,27 @@ class SortingTests extends TestSuite {
       def pointWise[T](p: (T,T) => Rep[Boolean]) = { (a: (T,T), b: (T,T)) =>
         p(a._1, b._1) && p(a._2, b._2)
       }
-      implicit def pairEq[T:Eq:Iso] = equality[(T,T)](pointWise(_ deep_equal _))
-      val r = new Routine[(Rep[Int],Rep[Int])](pointWise(_ <= _))
+      implicit def eq_pair[T:Eq:Iso] = equality[(T,T)](pointWise(_ deep_equal _))
+      def separation[T:Iso](x: Pointer[T], n: Rep[Int]): Rep[Boolean] = {
+        val n: Int = x.p.size
+        and_list((for (i <- 0 until n: Range; j <- (i+1) until n: Range) yield {
+          val (a01,(m01,t01)) = x.pmt(i)
+          val (a02,(m02,t02)) = x.pmt(j)
+          implicit val t1 = t01.asInstanceOf[Typ[m01.T]]
+          val a1 = a01.asInstanceOf[Rep[Array[m01.T]]]
+          implicit val t2 = t02.asInstanceOf[Typ[m02.T]]
+          val a2 = a02.asInstanceOf[Rep[Array[m02.T]]]
+          forall{i1: Rep[Int] => forall{i2: Rep[Int] =>
+            0 <= i1 && i1 < n && 0 <= i2 && i2 < n &&
+            separated(a1, i1, a2, i2)
+          }}}).toList)
+      }
+      val r = new Routine[(Rep[Int],Rep[Int])](pointWise(_ <= _)) {
+        override def requires_separation(p: Pointer[(Rep[Int],Rep[Int])], n: Rep[Int]) =
+          requires(separation(p, n))
+      }
       toplevel("insort_pairs", r.insort)
     }
-    // TODO:
-    //     Verification fails. Generic sorting does not scale? Need to investigate.
-    //     Maybe need to postulate non-interference between the fst and snd pointers
-    //     of a pair pointer.
-    //check("3", (new Srt3 with Impl).code)
+    check("3", (new Srt3 with Impl).code)
   }
 }
