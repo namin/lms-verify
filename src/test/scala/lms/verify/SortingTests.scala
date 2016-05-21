@@ -112,10 +112,8 @@ class SortingTests extends TestSuite {
       val r = new Routine[(Rep[Int],Rep[Int])](pointWise(_ <= _))
       toplevel("insort_pairs", r.insort)
     }
-    //TODO: does not quite work, because
-    // (1) Permut inductive definition uses pairEq, and yet
-    //     they are generated in the wrong order.
-    // (2) Verification fails. Generic sorting does not scale? Need to investigate.
+    // TODO:
+    //     Verification fails. Generic sorting does not scale? Need to investigate.
     //     Maybe need to postulate non-interference between the fst and snd pointers
     //     of a pair pointer.
     //check("3", (new Srt3 with Impl).code)

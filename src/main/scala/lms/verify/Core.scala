@@ -96,12 +96,13 @@ trait VerifyOps extends Base with BooleanOps {
     override def check(x:(A1,A2,A3,A4,A5,A6,A7,A8,A9)) = iso1.check(x._1) && iso2.check(x._2) && iso3.check(x._3) && iso4.check(x._4) && iso5.check(x._5) && iso6.check(x._6) && iso7.check(x._7) && iso8.check(x._8) && iso9.check(x._9)
   }
 
-  case class TopLevel[B](name: String, mAs: List[Typ[_]], mB:Typ[B], f: List[Rep[_]] => Rep[B], spec: Boolean, code: Boolean)
+  sealed abstract class Snip
+  case class TopLevel[B](name: String, mAs: List[Typ[_]], mB:Typ[B], f: List[Rep[_]] => Rep[B], spec: Boolean, code: Boolean) extends Snip
   object TopLevel {
     def apply[B](name: String, mAs: List[Typ[_]], mB:Typ[B], f: List[Rep[_]] => Rep[B]): TopLevel[B] =
       TopLevel(name, mAs, mB, f, spec=false, code=true)
   }
-  val rec = new scala.collection.mutable.LinkedHashMap[String,TopLevel[_]]
+  val rec = new scala.collection.mutable.LinkedHashMap[String,Snip]
   def mkTopLevel[B](name: String, mAs: List[Typ[_]], mB:Typ[B], f: List[Rep[_]] => Rep[B], pre: List[Rep[_]] => Rep[Boolean], post: List[Rep[_]] => Rep[B] => Rep[Boolean]) =
     TopLevel(name, mAs, mB, {xs =>
       requires{pre(xs)}
@@ -241,14 +242,13 @@ trait VerifyOps extends Base with BooleanOps {
     ia.toRepList(a).foreach{x => assigns(x)}
   }
 
-  case class Inductive(name: String, suffix: String, bs: List[Typ[_]], ks: List[IndCase])
-  val ind = new scala.collection.mutable.LinkedHashMap[String,Inductive]
+  case class Inductive(name: String, suffix: String, bs: List[Typ[_]], ks: List[IndCase]) extends Snip
   def _add_inductive(name: String, suffix: String, n: Int, bs: List[Typ[_]], ks: => Unit): Unit = {
     assert (pendingIndCases.isEmpty)
     ks
     val r = Inductive(name, suffix, bs, pendingIndCases.reverse)
     pendingIndCases = Nil
-    ind.getOrElseUpdate(name, r)
+    rec.getOrElseUpdate(name, r)
     ()
   }
   var pendingIndCases: List[IndCase] = Nil
@@ -334,7 +334,7 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
   def toplevelApply[B:Typ](name: String, args: List[Rep[_]]): Rep[B] = {
     if (suspendCSE) { // in spec
       rec.get(name) match {
-        case Some(t) if !t.spec =>
+        case Some(t:TopLevel[_]) if !t.spec =>
           // inline and ignore contract???
           val oldPreconds = preconds
           val oldPostconds = postconds
@@ -719,10 +719,12 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
 
       val fns = rec.keys.toSet -- oldFns
       fns.foreach { case k =>
-        val x = rec(k)
-        assert(!x.spec) // TODO
-        if (x.code)
-          emitHeader(x.name, out)(x.mAs, mtype(x.mB))
+        val t = rec(k)
+        t match {
+          case (x:TopLevel[_]) if (!x.spec) =>
+            if (x.code)
+              emitHeader(x.name, out)(x.mAs, mtype(x.mB))
+        } // other cases (spec and ind) are TODOs...
       }
       val sig_args = (args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")
       val sig = functionName+"("+sig_args+")"
@@ -767,12 +769,12 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
   def emitAll(stream: java.io.PrintWriter): Unit = {
     assert(codegen ne null) //careful about initialization order
     includes.foreach { i => stream.println("#include "+i) }
-    ind.foreach { case (k,x) =>
-      codegen.emitInductive(x, stream)
-    }
-    rec.foreach { case (k,x) =>
-      codegen.emitVerify(x.f, x.name, x.spec, x.code, indcase=false, stream)(x.mAs, mtype(x.mB))
-    }
+    rec.foreach { case (k,s) => s match {
+      case (x:TopLevel[_]) =>
+        codegen.emitVerify(x.f, x.name, x.spec, x.code, indcase=false, stream)(x.mAs, mtype(x.mB))
+      case (x:Inductive) =>
+        codegen.emitInductive(x, stream)
+    }}
   }
   lazy val code: String = {
     val source = new java.io.StringWriter()
