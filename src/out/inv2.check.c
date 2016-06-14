@@ -1,22 +1,22 @@
 #include <limits.h>
-//@ predicate inv_vec_Int(int  * x0, int  x1) = ((0<=x1) && ((x1==0) || ((x1>0) && \valid(x0+(0..x1-1)))));
+//@ predicate inv_vec_Int(int  * x0, int  x1) = ((x1==0) || ((x1>0) && \valid(x0+(0..x1-1))));
 /*@
-requires inv_vec_Int(x18,x19);
+requires inv_vec_Int(x16,x17);
 assigns \nothing;
 */
-int sum(int  * x18, int  x19) {
-  int x21 = 0;
+int sum(int  * x16, int  x17) {
+  int x19 = 0;
   /*@
-  loop invariant 0<=x23<=x19;
-  loop assigns x23, x21;
-  loop variant x19-x23;
+  loop invariant 0<=x21<=x17;
+  loop assigns x21, x19;
+  loop variant x17-x21;
   */
-  for(int x23=0; x23 < x19; x23++) {
-    int x25 = x21;
-    int x24 = x18[x23];
-    int x26 = x25 + x24;
-    x21 = x26;
+  for(int x21=0; x21 < x17; x21++) {
+    int x23 = x19;
+    int x22 = x16[x21];
+    int x24 = x23 + x22;
+    x19 = x24;
   }
-  int x30 = x21;
-  return x30;
+  int x28 = x19;
+  return x28;
 }
