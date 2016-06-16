@@ -4,6 +4,7 @@
 /*@
 requires (inv_vec_Int(x16,x17) && inv_vec_Int(x18,x19));
 assigns \nothing;
+ensures (inv_vec_Int(x16,x17) && inv_vec_Int(x18,x19));
 ensures \result <==> eq_vec_Int(x16, x17, x18, x19);
 */
 int eq_vec_Int(int  * x16, int  x17, int  * x18, int  x19) {

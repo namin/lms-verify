@@ -12,6 +12,7 @@ int index(int  x0, int  x1, int  x2, int  x3) {
 //@ predicate inv_matrix_Boolean(int  * x36, int  x37, int  x38) = (((((x37<100) && (x38<100)) && (0<x37)) && (0<x38)) && (((x37*x38)>0) && \valid(x36+(0..(x37*x38)-1))));
 /*@
 requires (((inv_matrix_Boolean(x79,x80,x81) && inv_matrix_Boolean(x82,x83,x84)) && inv_matrix_Boolean(x85,x86,x87)) && ((((x80==x83) && (x80==x86)) && (x81==x84)) && (x81==x87)));
+ensures ((inv_matrix_Boolean(x79,x80,x81) && inv_matrix_Boolean(x82,x83,x84)) && inv_matrix_Boolean(x85,x86,x87));
 */
 void add(int  * x79, int  x80, int  x81, int  * x82, int  x83, int  x84, int  * x85, int  x86, int  x87) {
   /*@
@@ -37,31 +38,32 @@ void add(int  * x79, int  x80, int  x81, int  * x82, int  x83, int  x84, int  * 
   }
 }
 /*@
-requires ((inv_matrix_Boolean(x126,x127,x128) && inv_matrix_Boolean(x129,x130,x131)) && ((x127==x130) && (x128==x131)));
+requires ((inv_matrix_Boolean(x130,x131,x132) && inv_matrix_Boolean(x133,x134,x135)) && ((x131==x134) && (x132==x135)));
+ensures (inv_matrix_Boolean(x130,x131,x132) && inv_matrix_Boolean(x133,x134,x135));
 */
-void scalar_mult(int  x125, int  * x126, int  x127, int  x128, int  * x129, int  x130, int  x131) {
+void scalar_mult(int  x129, int  * x130, int  x131, int  x132, int  * x133, int  x134, int  x135) {
   /*@
-  loop invariant 0<=x136<=x130;
-  loop assigns x136, x129[(0..(x130*x131)-1)];
-  loop variant x130-x136;
+  loop invariant 0<=x140<=x134;
+  loop assigns x140, x133[(0..(x134*x135)-1)];
+  loop variant x134-x140;
   */
-  for(int x136=0; x136 < x130; x136++) {
+  for(int x140=0; x140 < x134; x140++) {
     /*@
-    loop invariant 0<=x138<=x131;
-    loop assigns x138, x129[(0..(x130*x131)-1)];
-    loop variant x131-x138;
+    loop invariant 0<=x142<=x135;
+    loop assigns x142, x133[(0..(x134*x135)-1)];
+    loop variant x135-x142;
     */
-    for(int x138=0; x138 < x131; x138++) {
-      int x141;
-      if (x125) {
-        int x139 = index(x127,x128,x136,x138);
-        int x140 = x126[x139];
-        x141 = x140;
+    for(int x142=0; x142 < x135; x142++) {
+      int x145;
+      if (x129) {
+        int x143 = index(x131,x132,x140,x142);
+        int x144 = x130[x143];
+        x145 = x144;
       } else {
-        x141 = 0/*false*/;
+        x145 = 0/*false*/;
       }
-      int x142 = index(x130,x131,x136,x138);
-      x129[x142] = x141;
+      int x146 = index(x134,x135,x140,x142);
+      x133[x146] = x145;
     }
   }
 }

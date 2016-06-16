@@ -12,7 +12,7 @@ int index(int  x0, int  x1, int  x2, int  x3) {
 //@ predicate inv_matrix_Boolean(int  * x36, int  x37, int  x38) = (((((x37<100) && (x38<100)) && (0<x37)) && (0<x38)) && (((x37*x38)>0) && \valid(x36+(0..(x37*x38)-1))));
 /*@
 requires (((((inv_matrix_Boolean(x79,x80,x81) && inv_matrix_Boolean(x82,x83,x84)) && inv_matrix_Boolean(x85,x86,x87)) && ((x86==x80) && (x87==x81))) && ((x86==x83) && (x87==x84))) && ((\forall int  x141; (\forall int  x142; ((((0<=x141) && (x141<(x86*x87))) && ((0<=x142) && (x142<(x80*x81)))) ==> \separated(x85+x141,x79+x142)))) && (\forall int  x161; (\forall int  x162; ((((0<=x161) && (x161<(x86*x87))) && ((0<=x162) && (x162<(x83*x84)))) ==> \separated(x85+x161,x82+x162))))));
-ensures (\forall int  x185; (((0<=x185) && (x185<(x86*x87))) ==> (x85[x185]==(x79[x185] || x82[x185]))));
+ensures (((inv_matrix_Boolean(x79,x80,x81) && inv_matrix_Boolean(x82,x83,x84)) && inv_matrix_Boolean(x85,x86,x87)) && (\forall int  x188; (((0<=x188) && (x188<(x86*x87))) ==> (x85[x188]==(x79[x188] || x82[x188])))));
 */
 void add(int  * x79, int  x80, int  x81, int  * x82, int  x83, int  x84, int  * x85, int  x86, int  x87) {
   //@assert \separated(x85+0,x79+0);
@@ -34,27 +34,27 @@ void add(int  * x79, int  x80, int  x81, int  * x82, int  x83, int  x84, int  * 
   }
 }
 /*@
-requires (((inv_matrix_Boolean(x200,x201,x202) && inv_matrix_Boolean(x203,x204,x205)) && ((x204==x201) && (x205==x202))) && (\forall int  x244; (\forall int  x245; ((((0<=x244) && (x244<(x204*x205))) && ((0<=x245) && (x245<(x201*x202)))) ==> \separated(x203+x244,x200+x245)))));
-ensures ((\forall int  x267; (((0<=x267) && (x267<(x204*x205))) ==> (x203[x267]==(x199 && x200[x267])))) && ((x199==\false) ==> (\forall int x281; (0<=x281<x204) ==> (\forall int x284; (0<=x284<x205) ==> (x203[((x281*x205)+x284)]==\false)))));
+requires (((inv_matrix_Boolean(x204,x205,x206) && inv_matrix_Boolean(x207,x208,x209)) && ((x208==x205) && (x209==x206))) && (\forall int  x248; (\forall int  x249; ((((0<=x248) && (x248<(x208*x209))) && ((0<=x249) && (x249<(x205*x206)))) ==> \separated(x207+x248,x204+x249)))));
+ensures (((inv_matrix_Boolean(x204,x205,x206) && inv_matrix_Boolean(x207,x208,x209)) && (\forall int  x274; (((0<=x274) && (x274<(x208*x209))) ==> (x207[x274]==(x203 && x204[x274]))))) && ((x203==\false) ==> (\forall int x289; (0<=x289<x208) ==> (\forall int x292; (0<=x292<x209) ==> (x207[((x289*x209)+x292)]==\false)))));
 */
-void scalar_mult(int  x199, int  * x200, int  x201, int  x202, int  * x203, int  x204, int  x205) {
-  //@assert \separated(x203+0,x200+0);
-  int x207 = x204 * x205;
+void scalar_mult(int  x203, int  * x204, int  x205, int  x206, int  * x207, int  x208, int  x209) {
+  //@assert \separated(x207+0,x204+0);
+  int x211 = x208 * x209;
   /*@
-  loop invariant 0<=x212<=x207;
-  loop invariant (\forall int  x213; (((0<=x213) && (x213<x212)) ==> (x203[x213]==(x199 && x200[x213]))));
-  loop assigns x212, x203[(0..x207-1)];
-  loop variant x207-x212;
+  loop invariant 0<=x216<=x211;
+  loop invariant (\forall int  x217; (((0<=x217) && (x217<x216)) ==> (x207[x217]==(x203 && x204[x217]))));
+  loop assigns x216, x207[(0..x211-1)];
+  loop variant x211-x216;
   */
-  for(int x212=0; x212 < x207; x212++) {
-    int x227;
-    if (x199) {
-      int x226 = x200[x212];
-      x227 = x226;
+  for(int x216=0; x216 < x211; x216++) {
+    int x231;
+    if (x203) {
+      int x230 = x204[x216];
+      x231 = x230;
     } else {
-      x227 = 0/*false*/;
+      x231 = 0/*false*/;
     }
-    x203[x212] = x227;
-    //@assert \separated(x203+x212,x200+x212);
+    x207[x216] = x231;
+    //@assert \separated(x207+x216,x204+x216);
   }
 }

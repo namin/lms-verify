@@ -4,6 +4,7 @@
 /*@
 requires (inv_vec_Int(x16,x17) && inv_vec_Int(x18,x19));
 assigns \nothing;
+ensures (inv_vec_Int(x16,x17) && inv_vec_Int(x18,x19));
 ensures \result <==> eq_vec_Int(x16, x17, x18, x19);
 */
 int eq_vec_Int(int  * x16, int  x17, int  * x18, int  x19) {
@@ -32,6 +33,7 @@ int eq_vec_Int(int  * x16, int  x17, int  * x18, int  x19) {
 /*@
 requires (inv_vec_vec_Int(x61,x62,x63) && inv_vec_vec_Int(x64,x65,x66));
 assigns \nothing;
+ensures (inv_vec_vec_Int(x61,x62,x63) && inv_vec_vec_Int(x64,x65,x66));
 ensures \result <==> eq_vec_vec_Int(x61, x62, x63, x64, x65, x66);
 */
 int eq_vec_vec_Int(int  * * x61, int  * x62, int  x63, int  * * x64, int  * x65, int  x66) {

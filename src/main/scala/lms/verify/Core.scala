@@ -112,6 +112,7 @@ trait VerifyOps extends Base with BooleanOps {
   def wrapf[A,B](f: A => B)(implicit ia: Iso[A], ib: Iso1[B]): List[Rep[_]] => Rep[ib.G] = {xs =>
     val a = ia.fromRepList(xs)
     requires{ia.check(a)}
+    ensures{r: Rep[ib.G] => ia.check(a)}(ib.typ)
     ensures{r: Rep[ib.G] => ib.check(ib.fromRep(r))}(ib.typ)
     val b = f(a)
     ib.toRep(b)

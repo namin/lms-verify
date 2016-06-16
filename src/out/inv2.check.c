@@ -3,6 +3,7 @@
 /*@
 requires inv_vec_Int(x16,x17);
 assigns \nothing;
+ensures inv_vec_Int(x16,x17);
 */
 int sum(int  * x16, int  x17) {
   int x19 = 0;
