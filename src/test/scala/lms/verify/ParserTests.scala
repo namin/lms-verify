@@ -1,6 +1,6 @@
 package lms.verify
 
-// inspired by http://manojo.github.io/2015/09/04/staged-parser-combinators-recursion/
+// inspired by http://manojo.github.io/2015/09/04/staged-parser-combinators-recursion
 
 trait StagedParser extends Dsl {
   override def includes = super.includes:+"<string.h>"
