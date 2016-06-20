@@ -30,6 +30,14 @@ trait VerifyOps extends Base with BooleanOps {
     override def toRepList(x: T) = List(toRep(x))
     override def fromRepList(xs: List[Rep[_]]) = fromRep(xs(0).asInstanceOf[Rep[G]])
   }
+  implicit def iso1_unit: Iso1[Unit] = new Iso1[Unit] {
+    override type G = Unit
+    override val typ = implicitly[Typ[Unit]]
+    override def toRep(x: Unit) = unit(x)
+    override def fromRep(x: Rep[Unit]) = ()
+    override def id = typ.toString
+    override def check(x: Unit) = unit(true)
+  }
   implicit def iso1_id[B:Typ]: Iso1[Rep[B]] = new Iso1[Rep[B]] {
     override type G = B
     override val typ = implicitly[Typ[G]]
