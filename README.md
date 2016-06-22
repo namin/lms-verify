@@ -23,10 +23,10 @@ The generated C code is verified using frama-c wp as follows:
 All the files in the `src/out` directory should verify with this command, except those ending with `_bad.c` and except some `_overflow` goals.
 
 ### Docs
-* [frama-c wp manual (PDF)](http://frama-c.com/download/frama-c-wp-manual.pdf)
-* [acsl tutorial (PDF)](http://frama-c.com/download/acsl-tutorial.pdf)
-* [acsl implementation in frama-c (PDF)](http://frama-c.com/download/acsl-implementation-Aluminium-20160501.pdf)
+* [Frama-C wp manual (PDF)](http://frama-c.com/download/frama-c-wp-manual.pdf)
+* [ACSL tutorial (PDF)](http://frama-c.com/download/acsl-tutorial.pdf)
+* [ACSL reference manual (PDF)](http://frama-c.com/download/acsl.pdf)
 
 ### Installation
 * Install CVC4, e.g. `brew install cvc4` on Mac OS X.
-* [frama-c installation](http://frama-c.com/install-aluminium-20160501.html) -- after installation, do `why3 config --detect` to configure the solvers -- without this extra step, examples that discharge to a backend will fail to verify!
+* [Frama-C installation](http://frama-c.com/install-aluminium-20160501.html) -- after installation, do `why3 config --detect` to configure the solvers -- without this extra step, examples that discharge to a backend will fail to verify!
