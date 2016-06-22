@@ -7,6 +7,17 @@ class InvariantTests extends TestSuite {
     class Vec[T:Iso](val a: Pointer[T], val n: Rep[Int]) {
       def apply(i: Rep[Int]) = a(i)
       def valid = n==0 || (n>0 && a.valid(0 until n))
+      def length = n
+      def foreach(f: (T,Rep[Int]) => Rep[Unit]) = for (i <- 0 until n) f(a(i),i)
+      def fold[U:Typ](z: Rep[U])(f: (Rep[U], T, Rep[Int]) => Rep[U]) = {
+        var acc = z; this.foreach{(x,i) => acc = f(acc,x,i)}; acc
+      }
+      def count(p: T => Rep[Boolean]): Rep[Int] = {
+        this.fold(0){(r,x,i) =>
+          loop_invariant{0 <= r && r <= i};
+          r+(if (p(x)) 1 else 0)
+        }
+      }
     }
     implicit def vecIso[T:Iso](implicit ev: Inv[Vec[T]]) = isodata[Vec[T],(Pointer[T],Rep[Int])](
       "vec_" + implicitly[Iso[T]].id,
@@ -47,5 +58,14 @@ class InvariantTests extends TestSuite {
       })
     }
     check("2", (new Inv2 with Impl).code)
+  }
+
+  test("3") {
+    trait Inv3 extends Vecs {
+      toplevel("count_pos", { x: Vec[Rep[Int]] =>
+        x.count{_ > 0}
+      })
+    }
+    check("3", (new Inv3 with Impl).code)
   }
 }
