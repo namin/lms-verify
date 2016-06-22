@@ -62,10 +62,19 @@ class InvariantTests extends TestSuite {
 
   test("3") {
     trait Inv3 extends Vecs {
-      toplevel("count_pos", { x: Vec[Rep[Int]] =>
-        x.count{_ > 0}
+      toplevel("count_pos", { xs: Vec[Rep[Int]] =>
+        xs.count{_ > 0}
       })
     }
     check("3", (new Inv3 with Impl).code)
+  }
+
+  test("4") {
+    trait Inv4 extends Vecs {
+      toplevel("count_pos", { xss: Vec[Vec[Rep[Int]]] =>
+        xss.count{xs => xs.count{_ > 0} > 0}
+      })
+    }
+    check("4", (new Inv4 with Impl).code)
   }
 }
