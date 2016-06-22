@@ -1,6 +1,6 @@
 # LMS-Verify
 
-An early experiment using staging (via [LMS](http://github.com/TiarkRompf/virtualization-lms-core)) to generate first-order verifiable C code from a higher-level counterpart.
+An early experiment using staging (via [LMS](http://github.com/TiarkRompf/virtualization-lms-core) -- see [tutorials](http://scala-lms.github.io/tutorials/)) to generate first-order verifiable C code from a higher-level counterpart.
 
 ## C Verification
 
