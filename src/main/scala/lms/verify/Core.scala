@@ -198,6 +198,7 @@ trait VerifyOps extends Base with BooleanOps {
   def loop(invariant: Rep[Int] => Rep[Boolean], assigns: Rep[Int] => Rep[List[Any]], variant: Rep[Int] => Rep[Int])(l: Rep[Unit]): Rep[Unit]
   def loop(invariant: => Rep[Boolean], assigns: => Rep[List[Any]], variant: => Rep[Int])(l: Rep[Unit]): Rep[Unit]
   def loop_invariant(invariant: => Rep[Boolean]): Unit
+  def loop_assigns(s: => Rep[List[Any]]): Unit
 
   def _assert(cond: =>Rep[Boolean])(implicit pos: SourceContext): Rep[Unit]
 
@@ -430,16 +431,26 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
   def loop_invariant(c: => Rep[Boolean]): Unit = {
     lp_invariants = reifySpec(c)::lp_invariants
   }
+  val loopsExtraAssigns = new scala.collection.mutable.LinkedHashMap[Sym[_], List[Block[List[Any]]]]
+  var lp_assigns: List[Block[List[Any]]] = Nil
+  def loop_assigns(c: => Rep[List[Any]]): Unit = {
+    lp_assigns = reifySpec(c)::lp_assigns
+  }
   def reifyInvariants(b: => Exp[Unit]): Exp[Unit] = {
-    val save = lp_invariants
+    val save_invariants = lp_invariants
+    val save_assigns = lp_assigns
     lp_invariants = Nil
+    lp_assigns = Nil
     try {
       val r = b
       if (!lp_invariants.isEmpty)
         loopsExtraInvariants.getOrElseUpdate(r.asInstanceOf[Sym[Unit]], lp_invariants)
+      if (!lp_assigns.isEmpty)
+        loopsExtraAssigns.getOrElseUpdate(r.asInstanceOf[Sym[Unit]], lp_assigns)
       return r
     } finally {
-      lp_invariants = save
+      lp_invariants = save_invariants
+      lp_assigns = save_assigns
     }
   }
   override def range_foreach(r: Exp[Range], block: Exp[Int] => Exp[Unit])(implicit pos: SourceContext) : Exp[Unit] = {
@@ -621,6 +632,13 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
           stream.println(exprOfBlock("loop invariant", y))
         }
       }
+      def printLoopAssigns(s: String) = stream.println(loopsExtraAssigns.get(sym) match {
+        case None => s
+        case Some(ys) =>
+          // ignore s for now, because if auto-inferred, it includes the full pointer
+          // even though we assign only to indices
+          ys.reverse.map(exprOfBlock(_, default_m)).mkString("loop assigns ", ", ", ";")
+      })
       rhs match {
         case ToplevelApply(name, args) => emitValDef(sym, name+args.map(quote).mkString("(", ",", ")"))
         case Assert(y) => stream.println(exprOfBlock("//@assert", y))
@@ -638,7 +656,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
           stream.println("/*@")
           stream.println(exprOfBlock("loop invariant", invariant))
           printExtraLoopInvariants()
-          stream.println(exprOfBlock("loop assigns", assigns))
+          printLoopAssigns(exprOfBlock("loop assigns", assigns))
           if (!variant.res.isInstanceOf[Const[_]])
             stream.println(exprOfBlock("loop variant", variant))
           stream.println("*/")
@@ -653,7 +671,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
             case None => quote(x)
           })
           printExtraLoopInvariants()
-          stream.println("loop assigns "+quote(i)+(if (xs.isEmpty) "" else ", ")+xs.mkString(", ")+";")
+          printLoopAssigns("loop assigns "+quote(i)+(if (xs.isEmpty) "" else ", ")+xs.mkString(", ")+";")
           stream.println("loop variant "+quote(end)+"-"+quote(i)+";")
           stream.println("*/")
           super.emitNode(sym, rhs)

@@ -120,13 +120,8 @@ class SortingTests extends TestSuite {
         val p = a.a
         val n = a.length
         requires(n>0)
-        val n1 = n-1
-        loop({i: Rep[Int] => unit(0) <= i && i <= n1},
-          // TODO: if we had loop_assigns for p within ...,
-          //       or just inferred it, we could infer the rest as well.
-          {i: Rep[Int] => list_new(i::p.within(0 until n))},
-          {i: Rep[Int] => n1-i}) {
-        for (i <- 0 until n1) {
+        for (i <- 0 until (n-1)) {
+          loop_assigns(list_new(i::p.within(0 until n))) // TODO: infer?
           loop_invariant(a.slice(0,i).sorted)
           loop_invariant((i > 0) ==> a.slice(i,n).forall(a(i-1) cmp _))
           //loop_invariant(Permut(("Pre","Here"))(a))
@@ -147,7 +142,7 @@ class SortingTests extends TestSuite {
           _assert(a(i) cmp a(i+1))
           _assert(a.slice(0,i+1).sorted)
           _assert(a.slice(i+1,n).forall(a(i) cmp _))
-        }}
+        }
       })
     }
 

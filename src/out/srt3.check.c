@@ -44,49 +44,49 @@ void inswap___Int_Int__(int  * x126, int  * x127, int  x128, int  x129, int  x13
   x127[x130] = x134;
 }
 /*@
-requires ((inv_vec___Int_Int__(x240,x241,x242) && (\forall int  x427; (\forall int  x428; (((((0<=x427) && (x427<x242)) && (0<=x428)) && (x428<x242)) ==> \separated(x240+x427,x241+x428))))) && (x242>0));
-ensures (inv_vec___Int_Int__(x240,x241,x242) && (\forall int  x450; (\forall int  x451; (((((0<=x450) && (x450<x242)) && (0<=x451)) && (x451<x242)) ==> \separated(x240+x450,x241+x451)))));
+requires ((inv_vec___Int_Int__(x240,x241,x242) && (\forall int  x420; (\forall int  x421; (((((0<=x420) && (x420<x242)) && (0<=x421)) && (x421<x242)) ==> \separated(x240+x420,x241+x421))))) && (x242>0));
+ensures (inv_vec___Int_Int__(x240,x241,x242) && (\forall int  x443; (\forall int  x444; (((((0<=x443) && (x443<x242)) && (0<=x444)) && (x444<x242)) ==> \separated(x240+x443,x241+x444)))));
 assigns x240[(0..x242-1)], x241[(0..x242-1)];
 */
 void insort_pairs(int  * x240, int  * x241, int  x242) {
   int x245 = x242 - 1;
   /*@
-  loop invariant ((0<=x247) && (x247<=x245));
-  loop invariant (\forall int  x248; (((0<=x248) && (x248<x247)) ==> (x240[x248]<=x240[(x248+1)])));
-  loop invariant ((x247>0) ==> (\forall int  x264; (((x247<=x264) && (x264<x242)) ==> (x240[(x247-1)]<=x240[x264]))));
+  loop invariant 0<=x247<=x245;
+  loop invariant (\forall int  x253; (((0<=x253) && (x253<x247)) ==> (x240[x253]<=x240[(x253+1)])));
+  loop invariant ((x247>0) ==> (\forall int  x269; (((x247<=x269) && (x269<x242)) ==> (x240[(x247-1)]<=x240[x269]))));
   loop assigns x247, x240[(0..x242-1)], x241[(0..x242-1)];
-  loop variant (x245-x247);
+  loop variant x245-x247;
   */
   for(int x247=0; x247 < x245; x247++) {
-    int x280 = x247;
-    int x281 = x247 + 1;
+    int x285 = x247;
+    int x286 = x247 + 1;
     /*@
-    loop invariant 0<=x283<=x242;
-    loop invariant (\forall int  x284; (((x247<=x284) && (x284<x283)) ==> (x240[x280]<=x240[x284])));
-    loop invariant ((x247<=x280) && (x280<x283));
-    loop assigns x283, x280;
-    loop variant x242-x283;
+    loop invariant 0<=x288<=x242;
+    loop invariant (\forall int  x289; (((x247<=x289) && (x289<x288)) ==> (x240[x285]<=x240[x289])));
+    loop invariant ((x247<=x285) && (x285<x288));
+    loop assigns x288, x285;
+    loop variant x242-x288;
     */
-    for(int x283=x281; x283 < x242; x283++) {
-      int x306 = x240[x283];
-      int x307 = x241[x283];
-      int x308 = x280;
-      int x309 = x240[x308];
-      int x310 = x241[x308];
-      int x311 = x306 <= x309;
-      if (x311) {
-        x280 = x283;
+    for(int x288=x286; x288 < x242; x288++) {
+      int x311 = x240[x288];
+      int x312 = x241[x288];
+      int x313 = x285;
+      int x314 = x240[x313];
+      int x315 = x241[x313];
+      int x316 = x311 <= x314;
+      if (x316) {
+        x285 = x288;
       } else {
-        //@assert (x240[x280]<=x240[x283]);
+        //@assert (x240[x285]<=x240[x288]);
       }
     }
-    //@assert (x240[x280]<=x240[(x247+1)]);
-    int x335 = x280;
-    inswap___Int_Int__(x240,x241,x242,x247,x335);
-    //@assert (\forall int  x338; (((0<=x338) && (x338<(x247-1))) ==> (x240[x338]<=x240[(x338+1)])));
-    //@assert (\forall int  x354; (((0<=x354) && (x354<x247)) ==> (x240[x354]<=x240[(x354+1)])));
+    //@assert (x240[x285]<=x240[(x247+1)]);
+    int x340 = x285;
+    inswap___Int_Int__(x240,x241,x242,x247,x340);
+    //@assert (\forall int  x343; (((0<=x343) && (x343<(x247-1))) ==> (x240[x343]<=x240[(x343+1)])));
+    //@assert (\forall int  x359; (((0<=x359) && (x359<x247)) ==> (x240[x359]<=x240[(x359+1)])));
     //@assert (x240[x247]<=x240[(x247+1)]);
-    //@assert (\forall int  x379; (((0<=x379) && (x379<(x247+1))) ==> (x240[x379]<=x240[(x379+1)])));
-    //@assert (\forall int  x396; ((((x247+1)<=x396) && (x396<x242)) ==> (x240[x247]<=x240[x396])));
+    //@assert (\forall int  x384; (((0<=x384) && (x384<(x247+1))) ==> (x240[x384]<=x240[(x384+1)])));
+    //@assert (\forall int  x401; ((((x247+1)<=x401) && (x401<x242)) ==> (x240[x247]<=x240[x401])));
   }
 }

@@ -31,40 +31,40 @@ assigns x158[(0..x159-1)];
 void insort(int  * x158, int  x159) {
   int x162 = x159 - 1;
   /*@
-  loop invariant ((0<=x164) && (x164<=x162));
-  loop invariant (\forall int  x165; (((0<=x165) && (x165<x164)) ==> (x158[x165]>=x158[(x165+1)])));
-  loop invariant ((x164>0) ==> (\forall int  x179; (((x164<=x179) && (x179<x159)) ==> (x158[(x164-1)]>=x158[x179]))));
+  loop invariant 0<=x164<=x162;
+  loop invariant (\forall int  x169; (((0<=x169) && (x169<x164)) ==> (x158[x169]>=x158[(x169+1)])));
+  loop invariant ((x164>0) ==> (\forall int  x183; (((x164<=x183) && (x183<x159)) ==> (x158[(x164-1)]>=x158[x183]))));
   loop assigns x164, x158[(0..x159-1)];
-  loop variant (x162-x164);
+  loop variant x162-x164;
   */
   for(int x164=0; x164 < x162; x164++) {
-    int x193 = x164;
-    int x194 = x164 + 1;
+    int x197 = x164;
+    int x198 = x164 + 1;
     /*@
-    loop invariant 0<=x196<=x159;
-    loop invariant (\forall int  x197; (((x164<=x197) && (x197<x196)) ==> (x158[x193]>=x158[x197])));
-    loop invariant ((x164<=x193) && (x193<x196));
-    loop assigns x196, x193;
-    loop variant x159-x196;
+    loop invariant 0<=x200<=x159;
+    loop invariant (\forall int  x201; (((x164<=x201) && (x201<x200)) ==> (x158[x197]>=x158[x201])));
+    loop invariant ((x164<=x197) && (x197<x200));
+    loop assigns x200, x197;
+    loop variant x159-x200;
     */
-    for(int x196=x194; x196 < x159; x196++) {
-      int x217 = x158[x196];
-      int x218 = x193;
-      int x219 = x158[x218];
-      int x220 = x217 >= x219;
-      if (x220) {
-        x193 = x196;
+    for(int x200=x198; x200 < x159; x200++) {
+      int x221 = x158[x200];
+      int x222 = x197;
+      int x223 = x158[x222];
+      int x224 = x221 >= x223;
+      if (x224) {
+        x197 = x200;
       } else {
-        //@assert (x158[x193]>=x158[x196]);
+        //@assert (x158[x197]>=x158[x200]);
       }
     }
-    //@assert (x158[x193]>=x158[(x164+1)]);
-    int x240 = x193;
-    inswap_Int(x158,x159,x164,x240);
-    //@assert (\forall int  x243; (((0<=x243) && (x243<(x164-1))) ==> (x158[x243]>=x158[(x243+1)])));
-    //@assert (\forall int  x257; (((0<=x257) && (x257<x164)) ==> (x158[x257]>=x158[(x257+1)])));
+    //@assert (x158[x197]>=x158[(x164+1)]);
+    int x244 = x197;
+    inswap_Int(x158,x159,x164,x244);
+    //@assert (\forall int  x247; (((0<=x247) && (x247<(x164-1))) ==> (x158[x247]>=x158[(x247+1)])));
+    //@assert (\forall int  x261; (((0<=x261) && (x261<x164)) ==> (x158[x261]>=x158[(x261+1)])));
     //@assert (x158[x164]>=x158[(x164+1)]);
-    //@assert (\forall int  x278; (((0<=x278) && (x278<(x164+1))) ==> (x158[x278]>=x158[(x278+1)])));
-    //@assert (\forall int  x293; ((((x164+1)<=x293) && (x293<x159)) ==> (x158[x164]>=x158[x293])));
+    //@assert (\forall int  x282; (((0<=x282) && (x282<(x164+1))) ==> (x158[x282]>=x158[(x282+1)])));
+    //@assert (\forall int  x297; ((((x164+1)<=x297) && (x297<x159)) ==> (x158[x164]>=x158[x297])));
   }
 }
