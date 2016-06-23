@@ -73,6 +73,9 @@ class SortingTests extends TestSuite {
       def id = implicitly[Iso[T]].id
       def id_by(s: String) = id+(if (s.isEmpty) "" else "_by_"+s)
       val Permut = permut[T]
+      def Sorted(v: Vec[T]) = forall{i: Rep[Int] =>
+        (0 <= i && i < v.length-1) ==> (v(i) cmp v(i+1))
+      }
       val inswap = toplevel("inswap_"+id, { (v: Vec[T], i: Rep[Int], j: Rep[Int]) =>
         val (p, n) = (v.a, v.n)
         requires(0 <= i && i < n && 0 <= j && j < n)
@@ -87,7 +90,7 @@ class SortingTests extends TestSuite {
       })
       val insort = { (v: Vec[T]) =>
         val (p, n) = (v.a, v.n)
-        ensures{result: Rep[Unit] => forall{i: Rep[Int] => (0 <= i && i < n-1) ==> (p(i) cmp p(i+1))}}
+        ensures{result: Rep[Unit] => Sorted(v)}
         ensures{result: Rep[Unit] => Permut(("Old","Post"))(v)}
         v.reflectMutable
         var m = n
