@@ -4,13 +4,14 @@ class SortingTests extends TestSuite {
   val under = "srt"
 
   trait Sorting extends Dsl with DataOps {
+    def key[T:Iso] = implicitly[Iso[T]].id
     class Vec[T:Iso](val a: Pointer[T], val n: Rep[Int]) {
       def apply(i: Rep[Int]) = a(i)
       def valid = n==0 || (n>0 && a.valid(0 until n))
       def length = n
     }
     implicit def vecIso[T:Iso](implicit ev: Inv[Vec[T]]) = isodata[Vec[T],(Pointer[T],Rep[Int])](
-      "vec_" + implicitly[Iso[T]].id,
+      "vec_" + key[T],
       {x: Vec[T] => (x.a, x.n)},
       {x: (Pointer[T],Rep[Int]) => new Vec(x._1, x._2)}
     )
