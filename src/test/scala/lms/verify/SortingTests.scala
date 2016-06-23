@@ -43,6 +43,7 @@ class SortingTests extends TestSuite {
       v.a.assigns(0 until v.n)
     }
 
+    // TODO: define a transitive closure combinator over inductive relations.
     def permut[T:Iso:Eq] = inductive[(Lc,Lc),Vec[T]](
       implicitly[Iso[T]].id+"_Permut", { p =>
         add_case[Lc1,Vec[T]]("refl", { ls => v =>
