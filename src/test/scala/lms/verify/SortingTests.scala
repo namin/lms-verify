@@ -70,13 +70,16 @@ class SortingTests extends TestSuite {
         })
       })
 
-    class Routine[T:Iso:Eq](infix_cmp: (T,T) => Rep[Boolean]) {
+
+    case class VecRange[T:Iso](v: Vec[T], start: Rep[Int], end: Rep[Int])
+    def infix_slice[T:Iso](v: Vec[T], i: Rep[Int], j: Rep[Int]) = VecRange(v, i, j)
+
+    // TODO: make cmp into type class, and flatten out sorting routine
+    class Routine[T:Iso:Eq](infix_cmp: (T,T) => Rep[Boolean], id_cmp: String = "") {
       def id = implicitly[Iso[T]].id
-      def id_by(s: String) = id+(if (s.isEmpty) "" else "_by_"+s)
+      def by_id = (if (id_cmp.isEmpty) "" else "_"+id_cmp)
       val Permut = permut[T]
-      def Sorted(v: Vec[T]) = forall{i: Rep[Int] =>
-        (0 <= i && i < v.length-1) ==> (v(i) cmp v(i+1))
-      }
+
       val inswap = toplevel("inswap_"+id, { (v: Vec[T], i: Rep[Int], j: Rep[Int]) =>
         val (p, n) = (v.a, v.n)
         requires(0 <= i && i < n && 0 <= j && j < n)
@@ -89,45 +92,49 @@ class SortingTests extends TestSuite {
         p(j) = tmp
         unit(())
       })
-      val insort = { (v: Vec[T]) =>
-        val (p, n) = (v.a, v.n)
-        ensures{result: Rep[Unit] => Sorted(v)}
-        ensures{result: Rep[Unit] => Permut(("Old","Post"))(v)}
-        v.reflectMutable
-        var m = n
-        loop (unit(0) <= m && m <= n &&
-          ((m < n-1) ==> (forall{i: Rep[Int] => (m <= i && i < n-1) ==> (p(i) cmp p(i+1))})) &&
-          forall{i: Rep[Int] => (0 <= i && i < m && m <= n-1) ==> (p(i) cmp p(m))} &&
-          Permut(("Pre","Here"))(v) &&
-          v.separated,
-          list_new(readVar(m)::(p within (0 until n))),
-          readVar(m)) {
-            while (m > 1) {
-              var maxi = 0
-              loop ({i: Rep[Int] => unit(0) <= m && m <= n &&
-                0 <= i && i <= m &&
-                unit(0) <= maxi && maxi <= m-1 && m-1 < n &&
-                forall{j: Rep[Int] => (0 <= j && j < i) ==> (p(j) cmp p(maxi))} &&
-                Permut(("Pre","Here"))(v) &&
-                v.separated},
-                {i: Rep[Int] => List(i, maxi)},
-                {i: Rep[Int] => m-i}) {
-                for (i <- 0 until m) {
-                  if (p(maxi) cmp p(i)) {
-                    maxi = i
-                  } else {
-                    _assert(p(i) cmp p(maxi))
-                  }
-                }
-              }
-              inswap(v, m-1, maxi)
-              _assert(forall{i: Rep[Int] => ((m-1 < i) && (i < (n-unit(1)))) ==> (p(i) cmp p(i+1))})
-              _assert((m <= n-1) ==> (p(m-1) cmp p(m)))
-              _assert(forall{i: Rep[Int] => (0 <= i && i < m) ==> (p(i) cmp p(m-1))})
-              m = m - 1
-            }
-        }
+
+      def sortedSlice(v: Vec[T], start: Rep[Int], end: Rep[Int]) = forall{i: Rep[Int] =>
+        (start <= i && i < end) ==> (v(i) cmp v(i+1))
       }
+      def Sorted(v: Vec[T]) = sortedSlice(v, 0, v.length-1)
+      def infix_sorted(r: VecRange[T]) = sortedSlice(r.v, r.start, r.end)
+      def infix_forall(r: VecRange[T], p: T => Rep[Boolean]) = forall{i: Rep[Int] =>
+        (r.start <= i && i < r.end) ==> p(r.v(i))
+      }
+      val insort = toplevel("insort"+by_id, { (a: Vec[T]) =>
+        a.reflectMutable
+        val p = a.a
+        val n = a.length
+        requires(n>0)
+        val n1 = n-1
+        loop({i: Rep[Int] => unit(0) <= i && i <= (n-1)},
+          // TODO: if we had loop_assigns for p within ...,
+          //       or just inferred it, we could infer the rest as well.
+          {i: Rep[Int] => list_new(i::p.within(0 until n))},
+          {i: Rep[Int] => n1-i}) {
+        for (i <- 0 until n1) {
+          loop_invariant(a.slice(0,i).sorted)
+          loop_invariant((i > 0) ==> a.slice(i,n).forall(a(i-1) cmp _))
+          //loop_invariant(Permut(("Pre","Here"))(a))
+          //loop_invariant(a.separated)
+          var jmin = i
+          for (j <- (i+1) until n) {
+            loop_invariant(a.slice(i,j).forall(a(jmin) cmp _))
+            loop_invariant(i <= jmin && jmin < j)
+            if (a(j) cmp a(jmin)) jmin = j
+            else _assert(a(jmin) cmp a(j))
+          }
+          //_assert(a.slice(i,n).forall(a(jmin) cmp _))
+          _assert(a(jmin) cmp a(i+1))
+          //_assert(a.slice(0,i).sorted)
+          inswap(a,i,jmin)
+          _assert(a.slice(0,i-1).sorted)
+          _assert(a.slice(0,i).sorted)
+          _assert(a(i) cmp a(i+1))
+          _assert(a.slice(0,i+1).sorted)
+          _assert(a.slice(i+1,n).forall(a(i) cmp _))
+        }}
+      })
     }
 
     def pointWise[T](p: (T,T) => Rep[Boolean]) = { (a: (T,T), b: (T,T)) =>
@@ -139,7 +146,6 @@ class SortingTests extends TestSuite {
   test("1") {
     trait Srt1 extends Sorting {
       val r = new Routine[Rep[Int]](_ <= _)
-      toplevel("insort", r.insort)
     }
     check("1", (new Srt1 with Impl).code)
   }
@@ -147,7 +153,6 @@ class SortingTests extends TestSuite {
   test("2") {
     trait Srt2 extends Sorting {
       val r = new Routine[Rep[Int]](_ >= _)
-      toplevel("insort", r.insort)
     }
     check("2", (new Srt2 with Impl).code)
   }
@@ -156,8 +161,7 @@ class SortingTests extends TestSuite {
     trait Srt3 extends Sorting {
       val r = new Routine[(Rep[Int],Rep[Int])]({ (a: (Rep[Int],Rep[Int]), b: (Rep[Int],Rep[Int])) =>
         (a._1<=b._1)
-      })
-      toplevel("insort_pairs", r.insort)
+      }, "pairs")
     }
     check("3", (new Srt3 with Impl).code)
   }
@@ -166,8 +170,7 @@ class SortingTests extends TestSuite {
     trait Srt4 extends Sorting {
       val r = new Routine[(Rep[Int],Rep[Int])]({ (a: (Rep[Int],Rep[Int]), b: (Rep[Int],Rep[Int])) =>
         (a._1 < b._1) || ((a._1==b._1) && (a._2 <= b._2))
-      })
-      toplevel("insort_pairs", r.insort)
+      }, "pairs")
     }
     check("4", (new Srt4 with Impl).code)
   }
