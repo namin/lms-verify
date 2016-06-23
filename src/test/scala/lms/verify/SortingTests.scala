@@ -20,7 +20,8 @@ class SortingTests extends TestSuite {
     implicit def vecEq[T:Eq:Iso] = equality[Vec[T]] { (x, y) =>
       x.n == y.n && ((0 until x.n) forall {i => x(i) deep_equal y(i)})
     }
-    def separation[T:Iso](x: Pointer[T], n: Rep[Int]): Rep[Boolean] = {
+    def infix_separated[T:Iso](v: Vec[T]): Rep[Boolean] = {
+      val (x, n) = (v.a, v.n)
       val pn: Int = x.p.size
       and_list((for (i <- 0 until pn: Range; j <- (i+1) until pn: Range) yield {
         val (a01,(m01,t01)) = x.pmt(i)
@@ -35,11 +36,10 @@ class SortingTests extends TestSuite {
         }}}).toList)
     }
     def infix_reflectMutable[T:Iso](v: Vec[T]): Unit = {
-      val (p, n) = (v.a, v.n)
-      requires(separation(p, n))
-      ensures{result: Rep[Unit] => separation(p, n)}
-      p.reflectMutableInput
-      p.assigns(0 until n)
+      requires(v.separated)
+      ensures{result: Rep[Unit] => v.separated}
+      v.a.reflectMutableInput
+      v.a.assigns(0 until v.n)
     }
 
     def permut[T:Iso:Eq] = inductive[(Lc,Lc),Vec[T]](
@@ -98,7 +98,7 @@ class SortingTests extends TestSuite {
           ((m < n-1) ==> (forall{i: Rep[Int] => (m <= i && i < n-1) ==> (p(i) cmp p(i+1))})) &&
           forall{i: Rep[Int] => (0 <= i && i < m && m <= n-1) ==> (p(i) cmp p(m))} &&
           Permut(("Pre","Here"))(v) &&
-          separation(p, n),
+          v.separated,
           list_new(readVar(m)::(p within (0 until n))),
           readVar(m)) {
             while (m > 1) {
@@ -108,7 +108,7 @@ class SortingTests extends TestSuite {
                 unit(0) <= maxi && maxi <= m-1 && m-1 < n &&
                 forall{j: Rep[Int] => (0 <= j && j < i) ==> (p(j) cmp p(maxi))} &&
                 Permut(("Pre","Here"))(v) &&
-                separation(p, n)},
+                v.separated},
                 {i: Rep[Int] => List(i, maxi)},
                 {i: Rep[Int] => m-i}) {
                 for (i <- 0 until m) {
