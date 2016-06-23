@@ -44,8 +44,8 @@ void inswap___Int_Int__(int  * x126, int  * x127, int  x128, int  x129, int  x13
   x127[x130] = x134;
 }
 /*@
-requires ((inv_vec___Int_Int__(x247,x248,x249) && (\forall int  x427; (\forall int  x428; (((((0<=x427) && (x427<x249)) && (0<=x428)) && (x428<x249)) ==> \separated(x247+x427,x248+x428))))) && (x249>0));
-ensures (inv_vec___Int_Int__(x247,x248,x249) && (\forall int  x450; (\forall int  x451; (((((0<=x450) && (x450<x249)) && (0<=x451)) && (x451<x249)) ==> \separated(x247+x450,x248+x451)))));
+requires ((inv_vec___Int_Int__(x247,x248,x249) && (\forall int  x448; (\forall int  x449; (((((0<=x448) && (x448<x249)) && (0<=x449)) && (x449<x249)) ==> \separated(x247+x448,x248+x449))))) && (x249>0));
+ensures ((inv_vec___Int_Int__(x247,x248,x249) && (\forall int  x471; (\forall int  x472; (((((0<=x471) && (x471<x249)) && (0<=x472)) && (x472<x249)) ==> \separated(x247+x471,x248+x472))))) && ((\forall int  x491; (((0<=x491) && (x491<(x249-1))) ==> (x247[x491]<=x247[(x491+1)]))) && __Int_Int___Permut{Old,Post}(x247,x248,x249)));
 assigns x247[(0..x249-1)], x248[(0..x249-1)];
 */
 void insort_pairs(int  * x247, int  * x248, int  x249) {
@@ -54,39 +54,41 @@ void insort_pairs(int  * x247, int  * x248, int  x249) {
   loop invariant 0<=x254<=x252;
   loop invariant (\forall int  x260; (((0<=x260) && (x260<x254)) ==> (x247[x260]<=x247[(x260+1)])));
   loop invariant ((x254>0) ==> (\forall int  x276; (((x254<=x276) && (x276<x249)) ==> (x247[(x254-1)]<=x247[x276]))));
+  loop invariant __Int_Int___Permut{Pre,Here}(x247,x248,x249);
+  loop invariant (\forall int  x294; (\forall int  x295; (((((0<=x294) && (x294<x249)) && (0<=x295)) && (x295<x249)) ==> \separated(x247+x294,x248+x295))));
   loop assigns x254, x247[(0..x249-1)], x248[(0..x249-1)];
   loop variant x252-x254;
   */
   for(int x254=0; x254 < x252; x254++) {
-    int x292 = x254;
-    int x293 = x254 + 1;
+    int x313 = x254;
+    int x314 = x254 + 1;
     /*@
-    loop invariant 0<=x295<=x249;
-    loop invariant (\forall int  x296; (((x254<=x296) && (x296<x295)) ==> (x247[x292]<=x247[x296])));
-    loop invariant ((x254<=x292) && (x292<x295));
-    loop assigns x295, x292;
-    loop variant x249-x295;
+    loop invariant 0<=x316<=x249;
+    loop invariant (\forall int  x317; (((x254<=x317) && (x317<x316)) ==> (x247[x313]<=x247[x317])));
+    loop invariant ((x254<=x313) && (x313<x316));
+    loop assigns x316, x313;
+    loop variant x249-x316;
     */
-    for(int x295=x293; x295 < x249; x295++) {
-      int x318 = x247[x295];
-      int x319 = x248[x295];
-      int x320 = x292;
-      int x321 = x247[x320];
-      int x322 = x248[x320];
-      int x323 = x318 <= x321;
-      if (x323) {
-        x292 = x295;
+    for(int x316=x314; x316 < x249; x316++) {
+      int x339 = x247[x316];
+      int x340 = x248[x316];
+      int x341 = x313;
+      int x342 = x247[x341];
+      int x343 = x248[x341];
+      int x344 = x339 <= x342;
+      if (x344) {
+        x313 = x316;
       } else {
-        //@assert (x247[x292]<=x247[x295]);
+        //@assert (x247[x313]<=x247[x316]);
       }
     }
-    //@assert (x247[x292]<=x247[(x254+1)]);
-    int x347 = x292;
-    inswap___Int_Int__(x247,x248,x249,x254,x347);
-    //@assert (\forall int  x350; (((0<=x350) && (x350<(x254-1))) ==> (x247[x350]<=x247[(x350+1)])));
-    //@assert (\forall int  x366; (((0<=x366) && (x366<x254)) ==> (x247[x366]<=x247[(x366+1)])));
+    //@assert (x247[x313]<=x247[(x254+1)]);
+    int x368 = x313;
+    inswap___Int_Int__(x247,x248,x249,x254,x368);
+    //@assert (\forall int  x371; (((0<=x371) && (x371<(x254-1))) ==> (x247[x371]<=x247[(x371+1)])));
+    //@assert (\forall int  x387; (((0<=x387) && (x387<x254)) ==> (x247[x387]<=x247[(x387+1)])));
     //@assert (x247[x254]<=x247[(x254+1)]);
-    //@assert (\forall int  x391; (((0<=x391) && (x391<(x254+1))) ==> (x247[x391]<=x247[(x391+1)])));
-    //@assert (\forall int  x408; ((((x254+1)<=x408) && (x408<x249)) ==> (x247[x254]<=x247[x408])));
+    //@assert (\forall int  x412; (((0<=x412) && (x412<(x254+1))) ==> (x247[x412]<=x247[(x412+1)])));
+    //@assert (\forall int  x429; ((((x254+1)<=x429) && (x429<x249)) ==> (x247[x254]<=x247[x429])));
   }
 }

@@ -121,12 +121,13 @@ class SortingTests extends TestSuite {
         val p = a.a
         val n = a.length
         requires(n>0)
+        ensures{result: Rep[Unit] => Sorted(a) && Permut(("Old","Post"))(a)}
         for (i <- 0 until (n-1)) {
           loop_assigns(list_new(i::p.within(0 until n))) // TODO: infer?
           loop_invariant(a.slice(0,i).sorted)
           loop_invariant((i > 0) ==> a.slice(i,n).forall(a(i-1) cmp _))
-          //loop_invariant(Permut(("Pre","Here"))(a))
-          //loop_invariant(a.separated)
+          loop_invariant(Permut(("Pre","Here"))(a))
+          loop_invariant(a.separated)
           var jmin = i
           for (j <- (i+1) until n) {
             loop_invariant(a.slice(i,j).forall(a(jmin) cmp _))
