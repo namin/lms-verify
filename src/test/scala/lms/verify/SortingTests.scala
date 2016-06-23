@@ -3,7 +3,7 @@ package lms.verify
 class SortingTests extends TestSuite {
   val under = "srt"
 
-  trait Sorting extends Dsl with DataOps {
+  trait Sorting extends Dsl with DataOps { dsl =>
     def key[T:Iso] = implicitly[Iso[T]].id
     class Vec[T:Iso](val a: Pointer[T], val n: Rep[Int]) {
       def apply(i: Rep[Int]) = a(i)
@@ -70,17 +70,36 @@ class SortingTests extends TestSuite {
         })
       })
 
+    trait Ord[T] {
+      def le: (T,T) => Rep[Boolean]
+      def id: String = ""
+    }
+    def infix_cmp[T:Ord](x: T, y: T) =
+      implicitly[Ord[T]].le(x,y)
+    def by_key[T:Ord] = {
+      val id = implicitly[Ord[T]].id
+      (if (id.isEmpty) "" else "_"+id)
+    }
+    def ord[T](_le: (T,T) => Rep[Boolean], _id: String = "") = new Ord[T]{
+      override def le = _le
+      override def id = _id
+    }
 
-    case class VecRange[T:Iso](v: Vec[T], start: Rep[Int], end: Rep[Int])
-    def infix_slice[T:Iso](v: Vec[T], i: Rep[Int], j: Rep[Int]) = VecRange(v, i, j)
+    def sortedSlice[T:Iso:Ord](v: Vec[T], start: Rep[Int], end: Rep[Int]) = forall{i: Rep[Int] =>
+      (start <= i && i < end) ==> (v(i) cmp v(i+1))
+    }
+    def Sorted[T:Iso:Ord](v: Vec[T]) = sortedSlice[T](v, 0, v.length-1)
+    case class VecRange[T:Iso:Ord](v: Vec[T], start: Rep[Int], end: Rep[Int]) {
+      def sorted = sortedSlice[T](v, start, end)
+      def forall(p: T => Rep[Boolean]) = dsl.forall{i: Rep[Int] =>
+        (start <= i && i < end) ==> p(v(i))
+      }
+    }
+    def infix_slice[T:Iso:Ord](v: Vec[T], i: Rep[Int], j: Rep[Int]) = VecRange(v, i, j)
 
-    // TODO: make cmp into type class, and flatten out sorting routine
-    class Routine[T:Iso:Eq](infix_cmp: (T,T) => Rep[Boolean], id_cmp: String = "") {
-      def id = implicitly[Iso[T]].id
-      def by_id = (if (id_cmp.isEmpty) "" else "_"+id_cmp)
+    def insort[T:Iso:Eq:Ord] = {
       val Permut = permut[T]
-
-      val inswap = toplevel("inswap_"+id, { (v: Vec[T], i: Rep[Int], j: Rep[Int]) =>
+      val inswap = toplevel("inswap_"+key[T], { (v: Vec[T], i: Rep[Int], j: Rep[Int]) =>
         val (p, n) = (v.a, v.n)
         requires(0 <= i && i < n && 0 <= j && j < n)
         ensures{result: Rep[Unit] => (p(i) deep_equal old(p(j))) && (p(j) deep_equal old(p(i)))}
@@ -93,15 +112,7 @@ class SortingTests extends TestSuite {
         unit(())
       })
 
-      def sortedSlice(v: Vec[T], start: Rep[Int], end: Rep[Int]) = forall{i: Rep[Int] =>
-        (start <= i && i < end) ==> (v(i) cmp v(i+1))
-      }
-      def Sorted(v: Vec[T]) = sortedSlice(v, 0, v.length-1)
-      def infix_sorted(r: VecRange[T]) = sortedSlice(r.v, r.start, r.end)
-      def infix_forall(r: VecRange[T], p: T => Rep[Boolean]) = forall{i: Rep[Int] =>
-        (r.start <= i && i < r.end) ==> p(r.v(i))
-      }
-      val insort = toplevel("insort"+by_id, { (a: Vec[T]) =>
+      toplevel("insort"+by_key[T], { (a: Vec[T]) =>
         a.reflectMutable
         val p = a.a
         val n = a.length
@@ -145,32 +156,36 @@ class SortingTests extends TestSuite {
 
   test("1") {
     trait Srt1 extends Sorting {
-      val r = new Routine[Rep[Int]](_ <= _)
+      implicit def o = ord[Rep[Int]](_ <= _)
+      val s = insort[Rep[Int]]
     }
     check("1", (new Srt1 with Impl).code)
   }
 
   test("2") {
     trait Srt2 extends Sorting {
-      val r = new Routine[Rep[Int]](_ >= _)
+      implicit def o = ord[Rep[Int]](_ >= _)
+      val s = insort[Rep[Int]]
     }
     check("2", (new Srt2 with Impl).code)
   }
 
   test("3") {
     trait Srt3 extends Sorting {
-      val r = new Routine[(Rep[Int],Rep[Int])]({ (a: (Rep[Int],Rep[Int]), b: (Rep[Int],Rep[Int])) =>
+      implicit def o = ord[(Rep[Int],Rep[Int])]({ (a: (Rep[Int],Rep[Int]), b: (Rep[Int],Rep[Int])) =>
         (a._1<=b._1)
       }, "pairs")
+      val s = insort[(Rep[Int],Rep[Int])]
     }
     check("3", (new Srt3 with Impl).code)
   }
 
   test("4") {
     trait Srt4 extends Sorting {
-      val r = new Routine[(Rep[Int],Rep[Int])]({ (a: (Rep[Int],Rep[Int]), b: (Rep[Int],Rep[Int])) =>
+      implicit def o = ord[(Rep[Int],Rep[Int])]({ (a: (Rep[Int],Rep[Int]), b: (Rep[Int],Rep[Int])) =>
         (a._1 < b._1) || ((a._1==b._1) && (a._2 <= b._2))
       }, "pairs")
+      val s = insort[(Rep[Int],Rep[Int])]
     }
     check("4", (new Srt4 with Impl).code)
   }
