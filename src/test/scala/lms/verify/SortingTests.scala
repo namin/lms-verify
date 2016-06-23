@@ -55,19 +55,21 @@ class SortingTests extends TestSuite {
         (p((ls._1, ls._3))(v))
       })
     }
+    def Swapped[T:Iso:Eq](ls: (Lc,Lc))(a: Vec[T], i: Rep[Int], j: Rep[Int]) = {
+      val (l1, l2) = ls
+      ((at(a(i),l1)) deep_equal (at(a(j),l2))) &&
+      ((at(a(j),l1)) deep_equal (at(a(i),l2))) &&
+      forall{k: Rep[Int] =>
+        (0 <= k && k < a.length && k != i && k != j) ==>
+        ((at(a(k),l1)) deep_equal (at(a(k),l2)))}
+    }
     def permut[T:Iso:Eq] = inductive[(Lc,Lc),Vec[T]](
       implicitly[Iso[T]].id+"_Permut", { p =>
         add_closure_cases(p)
         add_case[(Lc,Lc),Vec[T]]("swap", { ls => v =>
-          val (l1,l2) = ls
-          val (a,n) = (v.a, v.n)
           forall{i: Rep[Int] => forall{j: Rep[Int] =>
-            (0 <= i && i < n && 0 <= j && j < n &&
-              ((at(a(i),l1)) deep_equal (at(a(j),l2))) &&
-              ((at(a(j),l1)) deep_equal (at(a(i),l2))) &&
-              forall{k: Rep[Int] =>
-                (0 <= k && k < n && k != i && k != j) ==>
-                ((at(a(k),l1)) deep_equal (at(a(k),l2)))}) ==>
+            (0 <= i && i < v.length && 0 <= j && j < v.length &&
+             Swapped(ls)(v, i, j)) ==>
             (p(ls)(v))
           }}
         })
@@ -105,8 +107,7 @@ class SortingTests extends TestSuite {
       val inswap = toplevel("inswap_"+key[T], { (v: Vec[T], i: Rep[Int], j: Rep[Int]) =>
         val (p, n) = (v.a, v.n)
         requires(0 <= i && i < n && 0 <= j && j < n)
-        ensures{result: Rep[Unit] => (p(i) deep_equal old(p(j))) && (p(j) deep_equal old(p(i)))}
-        ensures{result: Rep[Unit] => forall{x: Rep[Int] => ((0 <= x && x < n) && (x != i && x != j)) ==> (p(x) deep_equal old(p(x)))}}
+        ensures{result: Rep[Unit] => Swapped(("Old", "Post"))(v, i, j)}
         ensures{result: Rep[Unit] => Permut(("Old","Post"))(v)}
         v.reflectMutable
         val tmp = p(i)
