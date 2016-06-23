@@ -107,7 +107,7 @@ class SortingTests extends TestSuite {
         val n = a.length
         requires(n>0)
         val n1 = n-1
-        loop({i: Rep[Int] => unit(0) <= i && i <= (n-1)},
+        loop({i: Rep[Int] => unit(0) <= i && i <= n1},
           // TODO: if we had loop_assigns for p within ...,
           //       or just inferred it, we could infer the rest as well.
           {i: Rep[Int] => list_new(i::p.within(0 until n))},

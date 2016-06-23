@@ -44,14 +44,14 @@ void inswap___Int_Int__(int  * x126, int  * x127, int  x128, int  x129, int  x13
   x127[x130] = x134;
 }
 /*@
-requires ((inv_vec___Int_Int__(x240,x241,x242) && (\forall int  x428; (\forall int  x429; (((((0<=x428) && (x428<x242)) && (0<=x429)) && (x429<x242)) ==> \separated(x240+x428,x241+x429))))) && (x242>0));
-ensures (inv_vec___Int_Int__(x240,x241,x242) && (\forall int  x451; (\forall int  x452; (((((0<=x451) && (x451<x242)) && (0<=x452)) && (x452<x242)) ==> \separated(x240+x451,x241+x452)))));
+requires ((inv_vec___Int_Int__(x240,x241,x242) && (\forall int  x427; (\forall int  x428; (((((0<=x427) && (x427<x242)) && (0<=x428)) && (x428<x242)) ==> \separated(x240+x427,x241+x428))))) && (x242>0));
+ensures (inv_vec___Int_Int__(x240,x241,x242) && (\forall int  x450; (\forall int  x451; (((((0<=x450) && (x450<x242)) && (0<=x451)) && (x451<x242)) ==> \separated(x240+x450,x241+x451)))));
 assigns x240[(0..x242-1)], x241[(0..x242-1)];
 */
 void insort_pairs(int  * x240, int  * x241, int  x242) {
   int x245 = x242 - 1;
   /*@
-  loop invariant ((0<=x247) && (x247<=(x242-1)));
+  loop invariant ((0<=x247) && (x247<=x245));
   loop invariant (\forall int  x248; (((0<=x248) && (x248<x247)) ==> (x240[x248]<=x240[(x248+1)])));
   loop invariant ((x247>0) ==> (\forall int  x264; (((x247<=x264) && (x264<x242)) ==> (x240[(x247-1)]<=x240[x264]))));
   loop assigns x247, x240[(0..x242-1)], x241[(0..x242-1)];

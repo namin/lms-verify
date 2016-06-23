@@ -31,7 +31,7 @@ assigns x158[(0..x159-1)];
 void insort(int  * x158, int  x159) {
   int x162 = x159 - 1;
   /*@
-  loop invariant ((0<=x164) && (x164<=(x159-1)));
+  loop invariant ((0<=x164) && (x164<=x162));
   loop invariant (\forall int  x165; (((0<=x165) && (x165<x164)) ==> (x158[x165]<=x158[(x165+1)])));
   loop invariant ((x164>0) ==> (\forall int  x179; (((x164<=x179) && (x179<x159)) ==> (x158[(x164-1)]<=x158[x179]))));
   loop assigns x164, x158[(0..x159-1)];
