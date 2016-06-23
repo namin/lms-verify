@@ -43,19 +43,21 @@ class SortingTests extends TestSuite {
       v.a.assigns(0 until v.n)
     }
 
-    // TODO: define a transitive closure combinator over inductive relations.
+    def add_closure_cases[B:Iso](p: ((Lc,Lc)) => B => Rep[Boolean]) = {
+      add_case[Lc1,B]("refl", { ls => v =>
+        p((ls._1,ls._1))(v)
+      })
+      add_case[(Lc,Lc),B]("sym", { ls => v =>
+        (p((ls._1, ls._2))(v)) ==> (p((ls._2, ls._1))(v))
+      })
+      add_case[(Lc,Lc,Lc),B]("trans", {ls => v =>
+        ((p((ls._1, ls._2))(v)) && (p((ls._2, ls._3))(v))) ==>
+        (p((ls._1, ls._3))(v))
+      })
+    }
     def permut[T:Iso:Eq] = inductive[(Lc,Lc),Vec[T]](
       implicitly[Iso[T]].id+"_Permut", { p =>
-        add_case[Lc1,Vec[T]]("refl", { ls => v =>
-          p((ls._1,ls._1))(v)
-        })
-        add_case[(Lc,Lc),Vec[T]]("sym", { ls => v =>
-          (p((ls._1, ls._2))(v)) ==> (p((ls._2, ls._1))(v))
-        })
-        add_case[(Lc,Lc,Lc),Vec[T]]("trans", {ls => v =>
-          ((p((ls._1, ls._2))(v)) && (p((ls._2, ls._3))(v))) ==>
-          (p((ls._1, ls._3))(v))
-        })
+        add_closure_cases(p)
         add_case[(Lc,Lc),Vec[T]]("swap", { ls => v =>
           val (l1,l2) = ls
           val (a,n) = (v.a, v.n)
