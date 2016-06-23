@@ -664,7 +664,12 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
         case RangeForeach(start, end, i, body) if !loopsDone.contains(sym) =>
           loopsDone += sym
           stream.println("/*@")
-          stream.println("loop invariant 0<="+quote(i)+"<="+quote(end)+";")
+          end match {
+            case Def(IntMinus(_,Const(1))) =>
+              stream.println("loop invariant ("+quote(i)+"==0 && "+quote(end)+"==-1) || (0<="+quote(i)+"<="+quote(end)+");")
+            case _ =>
+              stream.println("loop invariant 0<="+quote(i)+"<="+quote(end)+";")
+          }
           val s = summarizeEffects(body)
           val xs = for (x <- s.mayWrite) yield (inputs.get(x) match {
             case Some(r) => quote(x)+"["+exprOf(r)+"]"

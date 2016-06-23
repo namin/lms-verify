@@ -44,14 +44,14 @@ void inswap___Int_Int__(int  * x126, int  * x127, int  x128, int  x129, int  x13
   x127[x130] = x134;
 }
 /*@
-requires ((inv_vec___Int_Int__(x247,x248,x249) && (\forall int  x448; (\forall int  x449; (((((0<=x448) && (x448<x249)) && (0<=x449)) && (x449<x249)) ==> \separated(x247+x448,x248+x449))))) && (x249>0));
-ensures ((inv_vec___Int_Int__(x247,x248,x249) && (\forall int  x471; (\forall int  x472; (((((0<=x471) && (x471<x249)) && (0<=x472)) && (x472<x249)) ==> \separated(x247+x471,x248+x472))))) && ((\forall int  x491; (((0<=x491) && (x491<(x249-1))) ==> (x247[x491]<=x247[(x491+1)]))) && __Int_Int___Permut{Old,Post}(x247,x248,x249)));
+requires (inv_vec___Int_Int__(x247,x248,x249) && (\forall int  x448; (\forall int  x449; (((((0<=x448) && (x448<x249)) && (0<=x449)) && (x449<x249)) ==> \separated(x247+x448,x248+x449)))));
+ensures ((inv_vec___Int_Int__(x247,x248,x249) && (\forall int  x469; (\forall int  x470; (((((0<=x469) && (x469<x249)) && (0<=x470)) && (x470<x249)) ==> \separated(x247+x469,x248+x470))))) && ((\forall int  x489; (((0<=x489) && (x489<(x249-1))) ==> (x247[x489]<=x247[(x489+1)]))) && __Int_Int___Permut{Old,Post}(x247,x248,x249)));
 assigns x247[(0..x249-1)], x248[(0..x249-1)];
 */
 void insort_pairs(int  * x247, int  * x248, int  x249) {
   int x252 = x249 - 1;
   /*@
-  loop invariant 0<=x254<=x252;
+  loop invariant (x254==0 && x252==-1) || (0<=x254<=x252);
   loop invariant (\forall int  x260; (((0<=x260) && (x260<x254)) ==> (x247[x260]<=x247[(x260+1)])));
   loop invariant ((x254>0) ==> (\forall int  x276; (((x254<=x276) && (x276<x249)) ==> (x247[(x254-1)]<=x247[x276]))));
   loop invariant __Int_Int___Permut{Pre,Here}(x247,x248,x249);

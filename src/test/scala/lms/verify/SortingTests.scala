@@ -120,7 +120,6 @@ class SortingTests extends TestSuite {
         a.reflectMutable
         val p = a.a
         val n = a.length
-        requires(n>0)
         ensures{result: Rep[Unit] => Sorted(a) && Permut(("Old","Post"))(a)}
         for (i <- 0 until (n-1)) {
           loop_assigns(list_new(i::p.within(0 until n))) // TODO: infer?

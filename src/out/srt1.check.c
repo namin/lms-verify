@@ -24,14 +24,14 @@ void inswap_Int(int  * x96, int  x97, int  x98, int  x99) {
   x96[x99] = x102;
 }
 /*@
-requires (inv_vec_Int(x162,x163) && (x163>0));
-ensures (inv_vec_Int(x162,x163) && ((\forall int  x325; (((0<=x325) && (x325<(x163-1))) ==> (x162[x325]<=x162[(x325+1)]))) && Int_Permut{Old,Post}(x162,x163)));
+requires inv_vec_Int(x162,x163);
+ensures (inv_vec_Int(x162,x163) && ((\forall int  x323; (((0<=x323) && (x323<(x163-1))) ==> (x162[x323]<=x162[(x323+1)]))) && Int_Permut{Old,Post}(x162,x163)));
 assigns x162[(0..x163-1)];
 */
 void insort(int  * x162, int  x163) {
   int x166 = x163 - 1;
   /*@
-  loop invariant 0<=x168<=x166;
+  loop invariant (x168==0 && x166==-1) || (0<=x168<=x166);
   loop invariant (\forall int  x173; (((0<=x173) && (x173<x168)) ==> (x162[x173]<=x162[(x173+1)])));
   loop invariant ((x168>0) ==> (\forall int  x187; (((x168<=x187) && (x187<x163)) ==> (x162[(x168-1)]<=x162[x187]))));
   loop invariant Int_Permut{Pre,Here}(x162,x163);
