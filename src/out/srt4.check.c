@@ -25,80 +25,80 @@ inductive __Int_Int___Permut{L1,L2}(int  * x29, int  * x30, integer  x31) {
   case __Int_Int___Permut_trans{L1,L2,L3}:
   \forall int  * x46, int  * x47, integer  x48; ((__Int_Int___Permut{L1,L2}(x46,x47,x48) && __Int_Int___Permut{L2,L3}(x46,x47,x48)) ==> __Int_Int___Permut{L1,L3}(x46,x47,x48));
   case __Int_Int___Permut_swap{L1,L2}:
-  \forall int  * x57, int  * x58, integer  x59; (\forall integer  x61; (\forall integer  x62; ((((((0<=x61) && (x61<x59)) && (0<=x62)) && (x62<x59)) && (((\at(eq___Int_Int__(\at(x57[x61],L1),\at(x58[x61],L1),\at(x57[x62],L2),\at(x58[x62],L2)),L1) && \at(eq___Int_Int__(\at(x57[x61],L1),\at(x58[x61],L1),\at(x57[x62],L2),\at(x58[x62],L2)),L2)) && (\at(eq___Int_Int__(\at(x57[x62],L1),\at(x58[x62],L1),\at(x57[x61],L2),\at(x58[x61],L2)),L1) && \at(eq___Int_Int__(\at(x57[x62],L1),\at(x58[x62],L1),\at(x57[x61],L2),\at(x58[x61],L2)),L2))) && (\forall integer  x119; (((((0<=x119) && (x119<x59)) && (x119!=x61)) && (x119!=x62)) ==> (\at(eq___Int_Int__(\at(x57[x119],L1),\at(x58[x119],L1),\at(x57[x119],L2),\at(x58[x119],L2)),L1) && \at(eq___Int_Int__(\at(x57[x119],L1),\at(x58[x119],L1),\at(x57[x119],L2),\at(x58[x119],L2)),L2)))))) ==> __Int_Int___Permut{L1,L2}(x57,x58,x59))));
+  \forall int  * x57, int  * x58, integer  x59; (\forall integer  x61; (\forall integer  x62; ((((((0<=x61) && (x61<x59)) && (0<=x62)) && (x62<x59)) && ((((\at(x57[x61],L1)==\at(x57[x62],L2)) && (\at(x58[x61],L1)==\at(x58[x62],L2))) && ((\at(x57[x62],L1)==\at(x57[x61],L2)) && (\at(x58[x62],L1)==\at(x58[x61],L2)))) && (\forall integer  x97; (((((0<=x97) && (x97<x59)) && (x97!=x61)) && (x97!=x62)) ==> ((\at(x57[x97],L1)==\at(x57[x97],L2)) && (\at(x58[x97],L1)==\at(x58[x97],L2))))))) ==> __Int_Int___Permut{L1,L2}(x57,x58,x59))));
 }
 */
 /*@
-requires ((inv_vec___Int_Int__(x165,x166,x167) && ((((0<=x168) && (x168<x167)) && (0<=x169)) && (x169<x167))) && (\forall int  x195; (\forall int  x196; (((((0<=x195) && (x195<x167)) && (0<=x196)) && (x196<x167)) ==> \separated(x165+x195,x166+x196)))));
-ensures (((inv_vec___Int_Int__(x165,x166,x167) && (((\at(eq___Int_Int__(\at(x165[x168],Old),\at(x166[x168],Old),\at(x165[x169],Post),\at(x166[x169],Post)),Old) && \at(eq___Int_Int__(\at(x165[x168],Old),\at(x166[x168],Old),\at(x165[x169],Post),\at(x166[x169],Post)),Post)) && (\at(eq___Int_Int__(\at(x165[x169],Old),\at(x166[x169],Old),\at(x165[x168],Post),\at(x166[x168],Post)),Old) && \at(eq___Int_Int__(\at(x165[x169],Old),\at(x166[x169],Old),\at(x165[x168],Post),\at(x166[x168],Post)),Post))) && (\forall int  x264; (((((0<=x264) && (x264<x167)) && (x264!=x168)) && (x264!=x169)) ==> (\at(eq___Int_Int__(\at(x165[x264],Old),\at(x166[x264],Old),\at(x165[x264],Post),\at(x166[x264],Post)),Old) && \at(eq___Int_Int__(\at(x165[x264],Old),\at(x166[x264],Old),\at(x165[x264],Post),\at(x166[x264],Post)),Post)))))) && __Int_Int___Permut{Old,Post}(x165,x166,x167)) && (\forall int  x305; (\forall int  x306; (((((0<=x305) && (x305<x167)) && (0<=x306)) && (x306<x167)) ==> \separated(x165+x305,x166+x306)))));
-assigns x165[(0..x167-1)], x166[(0..x167-1)];
+requires ((inv_vec___Int_Int__(x132,x133,x134) && ((((0<=x135) && (x135<x134)) && (0<=x136)) && (x136<x134))) && (\forall int  x162; (\forall int  x163; (((((0<=x162) && (x162<x134)) && (0<=x163)) && (x163<x134)) ==> \separated(x132+x162,x133+x163)))));
+ensures (((inv_vec___Int_Int__(x132,x133,x134) && ((((\at(x132[x135],Old)==\at(x132[x136],Post)) && (\at(x133[x135],Old)==\at(x133[x136],Post))) && ((\at(x132[x136],Old)==\at(x132[x135],Post)) && (\at(x133[x136],Old)==\at(x133[x135],Post)))) && (\forall int  x209; (((((0<=x209) && (x209<x134)) && (x209!=x135)) && (x209!=x136)) ==> ((\at(x132[x209],Old)==\at(x132[x209],Post)) && (\at(x133[x209],Old)==\at(x133[x209],Post))))))) && __Int_Int___Permut{Old,Post}(x132,x133,x134)) && (\forall int  x239; (\forall int  x240; (((((0<=x239) && (x239<x134)) && (0<=x240)) && (x240<x134)) ==> \separated(x132+x239,x133+x240)))));
+assigns x132[(0..x134-1)], x133[(0..x134-1)];
 */
-void inswap___Int_Int__(int  * x165, int  * x166, int  x167, int  x168, int  x169) {
-  int x172 = x165[x168];
-  int x173 = x166[x168];
-  int x174 = x165[x169];
-  int x175 = x166[x169];
-  x165[x168] = x174;
-  x166[x168] = x175;
-  x165[x169] = x172;
-  x166[x169] = x173;
+void inswap___Int_Int__(int  * x132, int  * x133, int  x134, int  x135, int  x136) {
+  int x139 = x132[x135];
+  int x140 = x133[x135];
+  int x141 = x132[x136];
+  int x142 = x133[x136];
+  x132[x135] = x141;
+  x133[x135] = x142;
+  x132[x136] = x139;
+  x133[x136] = x140;
 }
 /*@
-requires (inv_vec___Int_Int__(x325,x326,x327) && (\forall int  x601; (\forall int  x602; (((((0<=x601) && (x601<x327)) && (0<=x602)) && (x602<x327)) ==> \separated(x325+x601,x326+x602)))));
-ensures ((inv_vec___Int_Int__(x325,x326,x327) && (\forall int  x622; (\forall int  x623; (((((0<=x622) && (x622<x327)) && (0<=x623)) && (x623<x327)) ==> \separated(x325+x622,x326+x623))))) && ((\forall int  x642; (((0<=x642) && (x642<(x327-1))) ==> ((x325[x642]<x325[(x642+1)]) || ((x325[x642]==x325[(x642+1)]) && (x326[x642]<=x326[(x642+1)]))))) && __Int_Int___Permut{Old,Post}(x325,x326,x327)));
-assigns x325[(0..x327-1)], x326[(0..x327-1)];
+requires (inv_vec___Int_Int__(x259,x260,x261) && (\forall int  x535; (\forall int  x536; (((((0<=x535) && (x535<x261)) && (0<=x536)) && (x536<x261)) ==> \separated(x259+x535,x260+x536)))));
+ensures ((inv_vec___Int_Int__(x259,x260,x261) && (\forall int  x556; (\forall int  x557; (((((0<=x556) && (x556<x261)) && (0<=x557)) && (x557<x261)) ==> \separated(x259+x556,x260+x557))))) && ((\forall int  x576; (((0<=x576) && (x576<(x261-1))) ==> ((x259[x576]<x259[(x576+1)]) || ((x259[x576]==x259[(x576+1)]) && (x260[x576]<=x260[(x576+1)]))))) && __Int_Int___Permut{Old,Post}(x259,x260,x261)));
+assigns x259[(0..x261-1)], x260[(0..x261-1)];
 */
-void insort_pairs(int  * x325, int  * x326, int  x327) {
-  int x330 = x327 - 1;
+void insort_pairs(int  * x259, int  * x260, int  x261) {
+  int x264 = x261 - 1;
   /*@
-  loop invariant (x332==0 && x330==-1) || (0<=x332<=x330);
-  loop invariant (\forall int  x338; (((0<=x338) && (x338<x332)) ==> ((x325[x338]<x325[(x338+1)]) || ((x325[x338]==x325[(x338+1)]) && (x326[x338]<=x326[(x338+1)])))));
-  loop invariant ((x332>0) ==> (\forall int  x359; (((x332<=x359) && (x359<x327)) ==> ((x325[(x332-1)]<x325[x359]) || ((x325[(x332-1)]==x325[x359]) && (x326[(x332-1)]<=x326[x359]))))));
-  loop invariant __Int_Int___Permut{Pre,Here}(x325,x326,x327);
-  loop invariant (\forall int  x382; (\forall int  x383; (((((0<=x382) && (x382<x327)) && (0<=x383)) && (x383<x327)) ==> \separated(x325+x382,x326+x383))));
-  loop invariant ((x327==0) || ((x327>0) && (\valid(x325+(0..x327-1)) && \valid(x326+(0..x327-1)))));
-  loop assigns x332, x325[(0..x327-1)], x326[(0..x327-1)];
-  loop variant x330-x332;
+  loop invariant (x266==0 && x264==-1) || (0<=x266<=x264);
+  loop invariant (\forall int  x272; (((0<=x272) && (x272<x266)) ==> ((x259[x272]<x259[(x272+1)]) || ((x259[x272]==x259[(x272+1)]) && (x260[x272]<=x260[(x272+1)])))));
+  loop invariant ((x266>0) ==> (\forall int  x293; (((x266<=x293) && (x293<x261)) ==> ((x259[(x266-1)]<x259[x293]) || ((x259[(x266-1)]==x259[x293]) && (x260[(x266-1)]<=x260[x293]))))));
+  loop invariant __Int_Int___Permut{Pre,Here}(x259,x260,x261);
+  loop invariant (\forall int  x316; (\forall int  x317; (((((0<=x316) && (x316<x261)) && (0<=x317)) && (x317<x261)) ==> \separated(x259+x316,x260+x317))));
+  loop invariant ((x261==0) || ((x261>0) && (\valid(x259+(0..x261-1)) && \valid(x260+(0..x261-1)))));
+  loop assigns x266, x259[(0..x261-1)], x260[(0..x261-1)];
+  loop variant x264-x266;
   */
-  for(int x332=0; x332 < x330; x332++) {
-    int x422 = x332;
-    int x423 = x332 + 1;
+  for(int x266=0; x266 < x264; x266++) {
+    int x356 = x266;
+    int x357 = x266 + 1;
     /*@
-    loop invariant 0<=x425<=x327;
-    loop invariant (\forall int  x426; (((x332<=x426) && (x426<x425)) ==> ((x325[x422]<x325[x426]) || ((x325[x422]==x325[x426]) && (x326[x422]<=x326[x426])))));
-    loop invariant ((x332<=x422) && (x422<x425));
-    loop assigns x425, x422;
-    loop variant x327-x425;
+    loop invariant 0<=x359<=x261;
+    loop invariant (\forall int  x360; (((x266<=x360) && (x360<x359)) ==> ((x259[x356]<x259[x360]) || ((x259[x356]==x259[x360]) && (x260[x356]<=x260[x360])))));
+    loop invariant ((x266<=x356) && (x356<x359));
+    loop assigns x359, x356;
+    loop variant x261-x359;
     */
-    for(int x425=x423; x425 < x327; x425++) {
-      int x453 = x325[x425];
-      int x454 = x326[x425];
-      int x455 = x422;
-      int x456 = x325[x455];
-      int x457 = x326[x455];
-      int x458 = x453 < x456;
-      int x459 = x453 == x456;
-      int x461;
-      if (x459) {
-        int x460 = x454 <= x457;
-        x461 = x460;
+    for(int x359=x357; x359 < x261; x359++) {
+      int x387 = x259[x359];
+      int x388 = x260[x359];
+      int x389 = x356;
+      int x390 = x259[x389];
+      int x391 = x260[x389];
+      int x392 = x387 < x390;
+      int x393 = x387 == x390;
+      int x395;
+      if (x393) {
+        int x394 = x388 <= x391;
+        x395 = x394;
       } else {
-        x461 = 0/*false*/;
+        x395 = 0/*false*/;
       }
-      int x462 = x458 || x461;
-      if (x462) {
-        x422 = x425;
+      int x396 = x392 || x395;
+      if (x396) {
+        x356 = x359;
       } else {
-        //@assert ((x325[x422]<x325[x425]) || ((x325[x422]==x325[x425]) && (x326[x422]<=x326[x425])));
+        //@assert ((x259[x356]<x259[x359]) || ((x259[x356]==x259[x359]) && (x260[x356]<=x260[x359])));
       }
     }
-    //@assert ((x325[x422]<x325[(x332+1)]) || ((x325[x422]==x325[(x332+1)]) && (x326[x422]<=x326[(x332+1)])));
-    int x496 = x422;
-    inswap___Int_Int__(x325,x326,x327,x332,x496);
-    //@assert (\forall int  x499; (((0<=x499) && (x499<(x332-1))) ==> ((x325[x499]<x325[(x499+1)]) || ((x325[x499]==x325[(x499+1)]) && (x326[x499]<=x326[(x499+1)])))));
-    //@assert (\forall int  x520; (((0<=x520) && (x520<x332)) ==> ((x325[x520]<x325[(x520+1)]) || ((x325[x520]==x325[(x520+1)]) && (x326[x520]<=x326[(x520+1)])))));
-    //@assert ((x325[x332]<x325[(x332+1)]) || ((x325[x332]==x325[(x332+1)]) && (x326[x332]<=x326[(x332+1)])));
-    //@assert (\forall int  x555; (((0<=x555) && (x555<(x332+1))) ==> ((x325[x555]<x325[(x555+1)]) || ((x325[x555]==x325[(x555+1)]) && (x326[x555]<=x326[(x555+1)])))));
-    //@assert (\forall int  x577; ((((x332+1)<=x577) && (x577<x327)) ==> ((x325[x332]<x325[x577]) || ((x325[x332]==x325[x577]) && (x326[x332]<=x326[x577])))));
+    //@assert ((x259[x356]<x259[(x266+1)]) || ((x259[x356]==x259[(x266+1)]) && (x260[x356]<=x260[(x266+1)])));
+    int x430 = x356;
+    inswap___Int_Int__(x259,x260,x261,x266,x430);
+    //@assert (\forall int  x433; (((0<=x433) && (x433<(x266-1))) ==> ((x259[x433]<x259[(x433+1)]) || ((x259[x433]==x259[(x433+1)]) && (x260[x433]<=x260[(x433+1)])))));
+    //@assert (\forall int  x454; (((0<=x454) && (x454<x266)) ==> ((x259[x454]<x259[(x454+1)]) || ((x259[x454]==x259[(x454+1)]) && (x260[x454]<=x260[(x454+1)])))));
+    //@assert ((x259[x266]<x259[(x266+1)]) || ((x259[x266]==x259[(x266+1)]) && (x260[x266]<=x260[(x266+1)])));
+    //@assert (\forall int  x489; (((0<=x489) && (x489<(x266+1))) ==> ((x259[x489]<x259[(x489+1)]) || ((x259[x489]==x259[(x489+1)]) && (x260[x489]<=x260[(x489+1)])))));
+    //@assert (\forall int  x511; ((((x266+1)<=x511) && (x511<x261)) ==> ((x259[x266]<x259[x511]) || ((x259[x266]==x259[x511]) && (x260[x266]<=x260[x511])))));
   }
 }
