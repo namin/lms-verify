@@ -502,6 +502,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
       case Const(false) => "0/*false*/"
       case Const(null) => "0/*null*/"
       case Const(c: Char) if c==0.toChar => "'\\0'"
+      case Const(c: Char) if c=='\r' => "'\\r'"
       case Const(s: String) =>
         // undo CCodegen
         super.quote(x).stripPrefix("string(").stripSuffix(")")

@@ -5,7 +5,7 @@
 #include <string.h>
 #include <sys/time.h>
 
-static const char original_data[] =
+static char data[] =
   "HTTP/1.1 301 Moved Permanently\r\n"
   "Location: http://www.google.com/\r\n"
   "Content-Type: text/html; charset=UTF-8\r\n"
@@ -23,28 +23,7 @@ static const char original_data[] =
   "<A HREF=\"http://www.google.com/\">here</A>.\r\n"
   "</BODY></HTML>\r\n";
 
-// TODO: don't miss the \r's
-// TODO: allow more chars in header name field, all but ':' and spaces?
-// TODO: should we be more relaxed about Content-Length?
-static char data[] =
-  "HTTP/1.1 301 Moved Permanently\n"
-  "Location: http://www.google.com/\n"
-  "Content-Type: text/html; charset=UTF-8\n"
-  "Date: Sun, 26 Apr 2009 11:11:49 GMT\n"
-  "Expires: Tue, 26 May 2009 11:11:49 GMT\n"
-  //"X-$PrototypeBI-Version: 1.6.0.3\n" /* $ char in header field */
-  "Cache-Control: public, max-age=2592000\n"
-  "Server: gws\n"
-  "Content-Length:  216  \n"
-  "\n"
-  "<HTML><HEAD><meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n" // 79
-  "<TITLE>301 Moved</TITLE></HEAD><BODY>\n" // 38
-  "<H1>301 Moved</H1>\n" // 18
-  "The document has moved\n" // 23
-  "<A HREF=\"http://www.google.com/\">here</A>.\n" // 43
-  "</BODY></HTML>\n"; // 15-1
-
-static const size_t data_len = 216;
+static const size_t data_len = 219;
 
 int bench(int iter_count, int silent) {
   int i;

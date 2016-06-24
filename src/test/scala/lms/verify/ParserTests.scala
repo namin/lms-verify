@@ -308,8 +308,8 @@ trait HttpParser extends StagedParser {  import Parser._
   def ignoredNat: Parser[Unit] = acceptNat
 
   def anyChar: Parser[Char] = acceptIf(c => true)
-  def wildChar: Parser[Char] = acceptIf(c => c != '\n')
-  def acceptNewline: Parser[Unit] = accept('\n') ^^^ unit(())
+  def wildChar: Parser[Char] = acceptIf(c => c != '\r')
+  def acceptNewline: Parser[Unit] = accept("\r\n") ^^^ unit(())
   def acceptLine: Parser[Unit] = repUnit(wildChar) ~> acceptNewline
   def whitespaces: Parser[Unit] = repUnit(accept(' '))
 
@@ -322,7 +322,8 @@ trait HttpParser extends StagedParser {  import Parser._
   val OTHER_HEADER = 0
   def headerName: Parser[Int] =
     ((for ((h,i) <- headerMap) yield (accept(h) ^^^ i)).reduce(_ | _)) |
-    (repUnit(letter | accept('-')) ^^^ OTHER_HEADER)
+    //(repUnit(letter | accept('-') | accept('$')) ^^^ OTHER_HEADER)
+    (repUnit(acceptIf{c => c != ':' && c != ' '}) ^^^ OTHER_HEADER)
 
   val NO_VALUE = -2
   def headerValue(h: Rep[Int]) =
@@ -337,7 +338,7 @@ trait HttpParser extends StagedParser {  import Parser._
 
   def acceptBody(n: Rep[Int]): Parser[Int] =
     if (n<0) Parser[Int] { input => ParseResultCPS.Failure(input) }
-    else (repN(anyChar, n) ^^^ n) <~ acceptNewline
+    else (repN(anyChar, n) ^^^ n)// <~ acceptNewline
 
   def http: Parser[Int] =
     (status ~> headers <~ acceptNewline) >> acceptBody
