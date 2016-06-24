@@ -99,19 +99,6 @@ trait DataOps extends Dsl { self =>
       o.eq(a, b)
     }
   }
-  implicit class ShallowEqOps[T:Iso](a: T) {
-    def shallow_equal(b: T): Rep[Boolean] = {
-      val iso = implicitly[Iso[T]]
-      val xa = iso.toRepList(a)
-      val xb = iso.toRepList(b)
-      and_list(((xa zip xb) zip (iso.memList zip iso.typList)).map{case ((pa,pb),(m,t)) =>
-        implicit val t1 = t.asInstanceOf[Typ[m.T]]
-        val pa1 = pa.asInstanceOf[Rep[m.T]]
-        val pb1 = pb.asInstanceOf[Rep[m.T]]
-        __equal(pa1,pb1)
-      })
-    }
-  }
 
   implicit def isodata[A:Inv,B:Iso](id0: String, ab: A => B, ba: B => A): Iso[A] = new Iso[A] {
     val ib = implicitly[Iso[B]]
