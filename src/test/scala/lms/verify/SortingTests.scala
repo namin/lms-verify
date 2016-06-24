@@ -206,4 +206,27 @@ class SortingTests extends TestSuite {
     }
     check("5", (new Srt5 with Impl).code)
   }
+
+  test("6") {
+    trait Srt6 extends Sorting {
+      implicit def o = ord[Vec[Vec[Rep[Int]]]]({ (a: Vec[Vec[Rep[Int]]], b: Vec[Vec[Rep[Int]]]) =>
+        (a.length <= b.length)
+      }, "vv")
+      val s = insort[Vec[Vec[Rep[Int]]]]
+    }
+    // TODO: inswap postcondition does not verify.
+    //check("6", (new Srt6 with Impl).code)
+  }
+
+  test("7") {
+    trait Srt7 extends Sorting {
+      type TL = Vec[Vec[Vec[Vec[Vec[Rep[Int]]]]]]
+      implicit def o = ord[TL]({ (a: TL, b: TL) =>
+        (a.length <= b.length)
+      }, "vvvvv")
+      val s = insort[TL]
+    }
+    // TODO: ditto
+    //check("7", (new Srt7 with Impl).code)
+  }
 }
