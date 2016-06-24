@@ -57,11 +57,18 @@ class SortingTests extends TestSuite {
     }
     def Swapped[T:Iso:Eq](ls: (Lc,Lc))(a: Vec[T], i: Rep[Int], j: Rep[Int]) = {
       val (l1, l2) = ls
-      ((at(a(i),l1)) deep_equal (at(a(j),l2))) &&
-      ((at(a(j),l1)) deep_equal (at(a(i),l2))) &&
+      // NOTE: work-around for nested vectors
+      // since deep_equal might do reads, we need to tell frama-c
+      // which state to use for those, because inductive definitions
+      // do not have the default state Here
+      // it should not matter, since we are not modifying elements (parametricity)
+      // still, maybe deep equality is not the right concept here?
+      def w(x: => Rep[Boolean]) = at(x, l1) && at(x, l2)
+      w((at(a(i),l1)) deep_equal (at(a(j),l2))) &&
+      w((at(a(j),l1)) deep_equal (at(a(i),l2))) &&
       forall{k: Rep[Int] =>
         (0 <= k && k < a.length && k != i && k != j) ==>
-        ((at(a(k),l1)) deep_equal (at(a(k),l2)))}
+        w((at(a(k),l1)) deep_equal (at(a(k),l2)))}
     }
     def permut[T:Iso:Eq] = inductive[(Lc,Lc),Vec[T]](
       implicitly[Iso[T]].id+"_Permut", { p =>
@@ -127,6 +134,7 @@ class SortingTests extends TestSuite {
           loop_invariant((i > 0) ==> a.slice(i,n).forall(a(i-1) cmp _))
           loop_invariant(Permut(("Pre","Here"))(a))
           loop_invariant(a.separated)
+          loop_invariant(a.check)
           var jmin = i
           for (j <- (i+1) until n) {
             loop_invariant(a.slice(i,j).forall(a(jmin) cmp _))
@@ -187,5 +195,15 @@ class SortingTests extends TestSuite {
       val s = insort[(Rep[Int],Rep[Int])]
     }
     check("4", (new Srt4 with Impl).code)
+  }
+
+  test("5") {
+    trait Srt5 extends Sorting {
+      implicit def o = ord[Vec[Rep[Int]]]({ (a: Vec[Rep[Int]], b: Vec[Rep[Int]]) =>
+        (a.length <= b.length)
+      }, "vecs")
+      val s = insort[Vec[Rep[Int]]]
+    }
+    check("5", (new Srt5 with Impl).code)
   }
 }
