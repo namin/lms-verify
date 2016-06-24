@@ -309,7 +309,7 @@ trait HttpParser extends StagedParser {  import Parser._
 
   def anyChar: Parser[Char] = acceptIf(c => true)
   def wildChar: Parser[Char] = acceptIf(c => c != '\r')
-  def acceptNewline: Parser[Unit] = accept("\r\n") ^^^ unit(())
+  def acceptNewline: Parser[Unit] = accept("\r\n".toList) ^^^ unit(())
   def acceptLine: Parser[Unit] = repUnit(wildChar) ~> acceptNewline
   def whitespaces: Parser[Unit] = repUnit(accept(' '))
 
