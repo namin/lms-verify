@@ -52,6 +52,9 @@ int bench(int iter_count, int silent) {
   struct timeval start;
   struct timeval end;
   float rps;
+  size_t data_size = sizeof(data)-1;
+  int noise_index = data_size-20;
+  char noise_val = '0';
 
   if (!silent) {
     err = gettimeofday(&start, NULL);
@@ -60,6 +63,8 @@ int bench(int iter_count, int silent) {
 
   for (i = 0; i < iter_count; i++) {
     size_t parsed;
+
+    data[noise_index] = noise_val; // force computation in the loop
 
     parsed = p(data);
     assert(parsed == data_len);
