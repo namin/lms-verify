@@ -140,6 +140,12 @@ class SortingTests extends TestSuite {
         a.reflectMutable
         val p = a.a
         val n = a.length
+        // TODO: add blame on cmp
+        // TODO: quantify over any elements, not indices --
+        //       first requires implementing forall construct on Iso vs Rep.
+        _assert{(0 until n).forall{i => (0 until n).forall{j => (0 until n).forall{k =>
+          ((a(i) cmp a(j)) && (a(j) cmp a(k))) ==> (a(i) cmp a(k))
+        }}}}
         ensures{result: Rep[Unit] => Sorted(a) && Permut(("Old","Post"))(a)}
         for (i <- 0 until (n-1)) {
           loop_assigns(list_new(i::p.within(0 until n))) // TODO: infer?

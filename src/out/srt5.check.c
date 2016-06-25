@@ -57,52 +57,53 @@ void inswap_vec_Int(int  * * x197, int  * x198, int  x199, int  x200, int  x201)
   x198[x201] = x205;
 }
 /*@
-requires (inv_vec_vec_Int(x357,x358,x359) && (\forall int  x582; (\forall int  x583; (((((0<=x582) && (x582<x359)) && (0<=x583)) && (x583<x359)) ==> \separated(x357+x582,x358+x583)))));
-ensures ((inv_vec_vec_Int(x357,x358,x359) && (\forall int  x603; (\forall int  x604; (((((0<=x603) && (x603<x359)) && (0<=x604)) && (x604<x359)) ==> \separated(x357+x603,x358+x604))))) && ((\forall int  x623; (((0<=x623) && (x623<(x359-1))) ==> (x358[x623]<=x358[(x623+1)]))) && vec_Int_Permut{Old,Post}(x357,x358,x359)));
+requires (inv_vec_vec_Int(x357,x358,x359) && (\forall int  x770; (\forall int  x771; (((((0<=x770) && (x770<x359)) && (0<=x771)) && (x771<x359)) ==> \separated(x357+x770,x358+x771)))));
+ensures ((inv_vec_vec_Int(x357,x358,x359) && (\forall int  x791; (\forall int  x792; (((((0<=x791) && (x791<x359)) && (0<=x792)) && (x792<x359)) ==> \separated(x357+x791,x358+x792))))) && ((\forall int  x811; (((0<=x811) && (x811<(x359-1))) ==> (x358[x811]<=x358[(x811+1)]))) && vec_Int_Permut{Old,Post}(x357,x358,x359)));
 assigns x357[(0..x359-1)], x358[(0..x359-1)];
 */
 void insort_vecs(int  * * x357, int  * x358, int  x359) {
-  int x362 = x359 - 1;
+  //@assert (\forall int x363; (0<=x363<x359) ==> (\forall int x366; (0<=x366<x359) ==> (\forall int x369; (0<=x369<x359) ==> (((x358[x363]<=x358[x366]) && (x358[x366]<=x358[x369])) ==> (x358[x363]<=x358[x369])))));
+  int x550 = x359 - 1;
   /*@
-  loop invariant (x364==0 && x362==-1) || (0<=x364<=x362);
-  loop invariant (\forall int  x370; (((0<=x370) && (x370<x364)) ==> (x358[x370]<=x358[(x370+1)])));
-  loop invariant ((x364>0) ==> (\forall int  x386; (((x364<=x386) && (x386<x359)) ==> (x358[(x364-1)]<=x358[x386]))));
+  loop invariant (x552==0 && x550==-1) || (0<=x552<=x550);
+  loop invariant (\forall int  x558; (((0<=x558) && (x558<x552)) ==> (x358[x558]<=x358[(x558+1)])));
+  loop invariant ((x552>0) ==> (\forall int  x574; (((x552<=x574) && (x574<x359)) ==> (x358[(x552-1)]<=x358[x574]))));
   loop invariant vec_Int_Permut{Pre,Here}(x357,x358,x359);
-  loop invariant (\forall int  x404; (\forall int  x405; (((((0<=x404) && (x404<x359)) && (0<=x405)) && (x405<x359)) ==> \separated(x357+x404,x358+x405))));
-  loop invariant (((x359==0) || ((x359>0) && (\valid(x357+(0..x359-1)) && \valid(x358+(0..x359-1))))) && (\forall int x433; (0<=x433<x359) ==> inv_vec_Int(x357[x433],x358[x433])));
-  loop assigns x364, x357[(0..x359-1)], x358[(0..x359-1)];
-  loop variant x362-x364;
+  loop invariant (\forall int  x592; (\forall int  x593; (((((0<=x592) && (x592<x359)) && (0<=x593)) && (x593<x359)) ==> \separated(x357+x592,x358+x593))));
+  loop invariant (((x359==0) || ((x359>0) && (\valid(x357+(0..x359-1)) && \valid(x358+(0..x359-1))))) && (\forall int x621; (0<=x621<x359) ==> inv_vec_Int(x357[x621],x358[x621])));
+  loop assigns x552, x357[(0..x359-1)], x358[(0..x359-1)];
+  loop variant x550-x552;
   */
-  for(int x364=0; x364 < x362; x364++) {
-    int x447 = x364;
-    int x448 = x364 + 1;
+  for(int x552=0; x552 < x550; x552++) {
+    int x635 = x552;
+    int x636 = x552 + 1;
     /*@
-    loop invariant 0<=x450<=x359;
-    loop invariant (\forall int  x451; (((x364<=x451) && (x451<x450)) ==> (x358[x447]<=x358[x451])));
-    loop invariant ((x364<=x447) && (x447<x450));
-    loop assigns x450, x447;
-    loop variant x359-x450;
+    loop invariant 0<=x638<=x359;
+    loop invariant (\forall int  x639; (((x552<=x639) && (x639<x638)) ==> (x358[x635]<=x358[x639])));
+    loop invariant ((x552<=x635) && (x635<x638));
+    loop assigns x638, x635;
+    loop variant x359-x638;
     */
-    for(int x450=x448; x450 < x359; x450++) {
-      int  *x473 = x357[x450];
-      int x474 = x358[x450];
-      int x475 = x447;
-      int  *x476 = x357[x475];
-      int x477 = x358[x475];
-      int x478 = x474 <= x477;
-      if (x478) {
-        x447 = x450;
+    for(int x638=x636; x638 < x359; x638++) {
+      int  *x661 = x357[x638];
+      int x662 = x358[x638];
+      int x663 = x635;
+      int  *x664 = x357[x663];
+      int x665 = x358[x663];
+      int x666 = x662 <= x665;
+      if (x666) {
+        x635 = x638;
       } else {
-        //@assert (x358[x447]<=x358[x450]);
+        //@assert (x358[x635]<=x358[x638]);
       }
     }
-    //@assert (x358[x447]<=x358[(x364+1)]);
-    int x502 = x447;
-    inswap_vec_Int(x357,x358,x359,x364,x502);
-    //@assert (\forall int  x505; (((0<=x505) && (x505<(x364-1))) ==> (x358[x505]<=x358[(x505+1)])));
-    //@assert (\forall int  x521; (((0<=x521) && (x521<x364)) ==> (x358[x521]<=x358[(x521+1)])));
-    //@assert (x358[x364]<=x358[(x364+1)]);
-    //@assert (\forall int  x546; (((0<=x546) && (x546<(x364+1))) ==> (x358[x546]<=x358[(x546+1)])));
-    //@assert (\forall int  x563; ((((x364+1)<=x563) && (x563<x359)) ==> (x358[x364]<=x358[x563])));
+    //@assert (x358[x635]<=x358[(x552+1)]);
+    int x690 = x635;
+    inswap_vec_Int(x357,x358,x359,x552,x690);
+    //@assert (\forall int  x693; (((0<=x693) && (x693<(x552-1))) ==> (x358[x693]<=x358[(x693+1)])));
+    //@assert (\forall int  x709; (((0<=x709) && (x709<x552)) ==> (x358[x709]<=x358[(x709+1)])));
+    //@assert (x358[x552]<=x358[(x552+1)]);
+    //@assert (\forall int  x734; (((0<=x734) && (x734<(x552+1))) ==> (x358[x734]<=x358[(x734+1)])));
+    //@assert (\forall int  x751; ((((x552+1)<=x751) && (x751<x359)) ==> (x358[x552]<=x358[x751])));
   }
 }
