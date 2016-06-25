@@ -1,6 +1,6 @@
 #include <limits.h>
-//@ predicate inv_vec_Int(int  * x0, int  x1) = ((x1==0) || ((x1>0) && \valid(x0+(0..x1-1))));
-//@ predicate eq_vec_Int(int  * x16, int  x17, int  * x18, int  x19) = ((x17==x19) && (\forall int x23; (0<=x23<x17) ==> (x16[x23]==x18[x23])));
+/*@ predicate inv_vec_Int(int  * x0, int  x1) = ((x1==0) || ((x1>0) && \valid(x0+(0..x1-1))));*/
+/*@ predicate eq_vec_Int(int  * x16, int  x17, int  * x18, int  x19) = ((x17==x19) && (\forall int x23; (0<=x23<x17) ==> (x16[x23]==x18[x23])));*/
 /*@
 requires (inv_vec_Int(x16,x17) && inv_vec_Int(x18,x19));
 assigns \nothing;
@@ -28,8 +28,9 @@ int eq_vec_Int(int  * x16, int  x17, int  * x18, int  x19) {
   }
   return x33;
 }
-//@ predicate inv_vec_vec_Int(int  * * x37, int  * x38, int  x39) = (((x39==0) || ((x39>0) && (\valid(x37+(0..x39-1)) && \valid(x38+(0..x39-1))))) && (\forall int x49; (0<=x49<x39) ==> inv_vec_Int(x37[x49],x38[x49])));
-//@ predicate eq_vec_vec_Int(int  * * x61, int  * x62, int  x63, int  * * x64, int  * x65, int  x66) = ((x63==x66) && (\forall int x70; (0<=x70<x63) ==> eq_vec_Int(x61[x70],x62[x70],x64[x70],x65[x70])));
+/*@ predicate inv_vec_vec_Int(int  * * x37, int  * x38, int  x39) = (((x39==0) || ((x39>0) && (\valid(x37+(0..x39-1)) &&
+\valid(x38+(0..x39-1))))) && (\forall int x49; (0<=x49<x39) ==> inv_vec_Int(x37[x49],x38[x49])));*/
+/*@ predicate eq_vec_vec_Int(int  * * x61, int  * x62, int  x63, int  * * x64, int  * x65, int  x66) = ((x63==x66) && (\forall int x70; (0<=x70<x63) ==> eq_vec_Int(x61[x70],x62[x70],x64[x70],x65[x70])));*/
 /*@
 requires (inv_vec_vec_Int(x61,x62,x63) && inv_vec_vec_Int(x64,x65,x66));
 assigns \nothing;

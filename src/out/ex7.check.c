@@ -2,7 +2,8 @@
 /*@
 requires ((x1>0) && \valid(x0+(0..x1-1)));
 assigns \nothing;
-ensures (((\result==-1) ==> (!(\exists int  x69; (((0<=x69) && (x69<x1)) && (x0[x69]==x2))))) && ((\result!=-1) ==> (((0<=\result) && (\result<x1)) && (x0[\result]==x2))));
+ensures (((\result==-1) ==> (!(\exists int  x69; (((0<=x69) && (x69<x1)) && (x0[x69]==x2))))) &&
+((\result!=-1) ==> (((0<=\result) && (\result<x1)) && (x0[\result]==x2))));
 */
 int member(int  * x0, int  x1, int  x2) {
   int x4 = -1;

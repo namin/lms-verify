@@ -552,11 +552,11 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
 
     val default_m =  Map[Sym[_], String]()
     val emitted = new scala.collection.mutable.LinkedHashSet[Sym[_]]
-    def exprOfBlock[A](kw: String, e: Block[A], m: Map[Sym[_], String] = Map()): String = {
+    def exprOfBlock[A](kw: String, e: Block[A], m: Map[Sym[_], String] = Map(), end:String = ""): String = {
       val r = exprOfBlock(e, m)
       r match {
         case "\\true" => ""
-        case _ => kw + " " + r + ";"
+        case _ => kw + " " + r + ";" + end
       }
     }
     def exprOfBlock[A](e: Block[A], m: Map[Sym[_], String]): String =
@@ -584,7 +584,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
       case OrderingGT(a, b) => "("+exprOf(a, m)+">"+exprOf(b, m)+")"
       case OrderingLTEQ(a, b) => "("+exprOf(a, m)+"<="+exprOf(b, m)+")"
       case OrderingLT(a, b) => "("+exprOf(a, m)+"<"+exprOf(b, m)+")"
-      case BooleanAnd(a, b) => "("+exprOf(a, m)+" && "+exprOf(b, m)+")"
+      case BooleanAnd(a, b) => "("+exprOf(a, m)+" &&\n"+exprOf(b, m)+")"
       case IfThenElse(a, Block(Const(true)), Block(Const(false))) => exprOf(a, m)
       case IfThenElse(a, Block(Def(Reify(Const(true), _, _))), Block(Const(false))) => exprOf(a, m)
       case IfThenElse(a, b, Block(Const(false))) => "("+exprOf(a, m)+" && "+exprOfBlock(b, m)+")"
@@ -642,7 +642,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
       })
       rhs match {
         case ToplevelApply(name, args) => emitValDef(sym, name+args.map(quote).mkString("(", ",", ")"))
-        case Assert(y) => stream.println(exprOfBlock("//@assert", y))
+        case Assert(y) => stream.println(exprOfBlock("/*@assert", y, end="*/"))
         case ArrayApply(x,n) => emitValDef(sym, quote(x) + "[" + quote(n) + "]")
         case ArrayUpdate(x,n,y) => stream.println(quote(x) + "[" + quote(n) + "] = " + quote(y) + ";")
         // TODO: the LMS C codegen should be updated to use emitAssignment instead
@@ -765,7 +765,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
       withStream(out) {
         if (spec) {
           if (!indcase)
-            stream.println("//@ predicate "+sig+" = "+exprOfBlock[B](body, default_m)+";")
+            stream.println("/*@ predicate "+sig+" = "+exprOfBlock[B](body, default_m)+";*/")
           else {
             stream.println(s"case $functionName:")
             if (args.nonEmpty) stream.print(s"\\forall $sig_args; ")

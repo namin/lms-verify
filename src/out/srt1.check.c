@@ -1,5 +1,5 @@
 #include <limits.h>
-//@ predicate inv_vec_Int(int  * x0, int  x1) = ((x1==0) || ((x1>0) && \valid(x0+(0..x1-1))));
+/*@ predicate inv_vec_Int(int  * x0, int  x1) = ((x1==0) || ((x1>0) && \valid(x0+(0..x1-1))));*/
 /*@
 inductive Int_Permut{L1,L2}(int  * x16, integer  x17) {
   case Int_Permut_refl{L}:
@@ -13,8 +13,11 @@ inductive Int_Permut{L1,L2}(int  * x16, integer  x17) {
 }
 */
 /*@
-requires (inv_vec_Int(x123,x124) && ((((0<=x125) && (x125<x124)) && (0<=x126)) && (x126<x124)));
-ensures ((inv_vec_Int(x123,x124) && (((\at((\at(x123[x125],Old)==\at(x123[x126],Post)),Old) && \at((\at(x123[x125],Old)==\at(x123[x126],Post)),Post)) && (\at((\at(x123[x126],Old)==\at(x123[x125],Post)),Old) && \at((\at(x123[x126],Old)==\at(x123[x125],Post)),Post))) && (\forall int  x182; (((((0<=x182) && (x182<x124)) && (x182!=x125)) && (x182!=x126)) ==> (\at((\at(x123[x182],Old)==\at(x123[x182],Post)),Old) && \at((\at(x123[x182],Old)==\at(x123[x182],Post)),Post)))))) && Int_Permut{Old,Post}(x123,x124));
+requires (inv_vec_Int(x123,x124) &&
+((((0<=x125) && (x125<x124)) && (0<=x126)) && (x126<x124)));
+ensures ((inv_vec_Int(x123,x124) &&
+(((\at((\at(x123[x125],Old)==\at(x123[x126],Post)),Old) && \at((\at(x123[x125],Old)==\at(x123[x126],Post)),Post)) && (\at((\at(x123[x126],Old)==\at(x123[x125],Post)),Old) && \at((\at(x123[x126],Old)==\at(x123[x125],Post)),Post))) && (\forall int  x182; (((((0<=x182) && (x182<x124)) && (x182!=x125)) && (x182!=x126)) ==> (\at((\at(x123[x182],Old)==\at(x123[x182],Post)),Old) && \at((\at(x123[x182],Old)==\at(x123[x182],Post)),Post)))))) &&
+Int_Permut{Old,Post}(x123,x124));
 assigns x123[(0..x124-1)];
 */
 void inswap_Int(int  * x123, int  x124, int  x125, int  x126) {
@@ -25,11 +28,12 @@ void inswap_Int(int  * x123, int  x124, int  x125, int  x126) {
 }
 /*@
 requires inv_vec_Int(x216,x217);
-ensures (inv_vec_Int(x216,x217) && ((\forall int  x534; (((0<=x534) && (x534<(x217-1))) ==> (x216[x534]<=x216[(x534+1)]))) && Int_Permut{Old,Post}(x216,x217)));
+ensures (inv_vec_Int(x216,x217) &&
+((\forall int  x534; (((0<=x534) && (x534<(x217-1))) ==> (x216[x534]<=x216[(x534+1)]))) && Int_Permut{Old,Post}(x216,x217)));
 assigns x216[(0..x217-1)];
 */
 void insort(int  * x216, int  x217) {
-  //@assert (\forall int x221; (0<=x221<x217) ==> (\forall int x224; (0<=x224<x217) ==> (\forall int x227; (0<=x227<x217) ==> (((x216[x221]<=x216[x224]) && (x216[x224]<=x216[x227])) ==> (x216[x221]<=x216[x227])))));
+  /*@assert (\forall int x221; (0<=x221<x217) ==> (\forall int x224; (0<=x224<x217) ==> (\forall int x227; (0<=x227<x217) ==> (((x216[x221]<=x216[x224]) && (x216[x224]<=x216[x227])) ==> (x216[x221]<=x216[x227])))));*/
   int x360 = x217 - 1;
   /*@
   loop invariant (x362==0 && x360==-1) || (0<=x362<=x360);
@@ -58,16 +62,16 @@ void insort(int  * x216, int  x217) {
       if (x441) {
         x414 = x417;
       } else {
-        //@assert (x216[x414]<=x216[x417]);
+        /*@assert (x216[x414]<=x216[x417]);*/
       }
     }
-    //@assert (x216[x414]<=x216[(x362+1)]);
+    /*@assert (x216[x414]<=x216[(x362+1)]);*/
     int x461 = x414;
     inswap_Int(x216,x217,x362,x461);
-    //@assert (\forall int  x464; (((0<=x464) && (x464<(x362-1))) ==> (x216[x464]<=x216[(x464+1)])));
-    //@assert (\forall int  x478; (((0<=x478) && (x478<x362)) ==> (x216[x478]<=x216[(x478+1)])));
-    //@assert (x216[x362]<=x216[(x362+1)]);
-    //@assert (\forall int  x499; (((0<=x499) && (x499<(x362+1))) ==> (x216[x499]<=x216[(x499+1)])));
-    //@assert (\forall int  x514; ((((x362+1)<=x514) && (x514<x217)) ==> (x216[x362]<=x216[x514])));
+    /*@assert (\forall int  x464; (((0<=x464) && (x464<(x362-1))) ==> (x216[x464]<=x216[(x464+1)])));*/
+    /*@assert (\forall int  x478; (((0<=x478) && (x478<x362)) ==> (x216[x478]<=x216[(x478+1)])));*/
+    /*@assert (x216[x362]<=x216[(x362+1)]);*/
+    /*@assert (\forall int  x499; (((0<=x499) && (x499<(x362+1))) ==> (x216[x499]<=x216[(x499+1)])));*/
+    /*@assert (\forall int  x514; ((((x362+1)<=x514) && (x514<x217)) ==> (x216[x362]<=x216[x514])));*/
   }
 }
