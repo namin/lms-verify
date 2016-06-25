@@ -1,7 +1,8 @@
 #include <limits.h>
 /*@
 requires \valid(x0+(0..1));
-ensures ((x0[0]==\old(x0[1])) && (x0[1]==\old(x0[0])));
+ensures ((x0[0]==\old(x0[1])) &&
+(x0[1]==\old(x0[0])));
 */
 void array_swap(int  * x0) {
   int x2 = x0[0];

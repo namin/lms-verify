@@ -1,9 +1,11 @@
 #include <limits.h>
 #include <string.h>
 /*@
-requires ((strlen(x0)>=0) && \valid(x0+(0..(strlen(x0)+1)-1)));
+requires ((strlen(x0)>=0) &&
+\valid(x0+(0..(strlen(x0)+1)-1)));
 assigns \nothing;
-ensures ((\result==-1) || ((0<=\result) && (\result<=9)));
+ensures ((\result==-1) || ((0<=\result) &&
+(\result<=9)));
 */
 int p(char  * x0) {
   int x8 = -1;

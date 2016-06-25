@@ -1,14 +1,16 @@
 #include <limits.h>
 #include <string.h>
 /*@
-requires ((strlen(x0)>=0) && \valid(x0+(0..(strlen(x0)+1)-1)));
+requires ((strlen(x0)>=0) &&
+\valid(x0+(0..(strlen(x0)+1)-1)));
 */
 int matcher(char  * x0) {
   int x2 = -1;
   int x3 = 0/*false*/;
   int x7 = strlen(x0);
   /*@
-  loop invariant ((-1<=x2) && (x2<=strlen(x0)));
+  loop invariant ((-1<=x2) &&
+  (x2<=strlen(x0)));
   loop assigns x2, x3;
   loop variant (strlen(x0)-x2);
   */
@@ -85,7 +87,8 @@ int matcher(char  * x0) {
         int x38 = x37;
         int x39 = 0/*false*/;
         /*@
-        loop invariant ((x23<=x24) && (x24<=strlen(x0)));
+        loop invariant ((x23<=x24) &&
+        (x24<=strlen(x0)));
         loop assigns x24, x38, x39;
         loop variant (strlen(x0)-x24);
         */

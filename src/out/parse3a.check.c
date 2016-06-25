@@ -1,7 +1,8 @@
 #include <limits.h>
 #include <string.h>
 /*@
-requires ((strlen(x0)>=0) && \valid(x0+(0..(strlen(x0)+1)-1)));
+requires ((strlen(x0)>=0) &&
+\valid(x0+(0..(strlen(x0)+1)-1)));
 assigns \nothing;
 */
 int p(char  * x0) {
@@ -14,7 +15,8 @@ int p(char  * x0) {
   int x707 = x706 - 10;
   int x926 = -2 == -2;
   /*@
-  loop invariant ((strlen(x3)>=0) && \valid(x3+(0..(strlen(x3)+1)-1)));
+  loop invariant ((strlen(x3)>=0) &&
+  \valid(x3+(0..(strlen(x3)+1)-1)));
   loop assigns x3, x4, x5;
   */
   for (;;) {
@@ -394,7 +396,8 @@ int p(char  * x0) {
       char  *x378 = x8;
       int x379 = 1/*true*/;
       /*@
-      loop invariant ((strlen(x378)>=0) && \valid(x378+(0..(strlen(x378)+1)-1)));
+      loop invariant ((strlen(x378)>=0) &&
+      \valid(x378+(0..(strlen(x378)+1)-1)));
       loop assigns x378, x379;
       */
       for (;;) {
@@ -443,7 +446,8 @@ int p(char  * x0) {
       char  *x439 = x438;
       int x440 = 1/*true*/;
       /*@
-      loop invariant ((strlen(x439)>=0) && \valid(x439+(0..(strlen(x439)+1)-1)));
+      loop invariant ((strlen(x439)>=0) &&
+      \valid(x439+(0..(strlen(x439)+1)-1)));
       loop assigns x439, x440;
       */
       for (;;) {
@@ -516,7 +520,8 @@ int p(char  * x0) {
       char  *x528 = x527;
       int x529 = 1/*true*/;
       /*@
-      loop invariant ((strlen(x528)>=0) && \valid(x528+(0..(strlen(x528)+1)-1)));
+      loop invariant ((strlen(x528)>=0) &&
+      \valid(x528+(0..(strlen(x528)+1)-1)));
       loop assigns x528, x529;
       */
       for (;;) {
@@ -552,7 +557,8 @@ int p(char  * x0) {
       char  *x587 = x579;
       int x588 = 1/*true*/;
       /*@
-      loop invariant ((strlen(x587)>=0) && \valid(x587+(0..(strlen(x587)+1)-1)));
+      loop invariant ((strlen(x587)>=0) &&
+      \valid(x587+(0..(strlen(x587)+1)-1)));
       loop assigns x587, x588;
       */
       for (;;) {
@@ -633,7 +639,9 @@ int p(char  * x0) {
           int x671 = 1/*true*/;
           int x672 = x668;
           /*@
-          loop invariant (((strlen(x670)>=0) && \valid(x670+(0..(strlen(x670)+1)-1))) && ((x672==-1) || (0<=x672)));
+          loop invariant (((strlen(x670)>=0) &&
+          \valid(x670+(0..(strlen(x670)+1)-1))) &&
+          ((x672==-1) || (0<=x672)));
           loop assigns x670, x671, x672;
           */
           for (;;) {
@@ -710,7 +718,8 @@ int p(char  * x0) {
           char  *x753 = x752;
           int x754 = 1/*true*/;
           /*@
-          loop invariant ((strlen(x753)>=0) && \valid(x753+(0..(strlen(x753)+1)-1)));
+          loop invariant ((strlen(x753)>=0) &&
+          \valid(x753+(0..(strlen(x753)+1)-1)));
           loop assigns x753, x754;
           */
           for (;;) {

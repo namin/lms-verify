@@ -1,5 +1,6 @@
 #include <limits.h>
-/*@ predicate inv_vec_Int(int  * x0, int  x1) = ((x1==0) || ((x1>0) && \valid(x0+(0..x1-1))));*/
+/*@ predicate inv_vec_Int(int  * x0, int  x1) = ((x1==0) || ((x1>0) &&
+\valid(x0+(0..x1-1))));*/
 /*@
 requires inv_vec_Int(x16,x17);
 assigns \nothing;

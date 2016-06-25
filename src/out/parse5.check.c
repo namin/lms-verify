@@ -6,7 +6,8 @@ char  * p_TransferEncoding(char  * x1641);
 char  * p_ContentLength(char  * x1643);
 char  * p_HTTP(char  * x1645);
 /*@
-requires ((strlen(x0)>=0) && \valid(x0+(0..(strlen(x0)+1)-1)));
+requires ((strlen(x0)>=0) &&
+\valid(x0+(0..(strlen(x0)+1)-1)));
 assigns \nothing;
 */
 int p(char  * x0) {
@@ -83,7 +84,8 @@ int p(char  * x0) {
       char  *x72 = x71;
       int x73 = 1/*true*/;
       /*@
-      loop invariant ((strlen(x72)>=0) && \valid(x72+(0..(strlen(x72)+1)-1)));
+      loop invariant ((strlen(x72)>=0) &&
+      \valid(x72+(0..(strlen(x72)+1)-1)));
       loop assigns x72, x73;
       */
       for (;;) {
@@ -180,7 +182,8 @@ int p(char  * x0) {
       char  *x171 = x170;
       int x172 = 1/*true*/;
       /*@
-      loop invariant ((strlen(x171)>=0) && \valid(x171+(0..(strlen(x171)+1)-1)));
+      loop invariant ((strlen(x171)>=0) &&
+      \valid(x171+(0..(strlen(x171)+1)-1)));
       loop assigns x171, x172;
       */
       for (;;) {
@@ -222,7 +225,8 @@ int p(char  * x0) {
     char  *x221 = x220;
     int x222 = 1/*true*/;
     /*@
-    loop invariant ((strlen(x221)>=0) && \valid(x221+(0..(strlen(x221)+1)-1)));
+    loop invariant ((strlen(x221)>=0) &&
+    \valid(x221+(0..(strlen(x221)+1)-1)));
     loop assigns x221, x222;
     */
     for (;;) {
@@ -307,7 +311,9 @@ int p(char  * x0) {
       int x344 = x343 / 10;
       int x345 = x344 - 10;
       /*@
-      loop invariant (((strlen(x308)>=0) && \valid(x308+(0..(strlen(x308)+1)-1))) && ((x310==-1) || (0<=x310)));
+      loop invariant (((strlen(x308)>=0) &&
+      \valid(x308+(0..(strlen(x308)+1)-1))) &&
+      ((x310==-1) || (0<=x310)));
       loop assigns x308, x309, x310;
       */
       for (;;) {
@@ -385,7 +391,8 @@ int p(char  * x0) {
     char  *x393 = x392;
     int x394 = 1/*true*/;
     /*@
-    loop invariant ((strlen(x393)>=0) && \valid(x393+(0..(strlen(x393)+1)-1)));
+    loop invariant ((strlen(x393)>=0) &&
+    \valid(x393+(0..(strlen(x393)+1)-1)));
     loop assigns x393, x394;
     */
     for (;;) {
@@ -454,7 +461,8 @@ int p(char  * x0) {
     int x345 = x344 - 10;
     int x1122 = -2 == -2;
     /*@
-    loop invariant ((strlen(x475)>=0) && \valid(x475+(0..(strlen(x475)+1)-1)));
+    loop invariant ((strlen(x475)>=0) &&
+    \valid(x475+(0..(strlen(x475)+1)-1)));
     loop assigns x475, x476, x477;
     */
     for (;;) {
@@ -531,7 +539,8 @@ int p(char  * x0) {
         char  *x555 = x480;
         int x556 = 1/*true*/;
         /*@
-        loop invariant ((strlen(x555)>=0) && \valid(x555+(0..(strlen(x555)+1)-1)));
+        loop invariant ((strlen(x555)>=0) &&
+        \valid(x555+(0..(strlen(x555)+1)-1)));
         loop assigns x555, x556;
         */
         for (;;) {
@@ -580,7 +589,8 @@ int p(char  * x0) {
         char  *x610 = x609;
         int x611 = 1/*true*/;
         /*@
-        loop invariant ((strlen(x610)>=0) && \valid(x610+(0..(strlen(x610)+1)-1)));
+        loop invariant ((strlen(x610)>=0) &&
+        \valid(x610+(0..(strlen(x610)+1)-1)));
         loop assigns x610, x611;
         */
         for (;;) {
@@ -653,7 +663,8 @@ int p(char  * x0) {
         char  *x693 = x692;
         int x694 = 1/*true*/;
         /*@
-        loop invariant ((strlen(x693)>=0) && \valid(x693+(0..(strlen(x693)+1)-1)));
+        loop invariant ((strlen(x693)>=0) &&
+        \valid(x693+(0..(strlen(x693)+1)-1)));
         loop assigns x693, x694;
         */
         for (;;) {
@@ -690,7 +701,8 @@ int p(char  * x0) {
         char  *x749 = x738;
         int x750 = 1/*true*/;
         /*@
-        loop invariant ((strlen(x749)>=0) && \valid(x749+(0..(strlen(x749)+1)-1)));
+        loop invariant ((strlen(x749)>=0) &&
+        \valid(x749+(0..(strlen(x749)+1)-1)));
         loop assigns x749, x750;
         */
         for (;;) {
@@ -749,7 +761,8 @@ int p(char  * x0) {
             char  *x819 = x818;
             int x820 = 1/*true*/;
             /*@
-            loop invariant ((strlen(x819)>=0) && \valid(x819+(0..(strlen(x819)+1)-1)));
+            loop invariant ((strlen(x819)>=0) &&
+            \valid(x819+(0..(strlen(x819)+1)-1)));
             loop assigns x819, x820;
             */
             for (;;) {
@@ -870,7 +883,9 @@ int p(char  * x0) {
               int x936 = 1/*true*/;
               int x937 = x933;
               /*@
-              loop invariant (((strlen(x935)>=0) && \valid(x935+(0..(strlen(x935)+1)-1))) && ((x937==-1) || (0<=x937)));
+              loop invariant (((strlen(x935)>=0) &&
+              \valid(x935+(0..(strlen(x935)+1)-1))) &&
+              ((x937==-1) || (0<=x937)));
               loop assigns x935, x936, x937;
               */
               for (;;) {
@@ -947,7 +962,8 @@ int p(char  * x0) {
               char  *x1015 = x1014;
               int x1016 = 1/*true*/;
               /*@
-              loop invariant ((strlen(x1015)>=0) && \valid(x1015+(0..(strlen(x1015)+1)-1)));
+              loop invariant ((strlen(x1015)>=0) &&
+              \valid(x1015+(0..(strlen(x1015)+1)-1)));
               loop assigns x1015, x1016;
               */
               for (;;) {
@@ -1097,7 +1113,9 @@ int p(char  * x0) {
     int x1361 = x343 / 16;
     int x1362 = x1361 - 16;
     /*@
-    loop invariant (((strlen(x1199)>=0) && \valid(x1199+(0..(strlen(x1199)+1)-1))) && ((x1201==-1) || (0<=x1201)));
+    loop invariant (((strlen(x1199)>=0) &&
+    \valid(x1199+(0..(strlen(x1199)+1)-1))) &&
+    ((x1201==-1) || (0<=x1201)));
     loop assigns x1199, x1200, x1201;
     */
     for (;;) {
@@ -1208,7 +1226,9 @@ int p(char  * x0) {
         int x1294 = 1/*true*/;
         int x1295 = x1291;
         /*@
-        loop invariant (((strlen(x1293)>=0) && \valid(x1293+(0..(strlen(x1293)+1)-1))) && ((x1295==-1) || (0<=x1295)));
+        loop invariant (((strlen(x1293)>=0) &&
+        \valid(x1293+(0..(strlen(x1293)+1)-1))) &&
+        ((x1295==-1) || (0<=x1295)));
         loop assigns x1293, x1294, x1295;
         */
         for (;;) {
@@ -1376,7 +1396,9 @@ int p(char  * x0) {
         int x1455 = 1/*true*/;
         char  *x1456 = x1453;
         /*@
-        loop invariant ((0<=x1458) && ((strlen(x1456)>=0) && \valid(x1456+(0..(strlen(x1456)+1)-1))));
+        loop invariant ((0<=x1458) &&
+        ((strlen(x1456)>=0) &&
+        \valid(x1456+(0..(strlen(x1456)+1)-1))));
         loop assigns x1458, x1455, x1456;
         loop variant (x1452-x1458);
         */
@@ -1443,7 +1465,9 @@ int p(char  * x0) {
     int x1553 = 1/*true*/;
     char  *x1554 = x1197;
     /*@
-    loop invariant ((0<=x1556) && ((strlen(x1554)>=0) && \valid(x1554+(0..(strlen(x1554)+1)-1))));
+    loop invariant ((0<=x1556) &&
+    ((strlen(x1554)>=0) &&
+    \valid(x1554+(0..(strlen(x1554)+1)-1))));
     loop assigns x1556, x1553, x1554;
     loop variant (x1196-x1556);
     */
@@ -1503,9 +1527,11 @@ int p(char  * x0) {
   return x1626;
 }
 /*@
-requires ((strlen(x1647)>=0) && \valid(x1647+(0..(strlen(x1647)+1)-1)));
+requires ((strlen(x1647)>=0) &&
+\valid(x1647+(0..(strlen(x1647)+1)-1)));
 assigns \nothing;
-ensures ((0==\result) || ((strlen(\result)>=0) && \valid(\result+(0..(strlen(\result)+1)-1))));
+ensures ((0==\result) || ((strlen(\result)>=0) &&
+\valid(\result+(0..(strlen(\result)+1)-1))));
 */
 char  * p_HTTP(char  * x1647) {
   char  *x1649 = x1647;
@@ -1644,9 +1670,11 @@ char  * p_HTTP(char  * x1647) {
   return x1781;
 }
 /*@
-requires ((strlen(x1803)>=0) && \valid(x1803+(0..(strlen(x1803)+1)-1)));
+requires ((strlen(x1803)>=0) &&
+\valid(x1803+(0..(strlen(x1803)+1)-1)));
 assigns \nothing;
-ensures ((0==\result) || ((strlen(\result)>=0) && \valid(\result+(0..(strlen(\result)+1)-1))));
+ensures ((0==\result) || ((strlen(\result)>=0) &&
+\valid(\result+(0..(strlen(\result)+1)-1))));
 */
 char  * p_(char  * x1803) {
   char  *x1805 = x1803;
@@ -1707,9 +1735,11 @@ char  * p_(char  * x1803) {
   return x1859;
 }
 /*@
-requires ((strlen(x1881)>=0) && \valid(x1881+(0..(strlen(x1881)+1)-1)));
+requires ((strlen(x1881)>=0) &&
+\valid(x1881+(0..(strlen(x1881)+1)-1)));
 assigns \nothing;
-ensures ((0==\result) || ((strlen(\result)>=0) && \valid(\result+(0..(strlen(\result)+1)-1))));
+ensures ((0==\result) || ((strlen(\result)>=0) &&
+\valid(\result+(0..(strlen(\result)+1)-1))));
 */
 char  * p_ContentLength(char  * x1881) {
   char  *x1883 = x1881;
@@ -2082,9 +2112,11 @@ char  * p_ContentLength(char  * x1881) {
   return x2249;
 }
 /*@
-requires ((strlen(x2271)>=0) && \valid(x2271+(0..(strlen(x2271)+1)-1)));
+requires ((strlen(x2271)>=0) &&
+\valid(x2271+(0..(strlen(x2271)+1)-1)));
 assigns \nothing;
-ensures ((0==\result) || ((strlen(\result)>=0) && \valid(\result+(0..(strlen(\result)+1)-1))));
+ensures ((0==\result) || ((strlen(\result)>=0) &&
+\valid(\result+(0..(strlen(\result)+1)-1))));
 */
 char  * p_TransferEncoding(char  * x2271) {
   char  *x2273 = x2271;
@@ -2535,9 +2567,11 @@ char  * p_TransferEncoding(char  * x2271) {
   return x2717;
 }
 /*@
-requires ((strlen(x2739)>=0) && \valid(x2739+(0..(strlen(x2739)+1)-1)));
+requires ((strlen(x2739)>=0) &&
+\valid(x2739+(0..(strlen(x2739)+1)-1)));
 assigns \nothing;
-ensures ((0==\result) || ((strlen(\result)>=0) && \valid(\result+(0..(strlen(\result)+1)-1))));
+ensures ((0==\result) || ((strlen(\result)>=0) &&
+\valid(\result+(0..(strlen(\result)+1)-1))));
 */
 char  * p_chunked(char  * x2739) {
   char  *x2741 = x2739;

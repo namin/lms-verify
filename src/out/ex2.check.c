@@ -2,13 +2,15 @@
 /*@
 requires (x0>0);
 assigns \nothing;
-ensures ((0<=\result) && (\result<x0));
+ensures ((0<=\result) &&
+(\result<x0));
 */
 int pick_index(int  x0) {
   return 0;
 }
 /*@
-requires ((x10>0) && \valid(x9+(0..x10-1)));
+requires ((x10>0) &&
+\valid(x9+(0..x10-1)));
 assigns \nothing;
 */
 int pick_element(int  * x9, int  x10) {

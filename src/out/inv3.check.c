@@ -1,5 +1,6 @@
 #include <limits.h>
-/*@ predicate inv_vec_Int(int  * x0, int  x1) = ((x1==0) || ((x1>0) && \valid(x0+(0..x1-1))));*/
+/*@ predicate inv_vec_Int(int  * x0, int  x1) = ((x1==0) || ((x1>0) &&
+\valid(x0+(0..x1-1))));*/
 /*@
 requires inv_vec_Int(x16,x17);
 assigns \nothing;
@@ -9,7 +10,8 @@ int count_pos(int  * x16, int  x17) {
   int x19 = 0;
   /*@
   loop invariant 0<=x21<=x17;
-  loop invariant ((0<=x19) && (x19<=x21));
+  loop invariant ((0<=x19) &&
+  (x19<=x21));
   loop assigns x21, x19;
   loop variant x17-x21;
   */

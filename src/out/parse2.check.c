@@ -1,7 +1,8 @@
 #include <limits.h>
 #include <string.h>
 /*@
-requires ((strlen(x0)>=0) && \valid(x0+(0..(strlen(x0)+1)-1)));
+requires ((strlen(x0)>=0) &&
+\valid(x0+(0..(strlen(x0)+1)-1)));
 assigns \nothing;
 ensures ((\result==-1) || (0<=\result));
 */
@@ -13,7 +14,9 @@ int p(char  * x0) {
   int x3 = x2 / 10;
   int x4 = x3 - 10;
   /*@
-  loop invariant (((strlen(x5)>=0) && \valid(x5+(0..(strlen(x5)+1)-1))) && ((x7==-1) || (0<=x7)));
+  loop invariant (((strlen(x5)>=0) &&
+  \valid(x5+(0..(strlen(x5)+1)-1))) &&
+  ((x7==-1) || (0<=x7)));
   loop assigns x5, x6, x7;
   */
   for (;;) {
