@@ -39,7 +39,7 @@ class BlameTests extends TestSuite {
         .ensuring  { f: IntFunc => res: IntFunc => res.require(odd).ensure(x => odd) }
       toplevel("main",
         { x: Rep[Int] => 
-          val id = shallow { x: Rep[Int] => x }
+          val id = shallow { x: Rep[Int] => 2 * x }
           val f2 = inc(id)
           f2(x)
         },

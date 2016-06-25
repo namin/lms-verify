@@ -9,12 +9,14 @@ int main(int  x0) {
   int x6 = x0 + 1;
   #line 37 "BlameTests.scala"
   /*@assert ((x6%2)==0);*/
-  #line 38 "BlameTests.scala"
-  /*@assert ((x6%2)==0);*/
+  #line 42 "BlameTests.scala"
+  int x11 = 2 * x6;
+  #line 43 "BlameTests.scala"
+  /*@assert ((x11%2)==0);*/
   #line 37 "BlameTests.scala"
-  int x15 = x6 - 1;
-  #line 39 "BlameTests.scala"
-  /*@assert ((x15%2)==1);*/
+  int x16 = x11 - 1;
+  #line 37 "BlameTests.scala"
+  /*@assert ((x16%2)==1);*/
   #line 581 "Effects.scala"
-  return x15;
+  return x16;
 }
