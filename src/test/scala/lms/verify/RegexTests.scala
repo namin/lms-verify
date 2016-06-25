@@ -76,4 +76,30 @@ class RegexTests extends TestSuite {
   gen("a_end", "a$")
   gen("a", "a")
   gen("ab_dot_star_ab", "ab.*ab")
+
+// exponential code size!!!
+/* cloc -by-file re_alpha_*.actual.c
+--------------------------------------------------------------------------------
+File                              blank        comment           code
+--------------------------------------------------------------------------------
+re_alpha_j.check.c                    0           5123          57312
+re_alpha_i.check.c                    0           2563          28640
+re_alpha_h.check.c                    0           1283          14304
+re_alpha_g.check.c                    0            643           7136
+re_alpha_f.check.c                    0            323           3552
+re_alpha_e.check.c                    0            163           1760
+re_alpha_d.check.c                    0             83            864
+re_alpha_c.check.c                    0             43            416
+re_alpha_b.check.c                    0             23            192
+re_alpha_a.check.c                    0             13             80
+--------------------------------------------------------------------------------
+SUM:                                  0          10260         114256
+--------------------------------------------------------------------------------
+*/
+  var r = ""
+  for (i <- 0 until 10) {
+    val c = ('a'+i).toChar
+    r = r+c+c+"*"
+    //gen("alpha_"+c, r)
+  }
 }
