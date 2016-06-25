@@ -55,7 +55,7 @@ class SortingTests extends TestSuite {
         (p((ls._1, ls._3))(v))
       })
     }
-    def Swapped[T:Iso:Eq](ls: (Lc,Lc))(a: Vec[T], i: Rep[Int], j: Rep[Int]) = {
+    def Swapped_deep_eq[T:Iso:Eq](ls: (Lc,Lc))(a: Vec[T], i: Rep[Int], j: Rep[Int]) = {
       val (l1, l2) = ls
       // NOTE: work-around for nested vectors
       // since deep_equal might do reads, we need to tell frama-c
@@ -70,6 +70,19 @@ class SortingTests extends TestSuite {
         (0 <= k && k < a.length && k != i && k != j) ==>
         w((at(a(k),l1)) deep_equal (at(a(k),l2)))}
     }
+    // shallow_equal works just as well:
+    def Swapped_shallow_eq[T:Iso](ls: (Lc,Lc))(a: Vec[T], i: Rep[Int], j: Rep[Int]) = {
+      val (l1, l2) = ls
+      ((at(a(i),l1)) shallow_equal (at(a(j),l2))) &&
+      ((at(a(j),l1)) shallow_equal (at(a(i),l2))) &&
+      forall{k: Rep[Int] =>
+        (0 <= k && k < a.length && k != i && k != j) ==>
+        ((at(a(k),l1)) shallow_equal (at(a(k),l2)))}
+    }
+    def Swapped[T:Iso:Eq](ls: (Lc,Lc))(a: Vec[T], i: Rep[Int], j: Rep[Int]) =
+      Swapped_deep_eq(ls)(a, i, j)
+      //or Swapped_shallow_eq(ls)(a, i, j)
+
     def permut[T:Iso:Eq] = inductive[(Lc,Lc),Vec[T]](
       implicitly[Iso[T]].id+"_Permut", { p =>
         add_closure_cases(p)
