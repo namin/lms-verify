@@ -2,21 +2,19 @@
 inductive Permut{L1,L2}(int* a, integer n) {
 case Permut_refl{L}:
   \forall int* a, integer n; Permut{L,L}(a, n) ;
-case Permut_sym{L1,L2}:
+case Permut_trans{L1,L2,L3}:
   \forall int* a, integer n;
-Permut{L1,L2}(a, n) ==> Permut{L2,L1}(a, n) ;
-  case Permut_trans{L1,L2,L3}:
-\forall int* a, integer n;
   Permut{L1,L2}(a, n) && Permut{L2,L3}(a, n) ==>
   Permut{L1,L3}(a, n) ;
 case Permut_swap{L1,L2}:
-  \forall int* a, integer n, i, j;
-  0 <= i < n && 0 <= j < n &&
+  \forall int* a, integer n;
+  (\exists integer i, integer j;
     \at(a[i],L1)==\at(a[j],L2) &&
     \at(a[j],L1)==\at(a[i],L2) &&
-  (\forall integer k; 0 <= k < n && k != i && k != j ==>
-    \at(a[k],L1)==\at(a[k],L2)) ==>
-    Permut{L1,L2}(a, n) ;
+    (\forall integer k;
+      0 <= k < n && k != i && k != j ==>
+      \at(a[k],L1)==\at(a[k],L2))) ==>
+  Permut{L1,L2}(a, n) ;
 }
 */
 
