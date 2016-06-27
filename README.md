@@ -23,7 +23,7 @@ Other useful options: `-wp-skip-fct p` to skip verifying a function `p`, `-wp-ti
 
 ## Lessons Learned
 
-So far, the main take-away is that for verifying generic properties (such as no memory errors), generative programming patterns extend well to also generate specification and annotations. We can program with high-level abstractions including higher-order functions, and generate low-level first-order code that is easy to verify. Next, we plan to investigate how to use staging-time abstractions to specify invariant and properties modularly and exploit high-level knowledge to automatically generate certain annotations. This should help alleviate the annotation burden when veryfing more functional properties. Finally, we also consider the notion of "blame" in this generative setting.
+So far, the main take-away is that for verifying generic properties (such as no memory errors), generative programming patterns extend well to also generate specification and annotations. We can program with high-level abstractions including higher-order functions, and generate low-level first-order code that is easy to verify. Next, we investigate deep linguistic reuse, e.g. staging-time abstractions, to specify invariant and properties modularly, share source between target code and logic, and exploit high-level knowledge to automatically generate certain annotations. This should help alleviate the annotation burden when veryfing more functional properties. Finally, we also consider the notion of "blame" in this generative setting.
 
 ### Completed Case Studies
 
@@ -31,6 +31,16 @@ So far, the main take-away is that for verifying generic properties (such as no 
 
 From a high-level regular expression matcher, written as a generic interpreter, generate low-level C code specialized to a specific regular expression. In each tested instance, the generated code is verified to be free of memory errors. This required very few, simple and generic annotations about loop invariants. ([code](src/test/scala/lms/verify/RegexTests.scala))
 
+Fun fact: the generic interpreter comes from C ([original code with hand-written ACSL annotations](src/out/re.c)), but was translated to Scala for the LMS tutorials as a small example of the common generative pattern of turning an interpreter into a compiler ([literate page](http://scala-lms.github.io/tutorials/regex.html)), and now the LMS backend switched to generating C.
+
 #### HTTP Parser
 
 We write a high-level HTTP parser, using a small staged parser combinator library, and generate low-level C code that validates an HTTP response. The generated code is verified to be free of memory and overflow errors. ([code](src/test/scala/lms/verify/ParserTests.scala))
+
+### Case Studies in Progress
+
+#### Generic Sorting
+studies functional correctness, using type classes and other staging-time abstractions to be explicit about generic requirements and parametric by default. Principled generative programming and verification FTW. ([code](src/test/scala/lms/verify/SortingTests.scala))
+
+#### Linear Algebra
+studies inferring low-level loop properties and custom staging-time abstractions with domain-specific knowledge of invariants. Invariants can be composed, customized by staging-time logic invariants, and inferred thanks to sharing and re-using source fragment between code and logic target. ([code](src/test/scala/lms/verify/SortingTests.scala))
