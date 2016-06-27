@@ -8,7 +8,7 @@ The generated C code is verified using `frama-c -wp` as follows:
 
 ```frama-c -wp -wp-rte -wp-prover cvc4,alt-ergo -wp-alt-ergo-opt="-backward-compat" <file.c>```
 
-All the files in the `src/out` directory should verify with this command, except those ending with `_bad.c` and except some `_overflow` `-rte` goals.
+All the files in the [`src/out`](src/out) directory should verify with this command, except those ending with `_bad.c` and except some `_overflow` `-rte` goals.
 
 Other useful options: `-wp-skip-fct p` to skip verifying a function `p`, `-wp-timeout 50` to increase the timeout in case of flakiness.
 
@@ -31,7 +31,7 @@ So far, the main take-away is that for verifying generic properties (such as no 
 
 From a high-level regular expression matcher, written as a generic interpreter, generate low-level C code specialized to a specific regular expression. In each tested instance, the generated code is verified to be free of memory errors. This required very few, simple and generic annotations about loop invariants. ([code](src/test/scala/lms/verify/RegexTests.scala))
 
-Fun fact: the generic interpreter comes from C ([original code with hand-written ACSL annotations](src/out/re.c)), but was translated to Scala for the LMS tutorials as a small example of the common generative pattern of turning an interpreter into a compiler ([tutorial page](http://scala-lms.github.io/tutorials/regex.html)), and now the LMS backend switched to generating C.
+Fun fact: the generic interpreter comes from C ([original code with hand-written ACSL annotations](src/out/re.c)), but was translated to Scala for the LMS tutorials as a small example of the common generative pattern of turning an interpreter into a compiler ([tutorial page](http://scala-lms.github.io/tutorials/regex.html)), and now the LMS backend switched to generating C code (using Scala-like string idioms still).
 
 #### HTTP Parser
 
