@@ -1,6 +1,6 @@
 # LMS-Verify
 
-An early experiment using staging (via [LMS](http://github.com/TiarkRompf/virtualization-lms-core) -- see [tutorials](http://scala-lms.github.io/tutorials/)) to generate first-order verifiable C code from a higher-level counterpart.
+An early experiment using staging (via [LMS](http://github.com/TiarkRompf/virtualization-lms-core) -- see [tutorials](http://scala-lms.github.io/tutorials/)) to generate first-order verifiable C code from a higher-level counterpart in Scala.
 
 ## C Verification
 
@@ -31,7 +31,7 @@ So far, the main take-away is that for verifying generic properties (such as no 
 
 From a high-level regular expression matcher, written as a generic interpreter, generate low-level C code specialized to a specific regular expression. In each tested instance, the generated code is verified to be free of memory errors. This required very few, simple and generic annotations about loop invariants. ([code](src/test/scala/lms/verify/RegexTests.scala))
 
-Fun fact: the generic interpreter comes from C ([original code with hand-written ACSL annotations](src/out/re.c)), but was translated to Scala for the LMS tutorials as a small example of the common generative pattern of turning an interpreter into a compiler ([literate page](http://scala-lms.github.io/tutorials/regex.html)), and now the LMS backend switched to generating C.
+Fun fact: the generic interpreter comes from C ([original code with hand-written ACSL annotations](src/out/re.c)), but was translated to Scala for the LMS tutorials as a small example of the common generative pattern of turning an interpreter into a compiler ([tutorial page](http://scala-lms.github.io/tutorials/regex.html)), and now the LMS backend switched to generating C.
 
 #### HTTP Parser
 
@@ -43,4 +43,4 @@ We write a high-level HTTP parser, using a small staged parser combinator librar
 studies functional correctness, using type classes and other staging-time abstractions to be explicit about generic requirements and parametric by default. Principled generative programming and verification FTW. ([code](src/test/scala/lms/verify/SortingTests.scala))
 
 #### Linear Algebra
-studies inferring low-level loop properties and custom staging-time abstractions with domain-specific knowledge of invariants. Invariants can be composed, customized by staging-time logic invariants, and inferred thanks to sharing and re-using source fragment between code and logic target. ([code](src/test/scala/lms/verify/SortingTests.scala))
+studies inferring low-level loop properties and custom staging-time abstractions with domain-specific knowledge of invariants. Invariants can be composed, customized by staging-time logic invariants, and inferred thanks to sharing and re-using source fragment between code and logic target. ([code](src/test/scala/lms/verify/LinearAlgebraTests.scala))
