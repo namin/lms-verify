@@ -233,7 +233,8 @@ class SortingTests extends TestSuite {
       }, "vv")
       val s = insort[Vec[Vec[Rep[Int]]]]
     }
-    // TODO: inswap postcondition does not verify.
+    // TODO: inswap postcondition does not verify
+    // due to too much nesting confusing Frama-C in separation guarantees (?)
     //check("6", (new Srt6 with Impl).code)
   }
 
