@@ -42,5 +42,9 @@ We write a high-level HTTP parser, using a small staged parser combinator librar
 #### Generic Sorting
 studies functional correctness, using type classes and other staging-time abstractions to be explicit about generic requirements and parametric by default. Principled generative programming and verification FTW. ([code](src/test/scala/lms/verify/SortingTests.scala))
 
+(TODO: cleanup)
+
 #### Linear Algebra
 studies inferring low-level loop properties and custom staging-time abstractions with domain-specific knowledge of invariants. Invariants can be composed, customized by staging-time logic invariants, and inferred thanks to sharing and re-using source fragment between code and logic target. ([code](src/test/scala/lms/verify/LinearAlgebraTests.scala))
+
+(TODO: cleanup & implement more operations, e.g. transpose)
