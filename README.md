@@ -4,14 +4,16 @@ An early experiment using staging (via [LMS](http://github.com/TiarkRompf/virtua
 
 ## C Verification
 
-The generated C code is verified using frama-c wp as follows:
+The generated C code is verified using `frama-c -wp` as follows:
 
 ```frama-c -wp -wp-rte -wp-prover cvc4,alt-ergo -wp-alt-ergo-opt="-backward-compat" <file.c>```
 
-All the files in the `src/out` directory should verify with this command, except those ending with `_bad.c` and except some `_overflow` goals.
+All the files in the `src/out` directory should verify with this command, except those ending with `_bad.c` and except some `_overflow` `-rte` goals.
+
+Other useful options: `-wp-skip-fct p` to skip verifying a function `p`, `-wp-timeout 50` to increase the timeout in case of flakiness.
 
 ### Docs
-* [Frama-C wp manual (PDF)](http://frama-c.com/download/frama-c-wp-manual.pdf)
+* [Frama-C WP manual (PDF)](http://frama-c.com/download/frama-c-wp-manual.pdf)
 * [ACSL tutorial (PDF)](http://frama-c.com/download/acsl-tutorial.pdf)
 * [ACSL reference manual (PDF)](http://frama-c.com/download/acsl.pdf)
 
