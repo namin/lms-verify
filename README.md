@@ -2,6 +2,8 @@
 
 An early experiment using staging (via [LMS](http://github.com/TiarkRompf/virtualization-lms-core) -- see [tutorials](http://scala-lms.github.io/tutorials/)) to generate first-order verifiable C code from a higher-level counterpart in Scala.
 
+Presentation with some highlights ([PDF](http://lampwww.epfl.ch/~amin/lms/verify-slides.pdf)).
+
 ## C Verification
 
 The generated C code is verified using `frama-c -wp` as follows:
