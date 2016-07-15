@@ -55,6 +55,15 @@ class SortingTests extends TestSuite {
         (p((ls._1, ls._3))(v))
       })
     }
+
+    def reflexiveTransitiveClosure[B:Iso](p1: ((Lc,Lc)) => B => Rep[Boolean],
+      as: String = "Rel") = inductive[(Lc,Lc),B](
+      implicitly[Iso[B]].id+"_"+as, { p =>
+        add_closure_cases(p)
+        add_case[(Lc,Lc),B]("step", { ls => v => p1(ls)(v) })
+      })
+
+
     def Swapped_deep_eq[T:Iso:Eq](ls: (Lc,Lc))(a: Vec[T], i: Rep[Int], j: Rep[Int]) = {
       val (l1, l2) = ls
       // NOTE: work-around for nested vectors
@@ -83,7 +92,13 @@ class SortingTests extends TestSuite {
       Swapped_deep_eq(ls)(a, i, j)
       //or Swapped_shallow_eq(ls)(a, i, j)
 
-    def permut[T:Iso:Eq] = inductive[(Lc,Lc),Vec[T]](
+    def Swapped1[T:Iso:Eq](ls: (Lc,Lc))(a: Vec[T]) =
+      exists{i: Rep[Int] => exists{j: Rep[Int] => Swapped(ls)(a,i,j)}}
+
+    def permut[T:Iso:Eq] =
+      reflexiveTransitiveClosure[Vec[T]](Swapped1, as="Permut")
+
+    def permut_alt[T:Iso:Eq] = inductive[(Lc,Lc),Vec[T]](
       implicitly[Iso[T]].id+"_Permut", { p =>
         add_closure_cases(p)
         add_case[(Lc,Lc),Vec[T]]("swap", { ls => v =>
