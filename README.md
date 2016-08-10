@@ -25,7 +25,7 @@ Other useful options: `-wp-skip-fct p` to skip verifying a function `p`, `-wp-ti
 
 ## Lessons Learned
 
-So far, the main take-away is that for verifying generic properties (such as no memory errors), generative programming patterns extend well to also generate specification and annotations. We can program with high-level abstractions including higher-order functions, and generate low-level first-order code that is easy to verify. Next, we investigate deep linguistic reuse, e.g. staging-time abstractions, to specify invariant and properties modularly, share source between target code and logic, and exploit high-level knowledge to automatically generate certain annotations. This should help alleviate the annotation burden when veryfing more functional properties. Finally, we also consider the notion of "blame" in this generative setting.
+So far, the main take-away is that for verifying generic properties (such as no memory errors), generative programming patterns extend well to also generate specification and annotations. We can program with high-level abstractions including higher-order functions, and generate low-level first-order code that is easy to verify. Next, we investigate deep linguistic reuse, e.g. staging-time abstractions, to specify invariant and properties modularly, share source between target code and logic, and exploit high-level knowledge to automatically generate certain annotations. This should help alleviate the annotation burden when verifying more functional properties. Finally, we also consider the notion of "blame" in this generative setting.
 
 ### Completed Case Studies
 
