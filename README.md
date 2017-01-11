@@ -4,6 +4,8 @@ An early experiment using staging (via [LMS](http://github.com/TiarkRompf/virtua
 
 Presentation with some highlights ([PDF](http://lampwww.epfl.ch/~amin/lms/verify-slides.pdf)).
 
+POPL'17 Paper ([PDF](http://lampwww.epfl.ch/~amin/pub/lms-verify.pdf)).
+
 ## C Verification
 
 The generated C code is verified using `frama-c -wp` as follows:
