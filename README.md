@@ -53,3 +53,22 @@ studies functional correctness, using type classes and other staging-time abstra
 studies inferring low-level loop properties and custom staging-time abstractions with domain-specific knowledge of invariants. Invariants can be composed, customized by staging-time logic invariants, and inferred thanks to sharing and re-using source fragment between code and logic target. ([code](src/test/scala/lms/verify/LinearAlgebraTests.scala))
 
 (TODO: cleanup, implement more operations, e.g. transpose)
+
+### Case Studies to Try Out
+
+#### Functionally Correct Optimized Shonan Challenge
+Implement a matrix vector product, where the matrix is known statically.
+In the spec, you can spell out each entry in the known matrix, as well as the definition of matrix vector product.
+In the implementation, you can optimize the matrix vector product, unrolling sparse rows and optimizing arithmetic operations (multipliying by 1 or 0, adding 0).
+Verify that the optimized implementation still implements the matrix vector product.
+
+#### Functionally Correct Optimized Regular Expression Matcher
+Implement an optimized regular expression matcher, where the regular expression is known.
+As a first step, you can do a naive compiler via a staged interpreter, but then you could also do a staged NFA to DFA exploration.
+In the spec, you can specify regular expression matching in simple terms as an interpreter.
+Verify that the optimized implementation still matches as specified by the spec.
+
+#### Bidirectional Combinators and Round-Tripping Properties
+At a high level, we might be able to specify parsing / unparsing (i.e., printing) once using bidirectional combinators,
+and then stage these combinators.
+Can we preserve the bidirectional properties, such as round-tripping (i.e., that parsing and printing are almost inverse), all the way to the generated code?
