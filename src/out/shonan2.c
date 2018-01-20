@@ -5,7 +5,7 @@ logic boolean row_col_bool(integer c, int r, int n, int* m, int* v) =
 
 /*@
 requires n>0;
-requires n==1;
+requires n<3;
 
 requires \valid(m+(0..n*n-1));
 requires \valid(v+(0..n-1));
