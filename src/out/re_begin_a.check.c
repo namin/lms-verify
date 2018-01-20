@@ -15,11 +15,11 @@ int matcher(char  * x0) {
   } else {
     x6 = 0/*false*/;
   }
-  int x7;
+  int x8;
   if (x6) {
-    x7 = 1/*true*/;
+    x8 = 1/*true*/;
   } else {
-    x7 = 0/*false*/;
+    x8 = 0/*false*/;
   }
-  return x7;
+  return x8;
 }
