@@ -23,7 +23,7 @@ Other useful options: `-wp-skip-fct p` to skip verifying a function `p`, `-wp-ti
 
 ### Installation
 * Install [CVC4](https://cvc4.cs.stanford.edu/downloads/).
-* [Frama-C installation](http://frama-c.com/download.html) -- after installation, do `why3 config --detect` to configure the solvers -- without this extra step, examples that discharge to a backend will fail to verify!
+* Install [Frama-C](http://frama-c.com/download.html) -- after installation, do `why3 config --detect` to configure the solvers -- without this extra step, examples that discharge to a backend will fail to verify!
 
 ## Lessons Learned
 
