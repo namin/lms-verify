@@ -10,7 +10,7 @@ POPL'17 Paper ([PDF](http://lampwww.epfl.ch/~amin/pub/lms-verify.pdf)).
 
 The generated C code is verified using `frama-c -wp` as follows:
 
-```frama-c -wp -wp-rte -wp-prover cvc4,alt-ergo <file.c>```
+```frama-c -wp -wp-rte -wp-prover CVC4,alt-ergo <file.c>```
 
 All the files in the [`src/out`](src/out) directory should verify with this command, except those ending with `_bad.c` and except some `_overflow` `-rte` goals.
 
