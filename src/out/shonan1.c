@@ -73,7 +73,7 @@ void mv_mult2r_bool(int n, int *m, int *v, int *o) {
       t = t || (m[n*r+c] && v[c]);
     }
     o[r] = t;
-  }  
+  }
 }
 
 /*@
