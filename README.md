@@ -22,8 +22,8 @@ Other useful options: `-wp-skip-fct p` to skip verifying a function `p`, `-wp-ti
 * [ACSL reference manual (PDF)](http://frama-c.com/download/acsl.pdf)
 
 ### Installation
-* Install CVC4, e.g. `brew install cvc4` on Mac OS X.
-* [Frama-C installation](http://frama-c.com/install-aluminium-20160501.html) -- after installation, do `why3 config --detect` to configure the solvers -- without this extra step, examples that discharge to a backend will fail to verify!
+* Install [CVC4](https://cvc4.cs.stanford.edu/downloads/).
+* [Frama-C installation](http://frama-c.com/download.html) -- after installation, do `why3 config --detect` to configure the solvers -- without this extra step, examples that discharge to a backend will fail to verify!
 
 ## Lessons Learned
 
