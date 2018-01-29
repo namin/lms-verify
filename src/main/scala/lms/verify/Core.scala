@@ -222,23 +222,29 @@ trait VerifyOps extends Base with BooleanOps {
   implicit def lc3: (Lc,Lc,Lc) = ("L1","L2","L3")
   def lc_id[A<:Product](a: A): String =
     a.productIterator.map(_.toString).mkString("{", ",", "}")
-  def inductive[A<:Product,B:Iso](id: String, ks: (A => B => Rep[Boolean]) => Unit)
+  def logic[A<:Product,B:Iso,R:Iso1](id: String, ks: (A => B => R) => Unit)
       (implicit a0: A):
-      (A => B => Rep[Boolean]) = {
+      (A => B => R) = {
     val ib = implicitly[Iso[B]]
+    val ir = implicitly[Iso1[R]]
     val r = {a: A => b: B =>
-      toplevelApply[Boolean](
+      ir.fromRep(toplevelApply[ir.G](
         id+lc_id(a),
-        ib.toRepList(b))
+        ib.toRepList(b))(ir.typ))
     }
-    _add_inductive(id, lc_id(a0), a0.productArity, ib.typList, ks(r))
+    _add_logic(id, lc_id(a0), a0.productArity, ib.typList, ir.typ, ks(r))
     r
   }
-  def add_case[A<:Product,B:Iso](id: String, k: A => B => Rep[Boolean])(implicit a0: A): Unit = {
+  def add_axiom[A<:Product,B:Iso,R:Iso1](id: String, k: A => B => R)(implicit a0: A): Unit = {
     val ib = implicitly[Iso[B]]
+    val ir = implicitly[Iso1[R]]
     val name = id+lc_id(a0)
-    _add_case(name, a0.productArity, ib.typList, {xs => k(a0)(ib.fromRepList(xs))})
+    _add_axiom[ir.G](name, a0.productArity, ib.typList, ir.typ, {xs => ir.toRep(k(a0)(ib.fromRepList(xs)))})
   }
+  def inductive[A<:Product,B:Iso](id: String, ks: (A => B => Rep[Boolean]) => Unit)(implicit a0: A) =
+    logic(id, ks)(implicitly[Iso[B]], iso1_id[Boolean], a0)
+  def add_case[A<:Product,B:Iso](id: String, k: A => B => Rep[Boolean])(implicit a0: A) =
+    add_axiom(id, k)(implicitly[Iso[B]], iso1_id[Boolean], a0)
   def at[A:Iso](a: A, lc: Lc): A = {
     val ia = implicitly[Iso[A]]
     ia.fromRepList(ia.toRepList(a).zip(ia.typList.zip(ia.memList)).map{case (x,(t,m)) => _at(x.asInstanceOf[Rep[m.T]], lc)(t.asInstanceOf[Typ[m.T]])})
@@ -252,19 +258,19 @@ trait VerifyOps extends Base with BooleanOps {
     ia.toRepList(a).foreach{x => assigns(x)}
   }
 
-  case class Inductive(name: String, suffix: String, bs: List[Typ[_]], ks: List[IndCase]) extends Snip
-  def _add_inductive(name: String, suffix: String, n: Int, bs: List[Typ[_]], ks: => Unit): Unit = {
-    assert (pendingIndCases.isEmpty)
+  case class Logic[B](name: String, suffix: String, bs: List[Typ[_]], rt: Typ[B], ks: List[TopLevel[B]]) extends Snip
+  def _add_logic[B](name: String, suffix: String, n: Int, bs: List[Typ[_]], rt: Typ[B], ks: => Unit): Unit = {
+    assert (pendingAxioms.isEmpty)
     ks
-    val r = Inductive(name, suffix, bs, pendingIndCases.reverse)
-    pendingIndCases = Nil
+    val r = Logic[B](name, suffix, bs, rt, pendingAxioms.reverse.asInstanceOf[List[TopLevel[B]]])
+    pendingAxioms = Nil
     rec.getOrElseUpdate(name, r)
     ()
   }
-  var pendingIndCases: List[IndCase] = Nil
-  type IndCase = TopLevel[Boolean]
-  def _add_case(name: String, n: Int, bs: List[Typ[_]], k: List[Rep[_]] => Rep[Boolean]): Unit = {
-    pendingIndCases = TopLevel(name, bs, implicitly[Typ[Boolean]], k, true, false) :: pendingIndCases
+  var pendingAxioms: List[Axiom] = Nil
+  type Axiom = TopLevel[_]
+  def _add_axiom[B](name: String, n: Int, bs: List[Typ[_]], rt: Typ[B], k: List[Rep[_]] => Rep[B]): Unit = {
+    pendingAxioms = TopLevel[B](name, bs, rt, k, true, false) :: pendingAxioms
   }
 
   def _at[A:Typ](a: Rep[A], lc: Lc): Rep[A]
@@ -522,7 +528,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
     override def remapWithRef[A](m: Typ[A]): String = {
       val r = super.remapWithRef[A](m)
       // the remapping in core LMS seems very convoluted...
-      if (inInd && r.startsWith("int")) {
+      if (inAxiom && r.startsWith("int")) {
         if (r.contains("*")) r.replace("integer ", "int ") else r.replace("int ", "integer ")
       } else r
     }
@@ -705,24 +711,24 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
       }
     }
 
-    var inInd: Boolean = false;
-    def emitInductive(x: Inductive, out: PrintWriter): Unit = {
-      inInd = true
+    var inAxiom: Boolean = false;
+    def emitLogic[B](x: Logic[B], out: PrintWriter): Unit = {
+      inAxiom = true
       withStream(out) {
         stream.println("/*@")
         val args = x.bs.map(fresh(_))
         val sig = x.name+x.suffix+"("+(args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")+")"
         stream.println(s"inductive $sig {")
         x.ks.foreach{ k =>
-          emitVerify(k.f, x.name+"_"+k.name, spec=true, code=false, indcase=true, out)(k.mAs, k.mB)
+          emitVerify[B](k.f, x.name+"_"+k.name, spec=true, code=false, axiom=true, out)(k.mAs, k.mB)
         }
         stream.println("}")
         stream.println("*/")
       }
-      inInd = false
+      inAxiom = false
     }
 
-    def emitVerify[B](f: List[Exp[_]] => Exp[B], functionName: String, spec: Boolean, code: Boolean, indcase: Boolean, out: PrintWriter)(mAs: List[Typ[_]], mB: Typ[B]): Unit = {
+    def emitVerify[B](f: List[Exp[_]] => Exp[B], functionName: String, spec: Boolean, code: Boolean, axiom: Boolean, out: PrintWriter)(mAs: List[Typ[_]], mB: Typ[B]): Unit = {
       val args = mAs.map(fresh(_))
       val r = fresh[B](mB)
       val oldFns = rec.keys.toSet
@@ -764,7 +770,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
       val sig_app = functionName+"("+(args.map(s => quote(s))).mkString(", ")+")"
       withStream(out) {
         if (spec) {
-          if (!indcase)
+          if (!axiom)
             stream.println("/*@ predicate "+sig+" = "+exprOfBlock[B](body, default_m)+";*/")
           else {
             stream.println(s"case $functionName:")
@@ -804,9 +810,9 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
     includes.foreach { i => stream.println("#include "+i) }
     rec.foreach { case (k,s) => s match {
       case (x:TopLevel[_]) =>
-        codegen.emitVerify(x.f, x.name, x.spec, x.code, indcase=false, stream)(x.mAs, mtype(x.mB))
-      case (x:Inductive) =>
-        codegen.emitInductive(x, stream)
+        codegen.emitVerify(x.f, x.name, x.spec, x.code, axiom=false, stream)(x.mAs, mtype(x.mB))
+      case (x:Logic[_]) =>
+        codegen.emitLogic(x, stream)
     }}
   }
   lazy val code: String = {
