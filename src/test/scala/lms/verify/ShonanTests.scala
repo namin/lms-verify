@@ -15,9 +15,10 @@ class ShonanTests extends TestSuite {
 
     type Prod = (Rep[Int],Rep[Int],Rep[Int],Rep[Array[Int]],Rep[Array[Int]])
 
-    // TODO: reads clause
-    // reads m[0..n*n-1], v[0..n-1];
-    val mv_prod = logic[Lc1,Prod,Rep[Int]]("MV_Prod", { mv_prod =>
+    val mv_prod = logic[Lc1,Prod,Rep[Int]]("MV_Prod", { p =>
+      val (c,r,n,m,v) = p
+      list_new(infix_within(m, (0 until n*n))::infix_within(v, (0 until n))::Nil)
+    }, { mv_prod =>
       add_axiom[Lc1,(Prod)]("Empty", { ls => p =>
         val (c,r,n,m,v) = p
         ((!(0 < c && c <= n)) || (!(0 <= r && r < n))) ==>
@@ -28,7 +29,7 @@ class ShonanTests extends TestSuite {
         (0 < c && c <= n && 0 <= r && r < n) ==> (
           mv_prod(ls)(c, r, n, m, v) ==
             mv_prod(ls)(c-1, r, n, m, v) +
-            (m(n*r+(c-1)) & v(c-1)))
+            (m(n*r+(c-1)) * v(c-1)))
       })
       add_axiom[(Lc,Lc),(Prod)]("Read", { ls => p =>
         val (k,l) = ls
@@ -62,10 +63,10 @@ class ShonanTests extends TestSuite {
           requires(separated(v, 0 until n, o, 0 until n))
 
           o(i) = a
-          ensures{_:Rep[Unit] => forall{j: Rep[Int] => ((0 <= j && j < n && j!= i) ==>  (o(j) == old(o(j))))}}
-          ensures{_:Rep[Unit] => forall{j: Rep[Int] => ((0 <= j && j < (n*n)) ==> (m(j)==old(m(j))))}}
-          ensures{_:Rep[Unit] => forall{j: Rep[Int] => ((0 <= j && j < n) ==> (v(j)==old(v(j))))}}
-          ensures{_:Rep[Unit] => forall{j: Rep[Int] => ((0 <= j && j < n) ==> (mvp(n, j, n, m, v)==old(mvp(n, j, n, m, v))))}}
+          ensures{_:Rep[Unit] => forall{j: Rep[Int] => ((0 <= j && j < n && j != i) ==>  (o(j) == old(o(j))))}}
+          ensures{_:Rep[Unit] => forall{j: Rep[Int] => ((0 <= j && j < (n*n)) ==> (m(j) == old(m(j))))}}
+          ensures{_:Rep[Unit] => forall{j: Rep[Int] => ((0 <= j && j < n) ==> (v(j) == old(v(j))))}}
+          ensures{_:Rep[Unit] => forall{j: Rep[Int] => ((0 <= j && j < n) ==> (mvp(n, j, n, m, v) == old(mvp(n, j, n, m, v))))}}
           ensures{_:Rep[Unit] => o(i)==a}
           assigns(o(i))
         })
@@ -93,7 +94,7 @@ class ShonanTests extends TestSuite {
               loop_invariant(forall{i: Rep[Int] => ((0 <= i && i < r) ==> (o(i) == mvp((n, i, n, m, v))))})
               loop_invariant(t == mvp((c, r, n, m, v)))
               loop_assigns(list_new(c::(readVar(t)::Nil)))
-              t = t + (m(n*r+c)*v(c))
+              t = t + (m(n*r+c) * v(c))
             }
             put(o, r, t, n, m, v)
           }
@@ -105,7 +106,6 @@ class ShonanTests extends TestSuite {
     }
     exec("1", (new Program with Impl).code) // TODO finish...
     // ... we want the predicate to have more integer than int...
-    // ... we want a reads clause
     // ... we want the program to verify in frama-c
   }
 }

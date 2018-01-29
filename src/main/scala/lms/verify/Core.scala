@@ -260,7 +260,7 @@ trait VerifyOps extends Base with BooleanOps {
   implicit def lc3: (Lc,Lc,Lc) = ("L1","L2","L3")
   def lc_id[A<:Product](a: A): String =
     a.productIterator.map(_.toString).mkString("{", ",", "}")
-  def logic[A<:Product,B:Iso,R:Iso1](id: String, ks: (A => B => R) => Unit)
+  def logic[A<:Product,B:Iso,R:Iso1](id: String, reads: B => Rep[List[Any]], ks: (A => B => R) => Unit)
       (implicit a0: A):
       (A => B => R) = {
     val ib = implicitly[Iso[B]]
@@ -270,7 +270,7 @@ trait VerifyOps extends Base with BooleanOps {
         id+lc_id(a),
         ib.toRepList(b))(ir.typ))
     }
-    _add_logic(id, lc_id(a0), a0.productArity, ib.typList, ir.typ, ks(r))
+    _add_logic(id, lc_id(a0), a0.productArity, ib.typList, ir.typ, {bs: List[Rep[_]] => reads(ib.fromRepList(bs))}, ks(r))
     r
   }
   def add_axiom[A<:Product,B:Iso](id: String, k: A => B => Rep[Boolean])(implicit a0: A): Unit = {
@@ -278,8 +278,9 @@ trait VerifyOps extends Base with BooleanOps {
     val name = id+lc_id(a0)
     _add_axiom(name, a0.productArity, ib.typList, {xs => k(a0)(ib.fromRepList(xs))})
   }
+  implicit def listTyp[T:Typ]: Typ[List[T]]
   def inductive[A<:Product,B:Iso](id: String, ks: (A => B => Rep[Boolean]) => Unit)(implicit a0: A) =
-    logic(id, ks)(implicitly[Iso[B]], iso1_id[Boolean], a0)
+    logic(id, (_:B) => unit[List[Any]](Nil), ks)(implicitly[Iso[B]], iso1_id[Boolean], a0)
   def add_case[A<:Product,B:Iso](id: String, k: A => B => Rep[Boolean])(implicit a0: A) =
     add_axiom(id, k)(implicitly[Iso[B]], a0)
   def at[A:Iso](a: A, lc: Lc): A = {
@@ -295,11 +296,11 @@ trait VerifyOps extends Base with BooleanOps {
     ia.toRepList(a).foreach{x => assigns(x)}
   }
 
-  case class Logic[B](name: String, suffix: String, bs: List[Typ[_]], rt: Typ[B], ks: List[TopLevel[Boolean]]) extends Snip
-  def _add_logic[B](name: String, suffix: String, n: Int, bs: List[Typ[_]], rt: Typ[B], ks: => Unit): Unit = {
+  case class Logic[B](name: String, suffix: String, bs: List[Typ[_]], rt: Typ[B], reads: List[Rep[_]] => Rep[List[Any]], ks: List[TopLevel[Boolean]]) extends Snip
+  def _add_logic[B](name: String, suffix: String, n: Int, bs: List[Typ[_]], rt: Typ[B], reads: List[Rep[_]] => Rep[List[Any]], ks: => Unit): Unit = {
     assert (pendingAxioms.isEmpty)
     ks
-    val r = Logic[B](name, suffix, bs, rt, pendingAxioms.reverse)
+    val r = Logic[B](name, suffix, bs, rt, reads, pendingAxioms.reverse)
     pendingAxioms = Nil
     rec.getOrElseUpdate(name, r)
     ()
@@ -653,6 +654,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
       case _ => "TODO:Def:"+d
     }
     def exprOf[A](e: Exp[A], m: Map[Sym[_], String] = Map()): String = e match {
+      case Const(Nil) => ""
       case Const(b: Boolean) => "\\"+b.toString
       case Const(_) => quote(e)
       case s@Sym(n) => s match {
@@ -756,14 +758,15 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
         val args = x.bs.map(fresh(_))
         val sig = x.name+x.suffix+"("+(args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")+")"
         val rel = x.rt.toString == "Boolean"
+        val reads_clause = exprOfBlock(reifySpec(x.reads(args)), default_m)
+        val reads = if (reads_clause.trim().nonEmpty) s" reads $reads_clause" else ""
         val each = if (rel) {
-          stream.println(s"inductive $sig {")
+          stream.println(s"inductive $sig$reads {")
           "case"
         } else {
           val rtp = remapWithRef(x.rt)
           stream.println(s"axiomatic ${x.name} {")
-          stream.println(s"logic $rtp $sig;")
-          // TODO: reads clause
+          stream.println(s"logic $rtp $sig$reads;")
           "axiom"
         }
         x.ks.foreach{ k =>
