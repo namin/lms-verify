@@ -91,6 +91,18 @@ trait VerifyOps extends Base with BooleanOps {
     }
     override def check(x:(A1,A2,A3,A4)) = iso1.check(x._1) && iso2.check(x._2) && iso3.check(x._3) && iso4.check(x._4)
   }
+  implicit def iso_tup5[A1,A2,A3,A4,A5](implicit iso1: Iso[A1], iso2: Iso[A2], iso3: Iso[A3], iso4: Iso[A4], iso5: Iso[A5]): Iso[(A1,A2,A3,A4,A5)] = new Iso[(A1,A2,A3,A4,A5)] {
+    val isoTup = new IsoTup(List(iso1, iso2, iso3, iso4, iso5))
+    override def id = isoTup.id
+    override def memList = isoTup.memList
+    override def typList = isoTup.typList
+    override def toRepList(x:(A1,A2,A3,A4,A5)) = iso1.toRepList(x._1) ++ iso2.toRepList(x._2) ++ iso3.toRepList(x._3) ++ iso4.toRepList(x._4) ++ iso5.toRepList(x._5)
+    override def fromRepList(xs: List[Rep[_]]) = {
+      val slice = isoTup.slice(xs)_
+      (iso1.fromRepList(slice(0)), iso2.fromRepList(slice(1)), iso3.fromRepList(slice(2)), iso4.fromRepList(slice(3)), iso5.fromRepList(slice(4)))
+    }
+    override def check(x:(A1,A2,A3,A4,A5)) = iso1.check(x._1) && iso2.check(x._2) && iso3.check(x._3) && iso4.check(x._4) && iso5.check(x._5)
+  }
   implicit def iso_tup9[A1,A2,A3,A4,A5,A6,A7,A8,A9](implicit iso1: Iso[A1], iso2: Iso[A2], iso3: Iso[A3], iso4: Iso[A4], iso5: Iso[A5], iso6: Iso[A6], iso7: Iso[A7], iso8: Iso[A8], iso9: Iso[A9]): Iso[(A1,A2,A3,A4,A5,A6,A7,A8,A9)] = new Iso[(A1,A2,A3,A4,A5,A6,A7,A8,A9)] {
     val isoTup = new IsoTup(List(iso1, iso2, iso3, iso4, iso5, iso6, iso7, iso8, iso9))
     override def id = isoTup.id
@@ -208,6 +220,15 @@ trait VerifyOps extends Base with BooleanOps {
   def predicate[A1:Iso,A2:Iso](name: String, f: (A1,A2) => Rep[Boolean]): (A1,A2) => Rep[Boolean] = {
     unwrap2(toplevel(name, wrap2(f), spec=true))
   }
+  def predicate[A<:Product,B:Iso](name: String, f: A => B => Rep[Boolean])(implicit a0: A): A => B => Rep[Boolean] = {
+    val ib = implicitly[Iso[B]]
+    val fa0: B => Rep[Boolean] = f(a0)
+    toplevel[B,Rep[Boolean]](name+lc_id(a0), fa0, spec=true, code=false)(implicitly[Iso[B]], iso1_id[Boolean])
+    val g: A => B => Rep[Boolean] = { a => x =>
+      toplevelApply[Boolean](name+lc_id(a), ib.toRepList(x))
+    }
+    g
+  }
 
   implicit class RangeForall(r: Rep[Range]) {
     def forall(f: Rep[Int] => Rep[Boolean]): Rep[Boolean] = range_forall(r, f)
@@ -235,16 +256,15 @@ trait VerifyOps extends Base with BooleanOps {
     _add_logic(id, lc_id(a0), a0.productArity, ib.typList, ir.typ, ks(r))
     r
   }
-  def add_axiom[A<:Product,B:Iso,R:Iso1](id: String, k: A => B => R)(implicit a0: A): Unit = {
+  def add_axiom[A<:Product,B:Iso](id: String, k: A => B => Rep[Boolean])(implicit a0: A): Unit = {
     val ib = implicitly[Iso[B]]
-    val ir = implicitly[Iso1[R]]
     val name = id+lc_id(a0)
-    _add_axiom[ir.G](name, a0.productArity, ib.typList, ir.typ, {xs => ir.toRep(k(a0)(ib.fromRepList(xs)))})
+    _add_axiom(name, a0.productArity, ib.typList, {xs => k(a0)(ib.fromRepList(xs))})
   }
   def inductive[A<:Product,B:Iso](id: String, ks: (A => B => Rep[Boolean]) => Unit)(implicit a0: A) =
     logic(id, ks)(implicitly[Iso[B]], iso1_id[Boolean], a0)
   def add_case[A<:Product,B:Iso](id: String, k: A => B => Rep[Boolean])(implicit a0: A) =
-    add_axiom(id, k)(implicitly[Iso[B]], iso1_id[Boolean], a0)
+    add_axiom(id, k)(implicitly[Iso[B]], a0)
   def at[A:Iso](a: A, lc: Lc): A = {
     val ia = implicitly[Iso[A]]
     ia.fromRepList(ia.toRepList(a).zip(ia.typList.zip(ia.memList)).map{case (x,(t,m)) => _at(x.asInstanceOf[Rep[m.T]], lc)(t.asInstanceOf[Typ[m.T]])})
@@ -258,19 +278,19 @@ trait VerifyOps extends Base with BooleanOps {
     ia.toRepList(a).foreach{x => assigns(x)}
   }
 
-  case class Logic[B](name: String, suffix: String, bs: List[Typ[_]], rt: Typ[B], ks: List[TopLevel[B]]) extends Snip
+  case class Logic[B](name: String, suffix: String, bs: List[Typ[_]], rt: Typ[B], ks: List[TopLevel[Boolean]]) extends Snip
   def _add_logic[B](name: String, suffix: String, n: Int, bs: List[Typ[_]], rt: Typ[B], ks: => Unit): Unit = {
     assert (pendingAxioms.isEmpty)
     ks
-    val r = Logic[B](name, suffix, bs, rt, pendingAxioms.reverse.asInstanceOf[List[TopLevel[B]]])
+    val r = Logic[B](name, suffix, bs, rt, pendingAxioms.reverse)
     pendingAxioms = Nil
     rec.getOrElseUpdate(name, r)
     ()
   }
   var pendingAxioms: List[Axiom] = Nil
-  type Axiom = TopLevel[_]
-  def _add_axiom[B](name: String, n: Int, bs: List[Typ[_]], rt: Typ[B], k: List[Rep[_]] => Rep[B]): Unit = {
-    pendingAxioms = TopLevel[B](name, bs, rt, k, true, false) :: pendingAxioms
+  type Axiom = TopLevel[Boolean]
+  def _add_axiom(name: String, n: Int, bs: List[Typ[_]], k: List[Rep[_]] => Rep[Boolean]): Unit = {
+    pendingAxioms = TopLevel[Boolean](name, bs, implicitly[Typ[Boolean]], k, true, false) :: pendingAxioms
   }
 
   def _at[A:Typ](a: Rep[A], lc: Lc): Rep[A]
@@ -718,9 +738,21 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
         stream.println("/*@")
         val args = x.bs.map(fresh(_))
         val sig = x.name+x.suffix+"("+(args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")+")"
-        stream.println(s"inductive $sig {")
+        val rel = x.rt.toString == "Boolean"
+        val each = if (rel) {
+          stream.println(s"inductive $sig {")
+          "case"
+        } else {
+          val rtp = remapWithRef(x.rt)
+          stream.println(s"axiomatic ${x.name} {")
+          stream.println(s"logic $rtp $sig;")
+          // TODO: reads clause
+          "axiom"
+        }
         x.ks.foreach{ k =>
-          emitVerify[B](k.f, x.name+"_"+k.name, spec=true, code=false, axiom=true, out)(k.mAs, k.mB)
+          stream.print(s"$each ")
+          emitVerify[Boolean](k.f, x.name+"_"+k.name, spec=true, code=false, axiom=true, out)(
+            k.mAs, implicitly[Typ[Boolean]])
         }
         stream.println("}")
         stream.println("*/")
@@ -773,7 +805,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
           if (!axiom)
             stream.println("/*@ predicate "+sig+" = "+exprOfBlock[B](body, default_m)+";*/")
           else {
-            stream.println(s"case $functionName:")
+            stream.println(s"$functionName:")
             if (args.nonEmpty) stream.print(s"\\forall $sig_args; ")
             stream.println(exprOfBlock[B](body, default_m)+";")
           }
