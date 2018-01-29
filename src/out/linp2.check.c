@@ -17,7 +17,7 @@ int index(int  x0, int  x1, int  x2, int  x3) {
   int x6 = x5 + x3;
   return x6;
 }
-/*@ predicate inv_matrix_Boolean(int  * x36, int  x37, int  x38) = (((((x37<100) &&
+/*@ predicate inv_matrix_Boolean(int  * x36, integer  x37, integer  x38) = (((((x37<100) &&
 (x38<100)) &&
 (0<x37)) &&
 (0<x38)) &&

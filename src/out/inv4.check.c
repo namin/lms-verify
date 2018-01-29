@@ -1,7 +1,7 @@
 #include <limits.h>
-/*@ predicate inv_vec_Int(int  * x0, int  x1) = ((x1==0) || ((x1>0) &&
+/*@ predicate inv_vec_Int(int  * x0, integer  x1) = ((x1==0) || ((x1>0) &&
 \valid(x0+(0..x1-1))));*/
-/*@ predicate inv_vec_vec_Int(int  * * x16, int  * x17, int  x18) = (((x18==0) || ((x18>0) &&
+/*@ predicate inv_vec_vec_Int(int  * * x16, int  * x17, integer  x18) = (((x18==0) || ((x18>0) &&
 (\valid(x16+(0..x18-1)) &&
 \valid(x17+(0..x18-1))))) &&
 (\forall int x28; (0<=x28<x18) ==> ((x17[x28]==0) || ((x17[x28]>0) &&

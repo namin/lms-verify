@@ -1,5 +1,5 @@
 #include <limits.h>
-/*@ predicate inv_vec_Int(int  * x0, int  x1) = ((x1==0) || ((x1>0) &&
+/*@ predicate inv_vec_Int(int  * x0, integer  x1) = ((x1==0) || ((x1>0) &&
 \valid(x0+(0..x1-1))));*/
 /*@ predicate eq_vec_Int(int  * x16, int  x17, int  * x18, int  x19) = ((x17==x19) &&
 (\forall int x23; (0<=x23<x17) ==> (x16[x23]==x18[x23])));*/
@@ -32,7 +32,7 @@ int eq_vec_Int(int  * x16, int  x17, int  * x18, int  x19) {
   }
   return x33;
 }
-/*@ predicate inv_vec_vec_Int(int  * * x37, int  * x38, int  x39) = (((x39==0) || ((x39>0) &&
+/*@ predicate inv_vec_vec_Int(int  * * x37, int  * x38, integer  x39) = (((x39==0) || ((x39>0) &&
 (\valid(x37+(0..x39-1)) &&
 \valid(x38+(0..x39-1))))) &&
 (\forall int x49; (0<=x49<x39) ==> inv_vec_Int(x37[x49],x38[x49])));*/

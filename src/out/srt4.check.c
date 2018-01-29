@@ -16,7 +16,7 @@ int eq___Int_Int__(int  x0, int  x1, int  x2, int  x3) {
   }
   return x7;
 }
-/*@ predicate inv_vec___Int_Int__(int  * x8, int  * x9, int  x10) = ((x10==0) || ((x10>0) &&
+/*@ predicate inv_vec___Int_Int__(int  * x8, int  * x9, integer  x10) = ((x10==0) || ((x10>0) &&
 (\valid(x8+(0..x10-1)) &&
 \valid(x9+(0..x10-1)))));*/
 /*@

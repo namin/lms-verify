@@ -777,10 +777,10 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
         stream.println("}")
         stream.println("*/")
       }
-      inAxiom = false
     }
 
     def emitVerify[B](f: List[Exp[_]] => Exp[B], functionName: String, spec: Boolean, code: Boolean, axiom: Boolean, out: PrintWriter)(mAs: List[Typ[_]], mB: Typ[B]): Unit = {
+      inAxiom = axiom || (spec && !code)
       val args = mAs.map(fresh(_))
       val r = fresh[B](mB)
       val oldFns = rec.keys.toSet

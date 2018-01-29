@@ -1,5 +1,5 @@
 #include <limits.h>
-/*@ predicate inv_vec_Int(int  * x0, int  x1) = ((x1==0) || ((x1>0) &&
+/*@ predicate inv_vec_Int(int  * x0, integer  x1) = ((x1==0) || ((x1>0) &&
 \valid(x0+(0..x1-1))));*/
 /*@
 inductive vec_Int_Permut{L1,L2}(int  * x16, integer  x17) {

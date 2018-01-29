@@ -105,7 +105,6 @@ class ShonanTests extends TestSuite {
       )
     }
     exec("1", (new Program with Impl).code) // TODO finish...
-    // ... we want the predicate to have more integer than int...
     // ... we want the program to verify in frama-c
   }
 }
