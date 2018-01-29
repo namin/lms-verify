@@ -39,7 +39,7 @@ class ShonanTests extends TestSuite {
       })
     })
 
-    def mvp(p: Prod) = mv_prod(Tuple1("Here"))(p)
+    def mvp(p: Prod) = mv_prod(Tuple1(""))(p)
   }
 
   test("1") {
@@ -85,6 +85,9 @@ class ShonanTests extends TestSuite {
           requires(separated(m, 0 until n*n, o, 0 until n))
           requires(separated(v, 0 until n, o, 0 until n))
 
+          requires(forall{i: Rep[Int] => ((0 <= i && i < n*n) ==> (0 <= m(i) && m(i) <= 1))})
+          requires(forall{i: Rep[Int] => ((0 <= i && i < n) ==> (0 <= v(i) && v(i) <= 9))})
+
           for (r <- 0 until n) {
             loop_invariant(forall{i: Rep[Int] => ((0 <= i && i < r) ==> (o(i) == mvp((n, i, n, m, v))))})
             loop_assigns(list_new(r::(o within (0 until n))::Nil))
@@ -104,7 +107,6 @@ class ShonanTests extends TestSuite {
         }
       )
     }
-    exec("1", (new Program with Impl).code) // TODO finish...
-    // ... we want the program to verify in frama-c
+    check("1", (new Program with Impl).code)
   }
 }

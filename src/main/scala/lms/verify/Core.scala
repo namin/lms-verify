@@ -258,8 +258,10 @@ trait VerifyOps extends Base with BooleanOps {
   implicit def lc1: Lc1 = Tuple1("L")
   implicit def lc2: (Lc,Lc) = ("L1","L2")
   implicit def lc3: (Lc,Lc,Lc) = ("L1","L2","L3")
-  def lc_id[A<:Product](a: A): String =
-    a.productIterator.map(_.toString).mkString("{", ",", "}")
+  def lc_id[A<:Product](a: A): String = {
+    val id = a.productIterator.map(_.toString).mkString("{", ",", "}")
+    if (id == "{}") "" else id
+  }
   def logic[A<:Product,B:Iso,R:Iso1](id: String, reads: B => Rep[List[Any]], ks: (A => B => R) => Unit)
       (implicit a0: A):
       (A => B => R) = {
