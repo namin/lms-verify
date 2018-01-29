@@ -103,6 +103,18 @@ trait VerifyOps extends Base with BooleanOps {
     }
     override def check(x:(A1,A2,A3,A4,A5)) = iso1.check(x._1) && iso2.check(x._2) && iso3.check(x._3) && iso4.check(x._4) && iso5.check(x._5)
   }
+  implicit def iso_tup6[A1,A2,A3,A4,A5,A6](implicit iso1: Iso[A1], iso2: Iso[A2], iso3: Iso[A3], iso4: Iso[A4], iso5: Iso[A5], iso6: Iso[A6]): Iso[(A1,A2,A3,A4,A5,A6)] = new Iso[(A1,A2,A3,A4,A5,A6)] {
+    val isoTup = new IsoTup(List(iso1, iso2, iso3, iso4, iso5, iso6))
+    override def id = isoTup.id
+    override def memList = isoTup.memList
+    override def typList = isoTup.typList
+    override def toRepList(x:(A1,A2,A3,A4,A5,A6)) = iso1.toRepList(x._1) ++ iso2.toRepList(x._2) ++ iso3.toRepList(x._3) ++ iso4.toRepList(x._4) ++ iso5.toRepList(x._5) ++ iso6.toRepList(x._6)
+    override def fromRepList(xs: List[Rep[_]]) = {
+      val slice = isoTup.slice(xs)_
+      (iso1.fromRepList(slice(0)), iso2.fromRepList(slice(1)), iso3.fromRepList(slice(2)), iso4.fromRepList(slice(3)), iso5.fromRepList(slice(4)), iso6.fromRepList(slice(5)))
+    }
+    override def check(x:(A1,A2,A3,A4,A5,A6)) = iso1.check(x._1) && iso2.check(x._2) && iso3.check(x._3) && iso4.check(x._4) && iso5.check(x._5) && iso6.check(x._6)
+  }
   implicit def iso_tup9[A1,A2,A3,A4,A5,A6,A7,A8,A9](implicit iso1: Iso[A1], iso2: Iso[A2], iso3: Iso[A3], iso4: Iso[A4], iso5: Iso[A5], iso6: Iso[A6], iso7: Iso[A7], iso8: Iso[A8], iso9: Iso[A9]): Iso[(A1,A2,A3,A4,A5,A6,A7,A8,A9)] = new Iso[(A1,A2,A3,A4,A5,A6,A7,A8,A9)] {
     val isoTup = new IsoTup(List(iso1, iso2, iso3, iso4, iso5, iso6, iso7, iso8, iso9))
     override def id = isoTup.id
@@ -158,6 +170,8 @@ trait VerifyOps extends Base with BooleanOps {
   def unwrap3[A1,A2,A3,B](g: ((A1,A2,A3)) => B): (A1,A2,A3) => B = {(x1: A1, x2: A2, x3: A3) => g((x1, x2, x3))}
   def wrap4[A1,A2,A3,A4,B](f: (A1,A2,A3,A4) => B): ((A1,A2,A3,A4)) => B = {(x: (A1,A2,A3,A4)) => f(x._1, x._2, x._3, x._4)}
   def unwrap4[A1,A2,A3,A4,B](g: ((A1,A2,A3,A4)) => B): (A1,A2,A3,A4) => B = {(x1: A1, x2: A2, x3: A3, x4: A4) => g((x1, x2, x3, x4))}
+  def wrap6[A1,A2,A3,A4,A5,A6,B](f: (A1,A2,A3,A4,A5,A6) => B): ((A1,A2,A3,A4,A5,A6)) => B = {(x: (A1,A2,A3,A4,A5,A6)) => f(x._1, x._2, x._3, x._4, x._5, x._6)}
+  def unwrap6[A1,A2,A3,A4,A5,A6,B](g: ((A1,A2,A3,A4,A5,A6)) => B): (A1,A2,A3,A4,A5,A6) => B = {(x1: A1, x2: A2, x3: A3, x4: A4, x5: A5, x6: A6) => g((x1, x2, x3, x4, x5, x6))}
   def wrap9[A1,A2,A3,A4,A5,A6,A7,A8,A9,B](f: (A1,A2,A3,A4,A5,A6,A7,A8,A9) => B): ((A1,A2,A3,A4,A5,A6,A7,A8,A9)) => B = {(x: (A1,A2,A3,A4,A5,A6,A7,A8,A9)) => f(x._1, x._2, x._3, x._4, x._5, x._6, x._7, x._8, x._9)}
   def unwrap9[A1,A2,A3,A4,A5,A6,A7,A8,A9,B](g: ((A1,A2,A3,A4,A5,A6,A7,A8,A9)) => B): (A1,A2,A3,A4,A5,A6,A7,A8,A9) => B = {(x1: A1, x2: A2, x3: A3, x4: A4, x5: A5, x6: A6, x7: A7, x8: A8, x9: A9) => g((x1, x2, x3, x4, x5, x6, x7, x8, x9))}
 
@@ -179,6 +193,9 @@ trait VerifyOps extends Base with BooleanOps {
   def toplevel[A1:Iso,A2:Iso,A3:Iso,A4:Iso,B:Iso1](name: String, f: (A1,A2,A3,A4) => B, pre: (A1,A2,A3,A4) => Rep[Boolean], post: (A1,A2,A3,A4) => B => Rep[Boolean]): (A1,A2,A3,A4) => B = {
     unwrap4(toplevel(name, wrap4(f), wrap4(pre), wrap4(post)))
   }
+  def toplevel[A1:Iso,A2:Iso,A3:Iso,A4:Iso,A5:Iso,A6:Iso,B:Iso1](name: String, f: (A1,A2,A3,A4,A5,A6) => B): (A1,A2,A3,A4,A5,A6) => B = {
+    unwrap6(toplevel(name, wrap6(f)))
+  }
   def toplevel[A1:Iso,A2:Iso,A3:Iso,A4:Iso,A5:Iso,A6:Iso,A7:Iso,A8:Iso,A9:Iso,B:Iso1](name: String, f: (A1,A2,A3,A4,A5,A6,A7,A8,A9) => B, pre: (A1,A2,A3,A4,A5,A6,A7,A8,A9) => Rep[Boolean], post: (A1,A2,A3,A4,A5,A6,A7,A8,A9) => B => Rep[Boolean]): (A1,A2,A3,A4,A5,A6,A7,A8,A9) => B = {
     unwrap9(toplevel(name, wrap9(f), wrap9(pre), wrap9(post)))
   }
@@ -190,7 +207,7 @@ trait VerifyOps extends Base with BooleanOps {
   def valid[A](p: Rep[A]): Rep[Boolean]
   def valid[A](p: Rep[A], r: Rep[Any]): Rep[Boolean]
   def old[A:Typ](v: Rep[A]): Rep[A]
-  def separated[A,B](p1: Rep[A], i1: Rep[Int], p2: Rep[B], i2: Rep[Int]): Rep[Boolean]
+  def separated[A,B](p1: Rep[A], i1: Rep[Any], p2: Rep[B], i2: Rep[Any]): Rep[Boolean]
 
   def reflectMutableInput[A](v: Rep[A]): Rep[A]
   def reflectMutableInput[A](v: Rep[A], r: Rep[Range]): Rep[A]
@@ -322,12 +339,12 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
 
   case class Valid[A](p: Rep[A], r: Option[Rep[Any]]) extends Def[Boolean]
   case class Old[A](v: Rep[A]) extends Def[A]
-  case class Separated[A,B](p1: Rep[A], i1: Rep[Int], p2: Rep[B], i2: Rep[Int]) extends Def[Boolean]
+  case class Separated[A,B](p1: Rep[A], i1: Rep[Any], p2: Rep[B], i2: Rep[Any]) extends Def[Boolean]
 
   def valid[A](p: Rep[A]): Rep[Boolean] = Valid[A](p, None)
   def valid[A](p: Rep[A], r: Rep[Any]): Rep[Boolean] = Valid[A](p, Some(r))
   def old[A:Typ](v: Rep[A]): Rep[A] = Old[A](v)
-  def separated[A,B](p1: Rep[A], i1: Rep[Int], p2: Rep[B], i2: Rep[Int]) = Separated[A,B](p1, i1, p2, i2)
+  def separated[A,B](p1: Rep[A], i1: Rep[Any], p2: Rep[B], i2: Rep[Any]) = Separated[A,B](p1, i1, p2, i2)
 
   def reflectMutableInput[A](v: Rep[A]): Rep[A] =
     reflectMutableSym(v.asInstanceOf[Sym[A]])
