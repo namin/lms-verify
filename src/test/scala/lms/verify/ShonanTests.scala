@@ -44,6 +44,20 @@ class ShonanTests extends TestSuite {
 
   test("1") {
     trait Program extends Shonan {
+      def requires_mvprod(n: Rep[Int], m: Rep[Array[Int]], v: Rep[Array[Int]], o: Rep[Array[Int]]) = {
+        reflectMutableInput(o)
+        requires(n > 0)
+        requires(valid(m, 0 until n*n))
+        requires(valid(v, 0 until n))
+        requires(valid(o, 0 until n))
+        requires(separated(m, 0 until n*n, o, 0 until n))
+        requires(separated(v, 0 until n, o, 0 until n))
+      }
+      def ensures_mvprod(n: Rep[Int], m: Rep[Array[Int]], v: Rep[Array[Int]], o: Rep[Array[Int]]) = {
+        assigns(o, 0 until n)
+        ensures{_:Rep[Unit] => forall{i: Rep[Int] => ((0 <= i && i < n) ==> (o(i) == mvp((n, i, n, m, v))))}}
+      }
+
       val put = toplevel("put",
         { (
           o: Rep[Array[Int]],
@@ -53,14 +67,8 @@ class ShonanTests extends TestSuite {
           m: Rep[Array[Int]],
           v: Rep[Array[Int]]
         ) =>
-          reflectMutableInput(o)
-          requires(n > 0)
+          requires_mvprod(n, m, v, o)
           requires(0 <= i && i < n)
-          requires(valid(m, 0 until n*n))
-          requires(valid(v, 0 until n))
-          requires(valid(o, 0 until n))
-          requires(separated(m, 0 until n*n, o, 0 until n))
-          requires(separated(v, 0 until n, o, 0 until n))
 
           o(i) = a
           ensures{_:Rep[Unit] => forall{j: Rep[Int] => ((0 <= j && j < n && j != i) ==>  (o(j) == old(o(j))))}}
@@ -70,6 +78,7 @@ class ShonanTests extends TestSuite {
           ensures{_:Rep[Unit] => o(i)==a}
           assigns(o(i))
         })
+
       val mv_prod_impl = toplevel("mv_prod_impl",
         { (
           n: Rep[Int],
@@ -77,16 +86,7 @@ class ShonanTests extends TestSuite {
           v: Rep[Array[Int]],
           o: Rep[Array[Int]]
         ) =>
-          reflectMutableInput(o)
-          requires(n > 0)
-          requires(valid(m, 0 until n*n))
-          requires(valid(v, 0 until n))
-          requires(valid(o, 0 until n))
-          requires(separated(m, 0 until n*n, o, 0 until n))
-          requires(separated(v, 0 until n, o, 0 until n))
-
-          requires(forall{i: Rep[Int] => ((0 <= i && i < n*n) ==> (0 <= m(i) && m(i) <= 1))})
-          requires(forall{i: Rep[Int] => ((0 <= i && i < n) ==> (0 <= v(i) && v(i) <= 9))})
+          requires_mvprod(n, m, v, o)
 
           for (r <- 0 until n) {
             loop_invariant(forall{i: Rep[Int] => ((0 <= i && i < r) ==> (o(i) == mvp((n, i, n, m, v))))})
@@ -102,8 +102,55 @@ class ShonanTests extends TestSuite {
             put(o, r, t, n, m, v)
           }
 
-          assigns(o, 0 until n)
-          ensures{_:Rep[Unit] => forall{i: Rep[Int] => ((0 <= i && i < n) ==> (o(i) == mvp((n, i, n, m, v))))}}
+          ensures_mvprod(n, m, v, o)
+        }
+      )
+
+      val n0 = 5
+      val m0 = Array(
+        1, 1, 1, 1, 1,
+        0, 0, 0, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 0, 0, 0, 0,
+        0, 0, 1, 0, 1)
+      val mv_prod_specialized = toplevel("mv_prod_specialized",
+        { (
+          n: Rep[Int],
+          m: Rep[Array[Int]],
+          v: Rep[Array[Int]],
+          o: Rep[Array[Int]]
+        ) =>
+          requires_mvprod(n, m, v, o)
+          requires(n==n0)
+          for (i <- (0 until n0*n0):Range) {
+            requires(m(i) == m0(i))
+          }
+
+          for (r <- (0 until n0):Range) {
+            _assert(forall{i: Rep[Int] => ((0 <= i && i < r) ==> (o(i) == mvp((n, i, n, m, v))))})
+            val row = for (c <- (0 until n0):Range) yield m0(r*n0+c)
+            val sparse = row.count(_ != 0) < 3
+            var t = 0
+            if (sparse) {
+              for (c <- (0 until n0):Range) {
+                _assert(forall{i: Rep[Int] => ((0 <= i && i < r) ==> (o(i) == mvp((n, i, n, m, v))))})
+                _assert(t == mvp((c, r, n, m, v)))
+                t = t + (m0(n0*r+c) * v(c))
+              }
+              _assert(t == mvp((n, r, n, m, v)))
+            } else {
+              for (c <- 0 until n) {
+                loop_invariant(0 <= r && r < n)
+                loop_invariant(forall{i: Rep[Int] => ((0 <= i && i < r) ==> (o(i) == mvp((n, i, n, m, v))))})
+                loop_invariant(t == mvp((c, r, n, m, v)))
+                loop_assigns(list_new(c::(readVar(t)::Nil)))
+                t = t + (m(n*r+c) * v(c))
+              }
+            }
+            put(o, r, t, n, m, v)
+            _assert(forall{i: Rep[Int] => ((0 <= i && i <= r) ==> (o(i) == mvp((n, i, n, m, v))))})
+          }
+          ensures_mvprod(n, m, v, o)
         }
       )
     }
