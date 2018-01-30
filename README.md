@@ -61,7 +61,7 @@ studies inferring low-level loop properties and custom staging-time abstractions
 Implement a matrix vector product, where the matrix is known statically.
 In the spec, you can spell out each entry in the known matrix, as well as the definition of matrix vector product.
 In the implementation, you can optimize the matrix vector product, unrolling sparse rows and optimizing arithmetic operations (multipliying by 1 or 0, adding 0).
-Verify that the optimized implementation still implements the matrix vector product.
+Verify that the optimized implementation still implements the matrix vector product. ([code](src/test/scala/lms/verify/ShonanTests.scala))
 
 #### Functionally Correct Optimized Regular Expression Matcher
 Implement an optimized regular expression matcher, where the regular expression is known.
