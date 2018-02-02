@@ -2,26 +2,8 @@ package lms.verify
 
 // inspired by http://manojo.github.io/2015/09/04/staged-parser-combinators-recursion
 
-trait StagedParser extends Dsl {
+trait StagedParser extends Dsl with Reader {
   override def includes = super.includes:+"<string.h>"
-  def valid_input(s: Rep[Input]) = s.length>=0 && valid(s, 0 until s.length+1)
-
-  // Reader
-  type Elem = Char
-  type Input = Array[Char] // \0-terminated C string
-  implicit class InputOps(s: Rep[Input]) {
-    def first: Rep[Elem] = s(0)
-    def atEnd: Rep[Boolean] = s(0) == unit(0.toChar)
-    def rest: Rep[Input] = /*s+1*/uncheckedPure[Input](s, "+1")
-    def foreach(f: Rep[Char] => Rep[Unit]) = {
-      var t = s
-      while (readVar(t).atEnd) {
-        f(readVar(t).first)
-        t = readVar(t).rest
-      }
-    }
-  }
-  implicit def var2input(s: Var[Input]): InputOps = readVar(s)
 
   // Parser Result
   abstract class ParseResultCPS[T: Typ] { self =>
