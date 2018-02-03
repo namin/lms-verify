@@ -75,6 +75,76 @@ class CRegexpMatcherTest extends TestSuite with CRegexpMatcher {
   testmatch("^ab*$", "ac", false);
 }
 
-trait StagedCRegexpMatcher extends Dsl with Reader {
-  // TODO
+trait StagedCRegexpMatcher extends Dsl with Reader with SimulatedReader {
+  def matchsearch(r: Input, s: Rep[Input]): Rep[Boolean] = {
+    if (r.first == '^')
+      matchhere(r.rest, s)
+    else {
+      var found = unit(false)
+      var continue = unit(true)
+      var cur_s = s
+      loop (valid_input(cur_s), List[Any](found, continue, cur_s), cur_s.length+(if (!found) 1 else 0)+(if (continue) 1 else 0)) {
+      while (!found && continue) {
+        found = matchhere(r, cur_s)
+        if (!found) {
+          continue = !cur_s.atEnd
+          if (continue) cur_s = cur_s.rest
+        }
+      }}
+      found
+    }
+  }
+  def matchhere(r: Input, s: Rep[Input]): Rep[Boolean] = {
+    if (r.atEnd)
+      true
+    else if (r.second == '*')
+      matchstar(r.first, r.rest.rest, s)
+    else if (r.first == '$' && r.rest.atEnd)
+      s.atEnd
+    else if (!s.atEnd && (r.first == '.' || r.first == s.first))
+      matchhere(r.rest, s.rest)
+    else
+      false
+  }
+  def matchstar(c: Char, r: Input, s: Rep[Input]): Rep[Boolean] = {
+    var found = unit(false)
+    var continue = unit(true)
+    var cur_s = s
+    loop (valid_input(cur_s), List[Any](found, continue, cur_s), cur_s.length+(if (!found) 1 else 0)+(if (continue) 1 else 0)) {
+    while (!found && continue) {
+      found = matchhere(r, cur_s)
+      if (!found) {
+        continue = !cur_s.atEnd
+        if (continue) {
+          continue = cur_s.first == c  || c == '.'
+          cur_s = cur_s.rest
+        }
+      }
+    }}
+    found
+  }
+}
+
+class CRegexTests extends TestSuite {
+  val under = "cre_"
+
+  def gen(msg: String, re: String) {
+    test(msg) {
+      trait RegexProg extends StagedCRegexpMatcher {
+        override def includes = super.includes:+"<string.h>"
+        override def autoAssignNothing = false
+
+        toplevel("matcher_"+msg,
+          { (s: Rep[Input]) => matchsearch(fromString(re), s) },
+          { (s: Rep[Input]) => valid_input(s) },
+          { (s: Rep[Input]) => (r: Rep[Boolean]) => true })
+      }
+      check(msg, (new RegexProg with Impl).code)
+    }
+  }
+
+  gen("begin_a", "^a")
+  gen("a_end", "a$")
+  gen("a", "a")
+  gen("ab_dot_star_ab", "ab.*ab")
 }

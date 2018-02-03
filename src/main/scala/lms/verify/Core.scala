@@ -634,6 +634,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpO
       case IfThenElse(a, Block(Const(true)), Block(Const(false))) => exprOf(a, m)
       case IfThenElse(a, Block(Def(Reify(Const(true), _, _))), Block(Const(false))) => exprOf(a, m)
       case IfThenElse(a, b, Block(Const(false))) => "("+exprOf(a, m)+" &&\n "+exprOfBlock(b, m)+")"
+      case IfThenElse(a, b, c) => "(("+exprOf(a,m)+") ? ("+exprOfBlock(b,m)+") : ("+exprOfBlock(c,m)+"))"
       case BooleanOr(a, b) => "("+exprOf(a, m)+" || "+exprOf(b, m)+")"
       case BooleanNegate(a) => "(!"+exprOf(a, m)+")"
       case ObjIntMaxValue() => "INT_MAX"
