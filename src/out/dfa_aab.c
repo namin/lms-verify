@@ -1,13 +1,9 @@
 #include <string.h>
 
-// TODO:
-// generatively, we should be able to ensure that
-// result==-1 (error: invalid state) is impossible.
-
 /*@
 requires strlen(input)>=0 && \valid(input+(0..strlen(input)));
 assigns \nothing;
-ensures \result==-1 || \result==0 || \result==1;
+ensures \result==0 || \result==1;
 */
 int dfa_aab(char* input) {
   if (*input == '\0') return 0/*false*/;
@@ -15,6 +11,7 @@ int dfa_aab(char* input) {
   char c;
   /*@
     loop invariant strlen(input)>0 && \valid(input+(0..strlen(input)));
+    loop invariant id==0 || id==3 || id==6;
     loop assigns id, c, input;
     loop variant strlen(input);
    */
