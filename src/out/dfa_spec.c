@@ -29,6 +29,19 @@ requires strlen(r)>=0 && \valid(r+(0..strlen(r)));
 requires strlen(s)>=0 && \valid(s+(0..strlen(s)));
 
 requires r[0]=='.' && r[1]=='*' && r[2]=='A' && r[3]=='A' && r[4]=='B' && r[5]=='\0';
+requires s[0]=='A' && s[1]=='A' && s[2]=='A' && s[3]=='B' && s[4]=='\0';
+
+ensures matchhere(r, s);
+
+assigns \nothing;
+*/
+void dfa_spec_aab1_1(char* r, char* s) {}
+
+/*@
+requires strlen(r)>=0 && \valid(r+(0..strlen(r)));
+requires strlen(s)>=0 && \valid(s+(0..strlen(s)));
+
+requires r[0]=='.' && r[1]=='*' && r[2]=='A' && r[3]=='A' && r[4]=='B' && r[5]=='\0';
 requires s[0]=='A' && s[1]=='A' && s[2]=='X' && s[3]=='\0';
 
 ensures !matchhere(r, s);
