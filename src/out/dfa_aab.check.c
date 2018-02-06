@@ -19,42 +19,35 @@ int dfa_aab(char* input) {
     if (id == 0) {
       char x1 = c;
       int x2 = x1 == 'A';
-      int x17;
+      int x16;
       if (x2) {
-        x17 = 3;
+        x16 = 3;
       } else {
-        x17 = 0;
+        x16 = 0;
       }
-      id = x17;
+      id = x16;
     }
     else if (id == 6) {
       char x7 = c;
       int x8 = x7 == 'A';
-      int x14;
+      int x13;
       if (x8) {
-        x14 = 6;
+        x13 = 6;
       } else {
-        int x10 = x7 == 'B';
-        int x13;
-        if (x10) {
-          x13 = 0;
-        } else {
-          x13 = 0;
-        }
-        x14 = x13;
+        x13 = 0;
       }
-      id = x14;
+      id = x13;
     }
     else if (id == 3) {
       char x4 = c;
       int x5 = x4 == 'A';
-      int x15;
+      int x14;
       if (x5) {
-        x15 = 6;
+        x14 = 6;
       } else {
-        x15 = 0;
+        x14 = 0;
       }
-      id = x15;
+      id = x14;
     }
     else { return -1; /*error: invalid state*/ }
   }
@@ -62,42 +55,35 @@ int dfa_aab(char* input) {
   if (id == 0) {
     char x1 = c;
     int x2 = x1 == 'A';
-    int x17;
+    int x16;
     if (x2) {
-      x17 = 0/*false*/;
+      x16 = 0/*false*/;
     } else {
-      x17 = 0/*false*/;
+      x16 = 0/*false*/;
     }
-    id = x17;
+    id = x16;
   }
   else if (id == 6) {
     char x7 = c;
     int x8 = x7 == 'A';
-    int x14;
+    int x13;
     if (x8) {
-      x14 = 0/*false*/;
+      x13 = 0/*false*/;
     } else {
-      int x10 = x7 == 'B';
-      int x13;
-      if (x10) {
-        x13 = 1/*true*/;
-      } else {
-        x13 = 0/*false*/;
-      }
-      x14 = x13;
+      x13 = 1/*true*/;
     }
-    id = x14;
+    id = x13;
   }
   else if (id == 3) {
     char x4 = c;
     int x5 = x4 == 'A';
-    int x15;
+    int x14;
     if (x5) {
-      x15 = 0/*false*/;
+      x14 = 0/*false*/;
     } else {
-      x15 = 0/*false*/;
+      x14 = 0/*false*/;
     }
-    id = x15;
+    id = x14;
   }
   else { return -1; /*error: invalid state */ }
   return id;

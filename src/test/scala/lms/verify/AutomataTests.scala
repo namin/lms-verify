@@ -275,11 +275,17 @@ trait DslAutomata extends DFAOps with NFAtoDFA with RegexpToNFA with Functions w
 
 trait IfThenElseExpExtra extends IfThenElseExp {
   import scala.reflect.SourceContext
+  def same[T](a: Rep[T], b: Rep[T]) = a==b
   override def __ifThenElse[T:Typ](cond: Rep[Boolean], thenp: => Rep[T], elsep: => Rep[T])(implicit pos: SourceContext) =
-    if (thenp == elsep) thenp else super.__ifThenElse(cond, thenp, elsep)
+    if (same(thenp,elsep)) thenp else super.__ifThenElse(cond, thenp, elsep)
 }
 
-trait ImplAutomata extends DslAutomata with DFAOpsExp with Impl with FunctionsExternalDef with IfThenElseExpExtra /*with IfThenElseFatExp*/ { self =>
+trait ImplAutomata extends DslAutomata with DFAOpsExp with Impl with FunctionsExternalDef with IfThenElseExpExtra { self =>
+  override def same[T](a: Rep[T], b: Rep[T]) =
+    super.same(a,b) || ((a,b) match {
+      case (Def(DFAState(_,a)),Def(DFAState(_,b))) => a==b
+      case _ => false
+    })
   override val codegen = new CCodeGenDslAutomata {
     val IR: self.type = self
   }
