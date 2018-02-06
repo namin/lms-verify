@@ -277,7 +277,7 @@ trait IfThenElseExpExtra extends IfThenElseExp {
     if (thenp == elsep) thenp else super.__ifThenElse(cond, thenp, elsep)
 }
 
-trait ImplAutomata extends DslAutomata with DFAOpsExp with FunctionsExternalDef with Impl with IfThenElseExpExtra /*with IfThenElseFatExp*/ { self =>
+trait ImplAutomata extends DslAutomata with DFAOpsExp with Impl with FunctionsExternalDef with IfThenElseExpExtra /*with IfThenElseFatExp*/ { self =>
   override val codegen = new CCodeGenDslAutomata {
     val IR: self.type = self
   }
@@ -289,6 +289,13 @@ trait CCodeGenDslAutomata extends CCodeGenDsl {
   import java.io.{File, FileWriter, PrintWriter}
 
   import IR._
+
+  override def remap[A](m: Typ[A]): String = {
+    val s = m.toString
+    if (s.contains("Automaton"))
+      return "int"
+    super.remap(m)
+  }
 
   // hack to work with CompileScala
   def pack(dio: => DIO): (Exp[String] => Exp[Boolean]) = {
@@ -322,7 +329,7 @@ trait CCodeGenDslAutomata extends CCodeGenDsl {
       firstFun = false
       emitValDef(g.arg, "c")
       emitBlock(y)
-      stream.println(quote(getBlockResult(y)))
+      stream.println("id = "+quote(getBlockResult(y))+";")
       stream.println("}")
     case dfa@DFAState(b,f) =>
     case _ => super.emitNode(sym, rhs)
@@ -330,8 +337,8 @@ trait CCodeGenDslAutomata extends CCodeGenDsl {
 
   override def quote(x: Exp[Any]) : String = x match {
     case Def(dfa@DFAState(b,Sym(fn))) =>
-      if (booleanStage) b.toString
-      else if (dfaStableStates.contains(x.asInstanceOf[Sym[Any]])) { "return " + b }
+      if (booleanStage) super.quote(b)
+      else if (dfaStableStates.contains(x.asInstanceOf[Sym[Any]])) { "return " + super.quote(b) + ";" }
       else fn.toString
     case _ => super.quote(x)
   }
@@ -346,234 +353,51 @@ trait CCodeGenDslAutomata extends CCodeGenDsl {
     dfaStableStates = collector.stableStates
 
     withStream(out) {
-      stream.println("class "+className+" extends (String=>Boolean) {")
-      stream.println("def apply(input: String): Boolean = {")
-      stream.println("val n = input.length")
+      stream.println("int "+className+"(char* input) {")
       booleanStage = true
-      stream.println("if (n == 0) return " + quote(getBlockResult(block)))
+      stream.println("if (*input == '\\0') return " + quote(getBlockResult(block)) + ";")
       booleanStage = false
-      stream.println("var id = " + quote(getBlockResult(block)))
-      stream.println("var i = 0")
-      stream.println("val n_dec = n-1")
-      stream.println("while (i < n_dec) {")
-      stream.println("val c = input.charAt(i)")
-      stream.println("id =")
+      stream.println("int id = " + quote(getBlockResult(block))+";")
+      stream.println("char c;")
+      stream.println("while (input[1] != '\\0') {")
+      stream.println("c = *input++;")
 
       firstFun = true
       booleanStage = false
       emitBlock(block)
-      stream.println("else { throw new RuntimeException(\"invalid state \" + id) }")
-      stream.println("i += 1")
+      stream.println("else { return -1; /*error: invalid state*/ }")
       stream.println("}")
 
-      stream.println("val c = input.charAt(i)")
+      stream.println("c = *input;")
       firstFun = true
       booleanStage = true
       emitBlock(block)
-      stream.println("else { throw new RuntimeException(\"invalid state \" + id) }")
-
+      stream.println("else { return -1; /*error: invalid state */ }")
+      stream.println("return id;")
       stream.println("}")
-      stream.println("}")
     }
   }
 }
 
-/*
-import org.scalatest._
+class AutomataTests extends TestSuite {
+  val under = "dfa_"
 
-class TestRegexp extends Suite {
-  trait BaseExamples extends Regexp {
-    lazy val digit = in('0', '9')
-    lazy val usd = many(seq)(c('u'), c('s'), c('d'), c(' '), opt(alt(c('+'), c('-'))),
-      plus(digit), c('.'), digit, digit)
-  }
+  import java.io.{PrintWriter,StringWriter,FileOutputStream}
 
-  trait Examples extends BaseExamples with DSL {
-    val aab = many(seq)(star(wildcard), c('A'), c('A'), c('B'))
-    val aabx = many(seq)(star(wildcard), c('A'), c('A'), c('B'), star(c('X')))
-    val aabany = many(seq)(star(wildcard), c('A'), c('A'), c('B'), star(wildcard))
-    val fool = alt(seq(wildcard, opt(c('B'))), seq(wildcard, opt(c('A'))))
-    val fool2 = many(alt)(seq(wildcard, opt(c('B'))), seq(wildcard, opt(c('C'))), seq(wildcard, c('A')))
-    val fool3 = many(alt)(seq(wildcard, opt(c('B'))), seq(wildcard, opt(c('C'))), seq(c('X'), c('A')))
-    val any = many(seq)(star(wildcard), opt(c('A')), star(wildcard))
-  }
-
-  trait Evaluator extends DSL with Impl {
-    def recompile(re: RE) = {
-      val f = (x: Rep[Unit]) => convertREtoDFA(re)
-      dumpGeneratedCode = true
-      val fc = compile(f)
-      fc
+  test("aab") {
+    trait Ex extends DslAutomata {
+      val msg = "aab"
+      val re = many(seq)(star(wildcard), c('A'), c('A'), c('B'))
     }
-    def begmatch(fc: Unit => DfaState)(input: String): Boolean = {
-      var state = fc()
-      var i = 0
-      val n = input.length
-      while ((state.out % 2 != 1) && (i < n)) {
-        state = state.next(input.charAt(i))
-        i += 1
+    trait Go extends Ex with ImplAutomata {
+      lazy val dfa_code: String = {
+        val source = new java.io.StringWriter()
+        val stream = new PrintWriter(source)
+        codegen.emitAutomata(convertREtoDFA(re), "dfa_"+msg, stream)
+        source.toString
       }
-      state.out % 2 == 1
     }
-    def fullmatch(fc: Unit => DfaState)(input: String): Boolean = {
-      var state = fc()
-      var i = 0
-      val n = input.length
-      while ((state.out & 2) != 2 && (i < n)) {
-        state = state.next(input.charAt(i))
-        i += 1
-      }
-      state.out % 2 == 1
-    }
-  }
-
-  def testAAB = {
-    val exs = new Examples with Evaluator
-    val fc = exs.recompile(exs.aab)
-
-    expect(true){exs.fullmatch(fc)("AAB")}
-    expect(true){exs.fullmatch(fc)("XYZAAB")}
-    expect(true){exs.fullmatch(fc)("XYZABAAB")}
-    expect(false){exs.fullmatch(fc)("XYZAABX")}
-    expect(true){exs.begmatch(fc)("XYZAABX")}
-    expect(false){exs.begmatch(fc)("XYZABX")}
-    expect(false){exs.begmatch(fc)("")}
-    expect(false){exs.fullmatch(fc)("")}
-  }
-
-  def testAABX = {
-    val exs = new Examples with Evaluator
-    val fc = exs.recompile(exs.aabx)
-
-    expect(true){exs.fullmatch(fc)("AAB")}
-    expect(true){exs.fullmatch(fc)("XYZAAB")}
-    expect(true){exs.fullmatch(fc)("XYZABAAB")}
-    expect(true){exs.fullmatch(fc)("XYZAABX")}
-    expect(true){exs.begmatch(fc)("XYZAABX")}
-    expect(false){exs.begmatch(fc)("XYZABX")}
-    expect(false){exs.begmatch(fc)("")}
-    expect(false){exs.fullmatch(fc)("")}
-  }
-
-  def testAABany = {
-    val exs = new Examples with Evaluator
-    val fc = exs.recompile(exs.aabany)
-
-    expect(true){exs.fullmatch(fc)("AAB")}
-    expect(true){exs.fullmatch(fc)("XYZAAB")}
-    expect(true){exs.fullmatch(fc)("XYZABAAB")}
-    expect(true){exs.fullmatch(fc)("XYZAABX")}
-    expect(true){exs.fullmatch(fc)("XYZAABXYZ")}
-    expect(true){exs.begmatch(fc)("XYZAABX")}
-    expect(false){exs.begmatch(fc)("XYZABX")}
-    expect(false){exs.begmatch(fc)("")}
-    expect(false){exs.fullmatch(fc)("")}
-  }
-
-  def testUSD = {
-    val exs = new Examples with Evaluator
-    val fc = exs.recompile(exs.usd)
-
-    expect(true){exs.fullmatch(fc)("usd 1234.00")}
-    expect(true){exs.fullmatch(fc)("usd 1234.01")}
-    expect(false){exs.fullmatch(fc)("usd 1234.01  ")}
-    expect(true){exs.begmatch(fc)("usd 1234.01  ")}
-    expect(false){exs.fullmatch(fc)("usd1234.00")}
-    expect(false){exs.fullmatch(fc)("usd 1234")}
-    expect(false){exs.begmatch(fc)("  usd 1234.01  ")}
-    expect(false){exs.begmatch(fc)("")}
-    expect(false){exs.fullmatch(fc)("")}
-  }
-
-  def testFool = {
-    val exs = new Examples with Evaluator
-    val fc = exs.recompile(exs.fool)
-
-    expect(false){exs.begmatch(fc)("")}
-    expect(false){exs.fullmatch(fc)("")}
-    expect(true){exs.fullmatch(fc)("X")}
-    expect(true){exs.fullmatch(fc)("XA")}
-    expect(true){exs.fullmatch(fc)("XB")}
-    expect(false){exs.fullmatch(fc)("XC")}
-  }
-
-  def testFool2 = {
-    val exs = new Examples with Evaluator
-    val fc = exs.recompile(exs.fool2)
-
-    expect(false){exs.begmatch(fc)("")}
-    expect(false){exs.fullmatch(fc)("")}
-    expect(true){exs.fullmatch(fc)("X")}
-    expect(true){exs.fullmatch(fc)("XA")}
-    expect(true){exs.fullmatch(fc)("XB")}
-    expect(true){exs.fullmatch(fc)("XC")}
-    expect(false){exs.fullmatch(fc)("XD")}
-  }
-
-  def testFool3 = {
-    val exs = new Examples with Evaluator
-    val fc = exs.recompile(exs.fool3)
-
-    expect(false){exs.begmatch(fc)("")}
-    expect(false){exs.fullmatch(fc)("")}
-    expect(true){exs.fullmatch(fc)("X")}
-    expect(true){exs.fullmatch(fc)("XA")}
-    expect(true){exs.fullmatch(fc)("XB")}
-    expect(true){exs.fullmatch(fc)("XC")}
-    expect(false){exs.fullmatch(fc)("YA")}
-    expect(true){exs.fullmatch(fc)("YB")}
-    expect(true){exs.fullmatch(fc)("YC")}
-    expect(false){exs.fullmatch(fc)("XD")}
-  }
-
-  def testAny = {
-    val exs = new Examples with Evaluator
-    val fc = exs.recompile(exs.any)
-
-    expect(true){exs.begmatch(fc)("")}
-    expect(true){exs.fullmatch(fc)("")}
-    expect(true){exs.begmatch(fc)("X")}
-    expect(true){exs.fullmatch(fc)("X")}
-    expect(true){exs.begmatch(fc)("XX")}
-    expect(true){exs.fullmatch(fc)("XX")}
+    val go = new Go {}
+    check(go.msg, go.dfa_code)
   }
 }
-
-class TestOpt extends Suite {
-  trait Examples extends DSL {
-    val aab = many(seq)(star(wildcard), c('A'), c('A'), c('B'))
-    val aabany = many(seq)(star(wildcard), c('A'), c('A'), c('B'), star(wildcard))
-  }
-
-  trait Evaluator extends DSL with ImplOpt {
-    def recompile(re: RE) = {
-      val f = codegen.pack(convertREtoDFA(re))
-      val fc = compile(f)
-      fc
-    }
-  }
-
-  def testEvalAAB = {
-    val exs = new Examples with Evaluator
-    val fc = exs.recompile(exs.aab)
-
-    expect(true){fc("AAB")}
-    expect(true){fc("XYZAAB")}
-    expect(true){fc("XYZABAAB")}
-    expect(false){fc("XYZAABX")}
-    expect(false){fc("")}
-  }
-
-  def testEvalAABany = {
-    val exs = new Examples with Evaluator
-    val fc = exs.recompile(exs.aabany)
-
-    expect(true){fc("AAB")}
-    expect(true){fc("XYZAAB")}
-    expect(true){fc("XYZABAAB")}
-    expect(true){fc("XYZAABX")}
-    expect(false){fc("XYZABX")}
-    expect(false){fc("")}
-  }
-}
-*/
