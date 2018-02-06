@@ -68,6 +68,8 @@ Implement an optimized regular expression matcher, where the regular expression 
 As a first step, you can do a naive compiler via a staged interpreter, but then you could also do a staged NFA to DFA exploration.
 In the spec, you can specify regular expression matching in simple terms as an interpreter.
 Verify that the optimized implementation still matches as specified by the spec.
+([code for naive compiler](src/test/scala/lms/verify/CRegexTests.scala))
+([code for NFA to DFA compiler](src/test/scala/lms/verify/AutomataTests.scala))
 
 #### Bidirectional Combinators and Round-Tripping Properties
 At a high level, we might be able to specify parsing / unparsing (i.e., printing) once using bidirectional combinators,
