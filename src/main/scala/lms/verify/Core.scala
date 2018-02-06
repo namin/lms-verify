@@ -540,7 +540,13 @@ trait Dsl extends VerifyOps with ScalaOpsPkg with TupledFunctions with Unchecked
   override def infix_&&(lhs: Rep[Boolean], rhs: => Rep[Boolean])(implicit pos: SourceContext): Rep[Boolean] = __ifThenElse(lhs, rhs, unit(false))
 }
 
-trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with IfThenElseExpOpt with TupledFunctionsRecursiveExp with UncheckedOpsExp with ZeroValExp { self =>
+trait IfThenElseExpExtra extends IfThenElseExp {
+  import scala.reflect.SourceContext
+  override def __ifThenElse[T:Typ](cond: Rep[Boolean], thenp: => Rep[T], elsep: => Rep[T])(implicit pos: SourceContext) =
+    if (thenp == elsep) thenp else super.__ifThenElse(cond, thenp, elsep)
+}
+
+trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp /*TODO: with IfThenElseExpExtra*/ with IfThenElseExpOpt with TupledFunctionsRecursiveExp with UncheckedOpsExp with ZeroValExp { self =>
   val codegen = new CCodeGenPkg with CGenVariables with CGenTupledFunctions with CGenUncheckedOps {
     var emitFileAndLine: Boolean = false
     override def quote(x: Exp[Any]) = x match {

@@ -87,12 +87,6 @@ trait Regexp {
   }
 }
 
-trait IfThenElseExpExtra extends IfThenElseExp {
-  import scala.reflect.SourceContext
-  override def __ifThenElse[T:Typ](cond: Rep[Boolean], thenp: => Rep[T], elsep: => Rep[T])(implicit pos: SourceContext) =
-    if (thenp == elsep) thenp else super.__ifThenElse(cond, thenp, elsep)
-}
-
 trait DSLBase extends NumericOps with LiftNumeric with Functions with Equal with OrderingOps with BooleanOps with StringOps with ArrayOps with SeqOps with PrimitiveOps with IfThenElse
 
 trait DSLBaseExp extends NumericOpsExp with LiftNumeric with EqualExpOpt with OrderingOpsExp with BooleanOpsExp with StringOpsExp with ArrayOpsExp with SeqOpsExp with PrimitiveOpsExp with FunctionsExternalDef with CompileScala
@@ -317,7 +311,7 @@ trait RegexpToNFA extends Regexp { this: NFAtoDFA =>
 
 trait DSL extends DFAOps with NFAtoDFA with RegexpToNFA with DSLBase
 
-trait ImplBase extends DSL with DFAOpsExp with DSLBaseExp with IfThenElseExpExtra with IfThenElseExpOpt with IfThenElseFatExp
+trait ImplBase extends DSL with DFAOpsExp with DSLBaseExp with lms.verify.IfThenElseExpExtra with IfThenElseExpOpt with IfThenElseFatExp
 
 trait AutomataCodegenBase extends DSLGenBase with ScalaGenDFAOps with ScalaGenIfThenElseFat {
   val IR: ImplBase
@@ -429,6 +423,7 @@ trait ImplOpt extends ImplBase { q =>
   }
 }
 
+/*
 import org.scalatest._
 
 class TestRegexp extends Suite {
@@ -626,3 +621,4 @@ class TestOpt extends Suite {
     expect(false){fc("")}
   }
 }
+*/
