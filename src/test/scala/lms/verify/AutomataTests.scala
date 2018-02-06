@@ -271,6 +271,12 @@ trait RegexpToNFA extends Regexp { this: NFAtoDFA =>
 
 trait DslAutomata extends DFAOps with NFAtoDFA with RegexpToNFA with Functions with Dsl
 
+trait IfThenElseExpExtra extends IfThenElseExp {
+  import scala.reflect.SourceContext
+  override def __ifThenElse[T:Typ](cond: Rep[Boolean], thenp: => Rep[T], elsep: => Rep[T])(implicit pos: SourceContext) =
+    if (thenp == elsep) thenp else super.__ifThenElse(cond, thenp, elsep)
+}
+
 trait ImplAutomata extends DslAutomata with DFAOpsExp with FunctionsExternalDef with Impl with IfThenElseExpExtra /*with IfThenElseFatExp*/ { self =>
   override val codegen = new CCodeGenDslAutomata {
     val IR: self.type = self
