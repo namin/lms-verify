@@ -1,5 +1,4 @@
-/*
-package lms.verify.automata
+package lms.verify
 
 // ported from github.com/namin/lms-regexp
 
@@ -8,7 +7,7 @@ import scala.lms.internal.NestedBlockTraversal
 import scala.lms.util.ClosureCompare
 import scala.reflect.SourceContext
 
-// ../common/FunctionsDef.scala
+// from ../common/FunctionsDef.scala
 
 trait FunctionsExternalDef extends FunctionsExp with BlockExp with ClosureCompare {
   case class DefineFun[A,B](res: Block[B])(val arg: Sym[A]) extends Def[A=>B]
@@ -28,18 +27,18 @@ trait FunctionsExternalDef extends FunctionsExp with BlockExp with ClosureCompar
     case _ => super.symsFreq(e)
   }
 
-  var funTable: List[(Sym[_], Any)] = List()
+  var extfunTable: List[(Sym[_], Any)] = List()
   override def doLambda[A:Typ,B:Typ](f: Exp[A]=>Exp[B])(implicit pos: SourceContext): Exp[A=>B] = {
     var can = canonicalize(f)
 
-    funTable.find(_._2 == can) match {
+    extfunTable.find(_._2 == can) match {
       case Some((funSym, _)) =>
         funSym.asInstanceOf[Sym[A=>B]]
       case _ =>
         val funSym = fresh[A=>B]
         val argSym = fresh[A]
 
-        funTable = (funSym,can)::funTable
+        extfunTable = (funSym,can)::extfunTable
 
         val y = reifyEffects(f(argSym))
 
@@ -49,11 +48,11 @@ trait FunctionsExternalDef extends FunctionsExp with BlockExp with ClosureCompar
   }
 }
 
-// Lib.scala
+// from Lib.scala
 
 case class Automaton[@specialized(Char) I, @specialized(Boolean,Byte) O](out: O, next: I => Automaton[I,O])
 
-// Base.scala
+// from Base.scala
 
 trait Regexp {
   type RE
@@ -74,7 +73,7 @@ trait Regexp {
   }
 }
 
-// Automata.scala
+// from Automata.scala
 
 trait DFAOps extends Base with PrimitiveOps {
   implicit def dfaStateTyp: Typ[DfaState]
@@ -121,26 +120,8 @@ trait StabilityCalculator extends NestedBlockTraversal {
   }
 }
 
-trait ScalaGenDFAOps extends StabilityCalculator with ScalaGenBase {
-  val IR: DFAOpsExp with FunctionsExternalDef
-  import IR._
 
-  private def encodeOut(b: Boolean, sym: Sym[Any], dfa: DFAState): Byte = {
-    var r = if (b) 1 else 0
-    if (stable(b, sym, dfa))
-      r = (r | 2)
-    r.toByte
-  }
-
-  override def emitNode(sym: Sym[Any], rhs: Def[Any]) = rhs match {
-    case dfa@DFAState(b,f) =>
-      emitValDef(sym, "lms.verify.automata.Automaton(" + encodeOut(b, sym, dfa) + ".toByte," + quote(f) + ")")
-    case _ => super.emitNode(sym, rhs)
-  }
-}
-
-
-trait NFAtoDFA extends DFAOps with ClosureCompare { this: Dsl =>
+trait NFAtoDFA extends DFAOps with ClosureCompare { this: Dsl with Functions =>
   type NIO = List[NTrans]
 
   case class NTrans(c: CharSet, e: () => Boolean, s: () => NIO) extends Ordered[NTrans] {
@@ -157,10 +138,10 @@ trait NFAtoDFA extends DFAOps with ClosureCompare { this: Dsl =>
     }
   }
 
-  def trans(c: CharSet)(s: () => NIO): NIO = List(NTrans(c, () => false, s))
+  def trans(c: CharSet)(s: () => NIO): NIO = scala.collection.immutable.List(NTrans(c, () => false, s))
 
   def guard(cond: CharSet, found: => Boolean = false)(e: => NIO): NIO = {
-    List(NTrans(cond, () => found, () => e))
+    scala.collection.immutable.List(NTrans(cond, () => found, () => e))
   }
 
   def guards(conds: List[CharSet], found: Boolean = false)(e: => NIO): NIO = {
@@ -288,23 +269,18 @@ trait RegexpToNFA extends Regexp { this: NFAtoDFA =>
   def convertREtoDFA(re: RE): DIO = convertNFAtoDFA(re(() => (Nil, true)))
 }
 
-trait DslAutomata extends DFAOps with NFAtoDFA with RegexpToNFA with Dsl
+trait DslAutomata extends DFAOps with NFAtoDFA with RegexpToNFA with Functions with Dsl
 
-trait ImplAutomata extends DslAutomata with DFAOpsExp with Impl with IfThenElseExpExtra /*with IfThenElseFatExp*/
-
-trait AutomataCodegenBase extends DSLGenBase with ScalaGenDFAOps with ScalaGenIfThenElseFat {
-  val IR: ImplBase
-}
-
-trait Impl extends ImplBase { q =>
-  object codegen extends AutomataCodegenBase {
-    val IR: q.type = q
+trait ImplAutomata extends DslAutomata with DFAOpsExp with FunctionsExternalDef with Impl with IfThenElseExpExtra /*with IfThenElseFatExp*/ { self =>
+  override val codegen = new CCodeGenDslAutomata {
+    val IR: self.type = self
   }
 }
 
-trait AutomataCodegenOpt extends AutomataCodegenBase {
+trait CCodeGenDslAutomata extends CCodeGenDsl {
+  val IR: ImplAutomata
+
   import java.io.{File, FileWriter, PrintWriter}
-  import scala.reflect.SourceContext
 
   import IR._
 
@@ -314,13 +290,13 @@ trait AutomataCodegenOpt extends AutomataCodegenBase {
   }
   override def emitSource[A,B](f: Exp[A] => Exp[B], className: String, out: PrintWriter)(implicit mA: Typ[A], mB: Typ[B]): List[(Sym[Any], Any)] = {
     emitAutomata(f(null).asInstanceOf[DIO], className, out)
-    List()
+    scala.collection.immutable.List()
   }
 
   class Collector extends NestedBlockTraversal with StabilityCalculator {
-    val IR: AutomataCodegenOpt.this.IR.type = AutomataCodegenOpt.this.IR
+    val IR: CCodeGenDslAutomata.this.IR.type = CCodeGenDslAutomata.this.IR
 
-    var stableStates = Set[Sym[Any]]()
+    var stableStates: Set[Sym[Any]] = scala.collection.immutable.Set[Sym[Any]]()
     override def traverseStm(stm: Stm) = stm match {
       case TP(sym, rhs) => rhs match {
         case dfa@DFAState(b, f) =>
@@ -354,7 +330,7 @@ trait AutomataCodegenOpt extends AutomataCodegenBase {
     case _ => super.quote(x)
   }
 
-  override def emitForwardDef(sym: Sym[Any]): Unit = {
+  override def emitForwardDef[A:Typ](args: List[Typ[_]], functionName: String, out: PrintWriter) = {
   }
 
   def emitAutomata(automaton: DIO, className: String, out: PrintWriter) {
@@ -393,12 +369,6 @@ trait AutomataCodegenOpt extends AutomataCodegenBase {
       stream.println("}")
       stream.println("}")
     }
-  }
-}
-
-trait ImplOpt extends ImplBase { q =>
-  object codegen extends AutomataCodegenOpt {
-    val IR: q.type = q
   }
 }
 
@@ -600,5 +570,4 @@ class TestOpt extends Suite {
     expect(false){fc("")}
   }
 }
-*/
 */
