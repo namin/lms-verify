@@ -1,7 +1,19 @@
+#include <string.h>
+/*@
+requires strlen(input)>=0 && \valid(input+(0..strlen(input)));
+assigns \nothing;
+ensures \result==0 || \result==1;
+*/
 int dfa_aabany(char* input) {
   if (*input == '\0') return 0/*false*/;
   int id = 0;
   char c;
+  /*@
+  loop invariant strlen(input)>0 && \valid(input+(0..strlen(input)));
+  loop invariant id == 17 || id == 14 || id == 11 || id == 6 || id == 3 || id == 0;
+  loop assigns id, c, input;
+  loop variant strlen(input);
+  */
   while (input[1] != '\0') {
     c = *input++;
     if (id == 17) {

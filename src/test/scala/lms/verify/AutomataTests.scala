@@ -346,19 +346,37 @@ trait CCodeGenDslAutomata extends CCodeGenDsl {
   override def emitForwardDef[A:Typ](args: List[Typ[_]], functionName: String, out: PrintWriter) = {
   }
 
-  def emitAutomata(automaton: DIO, className: String, out: PrintWriter) {
+  def emitAutomata(automaton: DIO, name: String, out: PrintWriter) {
     val block = reifyBlock(automaton)
     val collector = new Collector()
     collector.traverseBlock(block)
     dfaStableStates = collector.stableStates
 
     withStream(out) {
-      stream.println("int "+className+"(char* input) {")
+      gen"""
+      |#include <string.h>
+      |
+      |/*@
+      |requires strlen(input)>=0 && \valid(input+(0..strlen(input)));
+      |assigns \nothing;
+      |ensures \result==0 || \result==1;
+      */"""
+      stream.println("int "+name+"(char* input) {")
       booleanStage = true
       stream.println("if (*input == '\\0') return " + quote(getBlockResult(block)) + ";")
       booleanStage = false
       stream.println("int id = " + quote(getBlockResult(block))+";")
       stream.println("char c;")
+      val ids = extfunTable.map{case (Sym(i), _) =>
+        s"id == $i"
+      }.mkString(" || ")
+      gen"""
+      |/*@
+      |loop invariant strlen(input)>0 && \valid(input+(0..strlen(input)));
+      |loop invariant $ids;
+      |loop assigns id, c, input;
+      |loop variant strlen(input);
+      |*/"""
       stream.println("while (input[1] != '\\0') {")
       stream.println("c = *input++;")
 
