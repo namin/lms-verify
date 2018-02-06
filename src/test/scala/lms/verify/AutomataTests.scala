@@ -1,3 +1,4 @@
+/*
 package lms.verify.automata
 
 // ported from github.com/namin/lms-regexp
@@ -48,20 +49,6 @@ trait FunctionsExternalDef extends FunctionsExp with BlockExp with ClosureCompar
   }
 }
 
-trait ScalaGenFunctionsExternal extends ScalaGenFunctions {
-  val IR: FunctionsExternalDef
-  import IR._
-
-  override def emitNode(sym: Sym[Any], rhs: Def[Any]) = rhs match {
-    case e@DefineFun(y) =>
-      emitValDef(sym, "{" + quote(e.arg) + ": (" + e.arg.tp + ") => "/*}*/)
-      emitBlock(y)
-      stream.println(quote(getBlockResult(y)))
-      stream.println("}")
-    case _ => super.emitNode(sym, rhs)
-  }
-}
-
 // Lib.scala
 
 case class Automaton[@specialized(Char) I, @specialized(Boolean,Byte) O](out: O, next: I => Automaton[I,O])
@@ -85,14 +72,6 @@ trait Regexp {
     case 1 => f(x, xs(0))
     case n => f(x, many(f)(xs(0), xs.slice(1, n) : _*))
   }
-}
-
-trait DSLBase extends NumericOps with LiftNumeric with Functions with Equal with OrderingOps with BooleanOps with StringOps with ArrayOps with SeqOps with PrimitiveOps with IfThenElse
-
-trait DSLBaseExp extends NumericOpsExp with LiftNumeric with EqualExpOpt with OrderingOpsExp with BooleanOpsExp with StringOpsExp with ArrayOpsExp with SeqOpsExp with PrimitiveOpsExp with FunctionsExternalDef with CompileScala
-
-trait DSLGenBase extends ScalaGenNumericOps with ScalaGenEqual with ScalaGenOrderingOps with ScalaGenBooleanOps with ScalaGenStringOps with ScalaGenArrayOps with ScalaGenSeqOps with ScalaGenPrimitiveOps with ScalaGenFunctionsExternal {
-  val IR: DSLBaseExp
 }
 
 // Automata.scala
@@ -161,7 +140,7 @@ trait ScalaGenDFAOps extends StabilityCalculator with ScalaGenBase {
 }
 
 
-trait NFAtoDFA extends DFAOps with ClosureCompare { this: DSLBase =>
+trait NFAtoDFA extends DFAOps with ClosureCompare { this: Dsl =>
   type NIO = List[NTrans]
 
   case class NTrans(c: CharSet, e: () => Boolean, s: () => NIO) extends Ordered[NTrans] {
@@ -309,9 +288,9 @@ trait RegexpToNFA extends Regexp { this: NFAtoDFA =>
   def convertREtoDFA(re: RE): DIO = convertNFAtoDFA(re(() => (Nil, true)))
 }
 
-trait DSL extends DFAOps with NFAtoDFA with RegexpToNFA with DSLBase
+trait DslAutomata extends DFAOps with NFAtoDFA with RegexpToNFA with Dsl
 
-trait ImplBase extends DSL with DFAOpsExp with DSLBaseExp with lms.verify.IfThenElseExpExtra with IfThenElseExpOpt with IfThenElseFatExp
+trait ImplAutomata extends DslAutomata with DFAOpsExp with Impl with IfThenElseExpExtra /*with IfThenElseFatExp*/
 
 trait AutomataCodegenBase extends DSLGenBase with ScalaGenDFAOps with ScalaGenIfThenElseFat {
   val IR: ImplBase
@@ -621,4 +600,5 @@ class TestOpt extends Suite {
     expect(false){fc("")}
   }
 }
+*/
 */

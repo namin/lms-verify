@@ -547,7 +547,31 @@ trait IfThenElseExpExtra extends IfThenElseExp {
 }
 
 trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp /*TODO: with IfThenElseExpExtra*/ with IfThenElseExpOpt with TupledFunctionsRecursiveExp with UncheckedOpsExp with ZeroValExp { self =>
-  val codegen = new CCodeGenPkg with CGenVariables with CGenTupledFunctions with CGenUncheckedOps {
+  val codegen = new CCodeGenDsl {
+    val IR: self.type = self
+  }
+  def emitAll(stream: java.io.PrintWriter): Unit = {
+    assert(codegen ne null) //careful about initialization order
+    includes.foreach { i => stream.println("#include "+i) }
+    rec.foreach { case (k,s) => s match {
+      case (x:TopLevel[_]) =>
+        codegen.emitVerify(x.f, x.name, x.spec, x.code, axiom=false, stream)(x.mAs, mtype(x.mB))
+      case (x:Logic[_]) =>
+        codegen.emitLogic(x, stream)
+    }}
+  }
+  lazy val code: String = {
+    val source = new java.io.StringWriter()
+    val stream = new PrintWriter(source)
+    emitAll(stream)
+    source.toString
+  }
+}
+
+trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunctions with CGenUncheckedOps {
+    val IR: Impl
+    import IR._
+
     var emitFileAndLine: Boolean = false
     override def quote(x: Exp[Any]) = x match {
       case Const(true) => "1/*true*/"
@@ -864,22 +888,4 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp /*TODO: with IfThen
         }
       }
     }
-    val IR: self.type = self
-  }
-  def emitAll(stream: java.io.PrintWriter): Unit = {
-    assert(codegen ne null) //careful about initialization order
-    includes.foreach { i => stream.println("#include "+i) }
-    rec.foreach { case (k,s) => s match {
-      case (x:TopLevel[_]) =>
-        codegen.emitVerify(x.f, x.name, x.spec, x.code, axiom=false, stream)(x.mAs, mtype(x.mB))
-      case (x:Logic[_]) =>
-        codegen.emitLogic(x, stream)
-    }}
-  }
-  lazy val code: String = {
-    val source = new java.io.StringWriter()
-    val stream = new PrintWriter(source)
-    emitAll(stream)
-    source.toString
-  }
 }
