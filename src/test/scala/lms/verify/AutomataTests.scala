@@ -7,6 +7,8 @@ import scala.lms.internal.NestedBlockTraversal
 import scala.lms.util.ClosureCompare
 import scala.reflect.SourceContext
 
+import java.io.PrintWriter
+
 // from ../common/FunctionsDef.scala
 
 trait FunctionsExternalDef extends FunctionsExp with BlockExp with ClosureCompare {
@@ -286,8 +288,6 @@ trait ImplAutomata extends DslAutomata with DFAOpsExp with Impl with FunctionsEx
 trait CCodeGenDslAutomata extends CCodeGenDsl {
   val IR: ImplAutomata
 
-  import java.io.{File, FileWriter, PrintWriter}
-
   import IR._
 
   override def remap[A](m: Typ[A]): String = {
@@ -295,15 +295,6 @@ trait CCodeGenDslAutomata extends CCodeGenDsl {
     if (s.contains("Automaton"))
       return "int"
     super.remap(m)
-  }
-
-  // hack to work with CompileScala
-  def pack(dio: => DIO): (Exp[String] => Exp[Boolean]) = {
-    (x: Exp[String]) => dio.asInstanceOf[Exp[Boolean]]
-  }
-  override def emitSource[A,B](f: Exp[A] => Exp[B], className: String, out: PrintWriter)(implicit mA: Typ[A], mB: Typ[B]): List[(Sym[Any], Any)] = {
-    emitAutomata(f(null).asInstanceOf[DIO], className, out)
-    scala.collection.immutable.List()
   }
 
   class Collector extends NestedBlockTraversal with StabilityCalculator {
@@ -400,7 +391,6 @@ trait CCodeGenDslAutomata extends CCodeGenDsl {
 class AutomataTests extends TestSuite {
   val under = "dfa_"
 
-  import java.io.{PrintWriter,StringWriter,FileOutputStream}
   trait TestAutomaton extends DslAutomata {
     val msg: String
     val re: RE
