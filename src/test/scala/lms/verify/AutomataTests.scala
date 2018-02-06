@@ -383,21 +383,34 @@ class AutomataTests extends TestSuite {
   val under = "dfa_"
 
   import java.io.{PrintWriter,StringWriter,FileOutputStream}
+  trait TestAutomaton extends DslAutomata {
+    val msg: String
+    val re: RE
+  }
+  trait Gen extends TestAutomaton with ImplAutomata {
+    lazy val dfa_code: String = {
+      val source = new java.io.StringWriter()
+      val stream = new PrintWriter(source)
+      codegen.emitAutomata(convertREtoDFA(re), "dfa_"+msg, stream)
+      source.toString
+    }
+  }
 
   test("aab") {
-    trait Ex extends DslAutomata {
+    trait Ex extends TestAutomaton {
       val msg = "aab"
       val re = many(seq)(star(wildcard), c('A'), c('A'), c('B'))
     }
-    trait Go extends Ex with ImplAutomata {
-      lazy val dfa_code: String = {
-        val source = new java.io.StringWriter()
-        val stream = new PrintWriter(source)
-        codegen.emitAutomata(convertREtoDFA(re), "dfa_"+msg, stream)
-        source.toString
-      }
+    val ex = new Ex with Gen {}
+    check(ex.msg, ex.dfa_code)
+  }
+
+  test("aabany") {
+    trait Ex extends TestAutomaton {
+      val msg = "aabany"
+      val re = many(seq)(star(wildcard), c('A'), c('A'), c('B'), star(wildcard))
     }
-    val go = new Go {}
-    check(go.msg, go.dfa_code)
+    val ex = new Ex with Gen {}
+    check(ex.msg, ex.dfa_code)
   }
 }

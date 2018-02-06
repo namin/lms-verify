@@ -602,6 +602,12 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
       case _ => super.isPrimitiveType(tpe)
     }
   }
+
+  override def emitVarDecl(sym: Sym[Any]): Unit = {
+    //TODO: this should be fixed in LMS core to match spacing style of emitVarDef.
+    stream.println(remapWithRef(sym.tp) + quote(sym) + ";")
+  }
+
   override def emitValDef(sym: Sym[Any], rhs: String): Unit = {
     if (!isVoidType(sym.tp)) super.emitValDef(sym, rhs)
     else emitVoid(rhs)
@@ -611,10 +617,16 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
     else emitVoid(rhs)
   }
   override def emitAssignment(sym: Sym[Any], rhs: String): Unit = {
-    if (!isVoidVar(sym)) super.emitAssignment(sym, rhs)
-    else emitVoid(rhs)
+    if (!isVoidVar(sym)) {
+      if (rhs.endsWith(";")) {
+        // by convention, assume we already have a full statement
+        // for example, a short-circuiting return
+        stream.println(rhs)
+      } else super.emitAssignment(sym, rhs)
+    } else emitVoid(rhs)
   }
-  def isVoidVar(sym: Sym[Any]) = isVoidType(sym.tp.typeArguments.head)
+  def isVoidVar(sym: Sym[Any]) =
+    isVoidType(sym.tp) || (sym.tp.typeArguments.nonEmpty && isVoidType(sym.tp.typeArguments.head))
   def emitVoid(rhs: String): Unit = {
     if (rhs.contains("("))
       stream.println(rhs + ";")
@@ -763,6 +775,17 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
              |  ${nestedBlock(body)}
              |  if (!${getBlockResult(body)}) { $sym = 0; break; }
              |}"""
+      case IfThenElse(c,a,b) if !isVoidVar(sym) =>
+        // TODO: should rather fix LMS core
+        //   to properly delegate to emit helpers.
+        emitVarDecl(sym)
+        stream.println("if (" + quote(c) + ") {")
+        emitBlock(a)
+        emitAssignment(sym, quote(getBlockResult(a)))
+        stream.println("} else {")
+        emitBlock(b)
+        emitAssignment(sym, quote(getBlockResult(b)))
+        stream.println("}")
       case _ => super.emitNode(sym, rhs)
     }
   }
