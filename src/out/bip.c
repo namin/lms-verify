@@ -28,8 +28,8 @@ requires strlen(s)>=0 && \valid(s+(0..strlen(s)));
 requires \valid(d);
 assigns *d;
 ensures -1<=\result<=strlen(s);
-ensures (\result>0) ==> \result<N;
-ensures (\result>0) ==> (0<=*d<pow(10,\result));
+ensures (\result>=0) ==> \result<N;
+ensures (\result>=0) ==> (0<=*d<pow(10,\result));
 */
 int parseInt(char* s, int *d) {
   int i = 0;
