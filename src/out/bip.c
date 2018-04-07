@@ -58,3 +58,24 @@ int parseInt(char* s, int *d) {
   }
   return i;
 }
+
+/*@
+requires strlen(s)>=0 && \valid(s+(0..strlen(s)));
+requires \valid(a);
+requires \valid(n);
+requires \separated(s, a, n);
+assigns *a, *n;
+ensures -1<=\result<=strlen(s);
+ensures (\result>=0) ==> \exists int i; 0<=i<=strlen(s) && *a==s+i && 0<=i+*n<=strlen(s);
+*/
+int parseCode(char* s, char** a, int *n) {
+  int r = parseInt(s, n);
+  if (r<0) return r;
+  if (s[r]!=' ') return -1;
+  //@assert \valid(s+r+1);
+  *a = s+r+1;
+  //@assert 0<=r+1<=strlen(s) && *a==s+r+1;
+  if (strlen(*a) < *n) return -1;
+  //@assert 0<=r+1<=strlen(s) && *a==s+r+1 && 0<=r+1+*n<=strlen(s);
+  return r+1+*n;
+}
