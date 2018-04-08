@@ -42,3 +42,19 @@ ensures d(e(i))==\result;
 int de(int i) {
   return d(e(i));
 }
+
+/*@
+assigns \nothing;
+ensures d(e(d(c)))==d(c);
+*/
+int ded(char c) {
+  return d(e(d(c)));
+}
+
+/*@
+assigns \nothing;
+ensures e(d(e(i)))==e(i);
+*/
+char ede(int i) {
+  return e(d(e(i)));
+}
