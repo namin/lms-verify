@@ -1,21 +1,44 @@
 #include <string.h>
 
 /*@
+logic integer d(integer c) = (0 <= c - '0' <= 9) ? c - '0' : -1;
+logic integer e(integer i) = (0 <= i <= 9) ? i + '0' : ' ';
+*/
+
+/*@
 assigns \nothing;
 ensures -1<=\result<=9;
+ensures d(c)==\result;
 */
 int d(char c) {
-  if ('0' <= c && c <= '9')
-    return c - '0';
-  return -1;
+  return ('0' <= c && c <= '9') ? c - '0' : -1;
 }
 
 /*@
-requires -1<=d<=9;
 assigns \nothing;
-ensures \result==' ' || '0'<=\result<='9';
+ensures '0'<=\result<='9' || \result==' ';
+ensures e(i)==\result;
 */
-char e(int d) {
-  if (d==-1) return ' ';
-  return '0' + d;
+char e(int i) {
+  return (0 <= i && i <= 9) ? i + '0' : ' ';
+}
+
+/*@
+assigns \nothing;
+ensures '0'<=c<='9' ==> \result==c;
+ensures c!=\result ==> \result==' ';
+ensures e(d(c))==\result;
+*/
+char ed(char c) {
+  return e(d(c));
+}
+
+/*@
+assigns \nothing;
+ensures 0<=i<=9 ==> \result==i;
+ensures i!=\result ==> \result==-1;
+ensures d(e(i))==\result;
+*/
+int de(int i) {
+  return d(e(i));
 }
