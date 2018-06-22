@@ -76,7 +76,7 @@ class ShonanTests extends TestSuite {
           ensures{_:Rep[Unit] => forall{j: Rep[Int] => ((0 <= j && j < n) ==> (v(j) == old(v(j))))}}
           ensures{_:Rep[Unit] => forall{j: Rep[Int] => ((0 <= j && j < n) ==> (mvp(n, j, n, m, v) == old(mvp(n, j, n, m, v))))}}
           ensures{_:Rep[Unit] => o(i)==a}
-          assigns(o(i))
+          assigns(o,i)
         })
 
       val mv_prod_impl = toplevel("mv_prod_impl",

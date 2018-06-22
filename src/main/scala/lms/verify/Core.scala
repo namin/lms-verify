@@ -540,7 +540,7 @@ trait Dsl extends VerifyOps with ScalaOpsPkg with TupledFunctions with Unchecked
   override def infix_&&(lhs: Rep[Boolean], rhs: => Rep[Boolean])(implicit pos: SourceContext): Rep[Boolean] = __ifThenElse(lhs, rhs, unit(false))
 }
 
-trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with PrimitiveOpsExpOpt with NumericOpsExpOpt with IfThenElseExpOpt with TupledFunctionsRecursiveExp with UncheckedOpsExp with ZeroValExp { self =>
+trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with PrimitiveOpsExpOpt with NumericOpsExpOpt with IfThenElseExpOpt with ArrayOpsExpOpt with TupledFunctionsRecursiveExp with UncheckedOpsExp with ZeroValExp { self =>
   val codegen = new CCodeGenDsl {
     val IR: self.type = self
   }
