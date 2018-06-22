@@ -90,7 +90,7 @@ trait TestSuite extends FunSuite {
     assert (indent==0, "indentation sanity check")
   }
 
-  def exec(label: String, code: String, suffix: String = "scala") = {
+  def exec(label: String, code: String, suffix: String = "c") = {
     val fileprefix = prefix+under+label
     val aname = fileprefix+".actual."+suffix
     writeFileIndented(aname, code)
