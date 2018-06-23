@@ -2,7 +2,7 @@
 
 /*@
 predicate match_aab(char* s) =
- strlen(s) >= 3 && s[0]=='A' && s[1]=='B' && s[2]=='B';
+ strlen(s) >= 3 && s[0]=='A' && s[1]=='A' && s[2]=='B';
 
 predicate match_anyaab(char* s) =
  \exists int i; 0 <= i < strlen(s) && match_aab(s+i);
@@ -17,7 +17,7 @@ ensures !match_aab(s) <==> \result==0;
 assigns \nothing;
 */
 int m_aab(char* s) {
-  return s[0]=='A' && s[1]=='B' && s[2]=='B';
+  return s[0]=='A' && s[1]=='A' && s[2]=='B';
 }
 
 /*@
