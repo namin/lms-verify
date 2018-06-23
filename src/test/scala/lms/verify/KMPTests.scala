@@ -34,6 +34,9 @@ class KMPTest extends TestSuite {
             rec(0, 1)
           }
         }
+        def gen_inv(cj: Int, s: Rep[String], j: Var[Int], k: Var[Int]): Rep[Boolean] = {
+          (readVar(j) == cj) ==> match_range(s+(readVar(k)-cj), 0, cj)
+        }
         def gen_case(cj: Int, s: Rep[String], j: Var[Int], k: Var[Int]): Rep[Unit] = {
           if (w(cj) == s(k)) {
             j += 1
@@ -48,8 +51,13 @@ class KMPTest extends TestSuite {
             }
           }
         }
+        def gen_invs(from: Int, to: Int, s: Rep[String], j: Var[Int], k: Var[Int]): Rep[Boolean] = {
+          if (from == to) unit(true) else {
+            gen_inv(from, s, j, k) && gen_invs(from+1, to, s, j, k)
+          }
+        }
         def gen_ifs(from: Int, to: Int, s: Rep[String], j: Var[Int], k: Var[Int]): Rep[Unit] = {
-          if (from == to-1) () else {
+          if (from == to) () else {
             if (j == from) gen_case(from, s, j, k)
             else gen_ifs(from+1, to, s, j, k)
           }
@@ -58,13 +66,21 @@ class KMPTest extends TestSuite {
           { (s: Rep[String]) =>
             var j = 0
             var k = 0
-            while (s(k) != '\0' && j < w.length) {
-              gen_ifs(0, w.length, s, j, k)
+            loop(0 <= readVar(k) && readVar(k) <= s.length &&
+              valid_string(s) &&
+              0 <= readVar(j) && readVar(j) <= w.length &&
+              exists{i: Rep[Int] => 0 <= i && i < k-j && match_w(s)} &&
+              gen_invs(1, w.length, s, j, k),
+              list_new(readVar(j)::readVar(k)::Nil),
+              s.length*2 - readVar(k)) {
+              while (readVar(k) < s.length && readVar(j) < w.length) {
+                gen_ifs(0, w.length, s, j, k)
+              }
             }
             j==w.length
           },
           { (s: Rep[String]) => valid_string(s) },
-          { (s: Rep[String]) => (r: Rep[Boolean]) => true }
+          { (s: Rep[String]) => (r: Rep[Boolean]) => unit(true) }
         )
       }
       exec(w, (new KMPProg with Impl).code) // TODO: check
