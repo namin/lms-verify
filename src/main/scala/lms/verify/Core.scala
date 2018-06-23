@@ -688,6 +688,7 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
     // FIXME: only works for strings / Seq[Char] / Array[Char]
     case SeqLength(x) => "strlen("+exprOf(x, m)+")"
     case ArrayLength(x) => "strlen("+exprOf(x, m)+")"
+    case SeqApply(x,n) => exprOf(x, m) + "[" + exprOf(n, m) + "]"
     case RangeForall(z, n, j, _, y, _) =>
       s"(\\forall int ${exprOf(j, m)}; (${exprOf(z, m)}<=${exprOf(j,m)}<${exprOf(n,m)}) ==> ${exprOfBlock(y, m)})"
     case _ => "TODO:Def:"+d
