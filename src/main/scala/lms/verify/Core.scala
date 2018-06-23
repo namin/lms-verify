@@ -675,11 +675,13 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
     case BooleanNegate(a) => "(!"+exprOf(a, m)+")"
     case ObjIntMaxValue() => "INT_MAX"
     case ObjIntMinValue() => "INT_MIN"
+    case StringPlus(a, b) => "("+exprOf(a, m)+"+"+exprOf(b, m)+")"
     case IntPlus(a, b) => "("+exprOf(a, m)+"+"+exprOf(b, m)+")"
     case IntMinus(a, b) => "("+exprOf(a, m)+"-"+exprOf(b, m)+")"
     case IntTimes(a, b) => "("+exprOf(a, m)+"*"+exprOf(b, m)+")"
     case IntMod(a, b) => "("+exprOf(a, m)+"%"+exprOf(b, m)+")"
     case IntBinaryAnd(a, b) => "("+exprOf(a, m)+"&"+exprOf(b, m)+")"
+    case SeqApply(p, i) => exprOf(p, m) + "[" + exprOf(i, m) + "]"
     case ArrayApply(p, i) => exprOf(p, m)+"["+exprOf(i, m)+"]"
     case Reify(r, _, _) => exprOf(r, m)
     case Reflect(r, _, _) => exprOfDef(r, m)
@@ -688,7 +690,6 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
     // FIXME: only works for strings / Seq[Char] / Array[Char]
     case SeqLength(x) => "strlen("+exprOf(x, m)+")"
     case ArrayLength(x) => "strlen("+exprOf(x, m)+")"
-    case SeqApply(x,n) => exprOf(x, m) + "[" + exprOf(n, m) + "]"
     case RangeForall(z, n, j, _, y, _) =>
       s"(\\forall int ${exprOf(j, m)}; (${exprOf(z, m)}<=${exprOf(j,m)}<${exprOf(n,m)}) ==> ${exprOfBlock(y, m)})"
     case _ => "TODO:Def:"+d
