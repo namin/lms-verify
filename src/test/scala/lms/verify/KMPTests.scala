@@ -72,7 +72,7 @@ class KMPTest extends TestSuite {
               exists{i: Rep[Int] => 0 <= i && i < k-j && match_w(s)} &&
               gen_invs(1, w.length, s, j, k),
               list_new(readVar(j)::readVar(k)::Nil),
-              s.length*2 - readVar(k)) {
+              s.length*w.length - readVar(k)) {
               while (readVar(k) < s.length && readVar(j) < w.length) {
                 gen_ifs(0, w.length, s, j, k)
               }
