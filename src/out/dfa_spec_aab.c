@@ -41,3 +41,48 @@ int m_anyaab(char* s) {
   }
   return 0;
 }
+
+
+/*@
+requires strlen(s)>0 && \valid(s+(0..strlen(s)));
+assigns \nothing;
+ensures \result==0 || \result==1;
+*/
+int m_opt_anyaab(char* s) {
+  int id = 0;
+  char c;
+  /*@
+    loop invariant strlen(s)>=0 && \valid(s+(0..strlen(s)));
+    loop invariant id==0 || id==1 || id==2;
+    loop assigns id, c, s;
+    loop variant strlen(s);
+   */
+  while (s[0] != '\0') {
+    c = *s++;
+    if (id == 0) {
+      if (c == 'A') {
+        id = 1;
+      } else {
+        id = 0;
+      }
+    }
+    else if (id == 1) {
+      if (c == 'A') {
+        id = 2;
+      } else {
+        id = 0;
+      }
+    } else if (id == 2) {
+      if (c == 'B') {
+        return 1;
+      } else if (c == 'A') {
+        id = 2;
+      } else {
+        id = 0;
+      }
+    } else {
+      return -1;
+    }
+  }
+  return 0;
+}
