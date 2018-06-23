@@ -47,7 +47,8 @@ int m_anyaab(char* s) {
 requires strlen(s)>0 && \valid(s+(0..strlen(s)));
 assigns \nothing;
 ensures \result==0 || \result==1;
-ensures \result==1 ==> match_anyaab(s);
+ensures match_anyaab(s) <==> \result==1;
+ensures !match_anyaab(s) <==> \result==0;
 */
 int m_opt_anyaab(char* s) {
   int id = 0;
@@ -55,6 +56,9 @@ int m_opt_anyaab(char* s) {
     loop invariant (0 <= i <= strlen(s));
     loop invariant strlen(s)>=0 && \valid(s+(0..strlen(s)));
     loop invariant id==0 || id==1 || id==2;
+    loop invariant (id==0 ==> \forall int j; 0 <= j < i ==> !match_aab(s+j));
+    loop invariant (id==1 ==> i>=1 && \forall int j; 0 <= j < i-1 ==> !match_aab(s+j));
+    loop invariant (id==2 ==> i>=2 && \forall int j; 0 <= j < i-2 ==> !match_aab(s+j));
     loop invariant (id==1 ==> i>=1 && s[i-1]=='A');
     loop invariant (id==2 ==> i>=2 && s[i-2]=='A' && s[i-1]=='A');
     loop assigns i, id;
