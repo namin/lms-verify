@@ -72,7 +72,7 @@ class KMPTest extends TestSuite {
             loop(0 <= readVar(k) && readVar(k) <= s.length &&
               0 <= readVar(j) && readVar(j) <= w.length &&
               valid_string(s) &&
-              exists{i: Rep[Int] => (0 <= i && i < k-j) ==> !match_w(s+i)} &&
+              forall{i: Rep[Int] => (0 <= i && i < k-j) ==> !match_w(s+i)} &&
               gen_invs(1, w.length+1, s, j, k),
               list_new(readVar(j)::readVar(k)::Nil),
               s.length*2 - 2*readVar(k) + w.length - readVar(j)
