@@ -34,8 +34,11 @@ class KMPTest extends TestSuite {
             rec(0, 1)
           }
         }
+        def match_range_k(s: Rep[String], k: Rep[Int], neg: Int, from: Int, to: Int): Rep[Boolean] =
+          if (from == to) true
+          else s(k-(neg-from)) == w(from) && match_range_k(s, k, neg, from+1, to)
         def gen_inv(cj: Int, s: Rep[String], j: Var[Int], k: Var[Int]): Rep[Boolean] = {
-          (readVar(j) == cj) ==> match_range(s+(readVar(k)-cj), 0, cj)
+          (readVar(j) == cj) ==> (readVar(k)>=cj && match_range_k(s, readVar(k), cj, 0, cj))
         }
         def gen_case(cj: Int, s: Rep[String], j: Var[Int], k: Var[Int]): Rep[Unit] = {
           if (w(cj) == s(k)) {
@@ -67,23 +70,29 @@ class KMPTest extends TestSuite {
             var j = 0
             var k = 0
             loop(0 <= readVar(k) && readVar(k) <= s.length &&
-              valid_string(s) &&
               0 <= readVar(j) && readVar(j) <= w.length &&
-              exists{i: Rep[Int] => 0 <= i && i < k-j && match_w(s)} &&
-              gen_invs(1, w.length, s, j, k),
+              valid_string(s) &&
+              exists{i: Rep[Int] => (0 <= i && i < k-j) ==> !match_w(s+i)} &&
+              gen_invs(1, w.length+1, s, j, k),
               list_new(readVar(j)::readVar(k)::Nil),
-              s.length*w.length - readVar(k)*readVar(j)) {
-              while (readVar(k) < s.length && readVar(j) < w.length) {
+              s.length*2 - readVar(k)+readVar(j) // TODO
+            ) {
+              while (s(k) != 0.toChar && readVar(j) < w.length) {
                 gen_ifs(0, w.length, s, j, k)
               }
             }
             j==w.length
           },
           { (s: Rep[String]) => valid_string(s) },
-          { (s: Rep[String]) => (r: Rep[Boolean]) => unit(true) }
+          { (s: Rep[String]) => (r: Rep[Boolean]) =>
+            (r ==> match_any_w(s)) &&
+            (match_any_w(s) ==> r) &&
+            ((!r) ==> (!match_any_w(s))) &&
+            ((!match_any_w(s)) ==> (!r))
+          }
         )
       }
-      exec(w, (new KMPProg with Impl).code) // TODO: check
+      check(w, (new KMPProg with Impl).code)
     }
   }
   gen("aab")
