@@ -36,96 +36,96 @@ int match_w(char  * x0) {
 }
 /*@ predicate match_any_w(char  * x11) = (\exists integer  x13; (((0<=x13) &&
 (x13<strlen(x11))) &&
-match_w(x11)));*/
+match_w((x11+x13))));*/
 /*@
-requires ((strlen(x23)>=0) &&
-\valid(x23+(0..(strlen(x23)+1)-1)));
+requires ((strlen(x25)>=0) &&
+\valid(x25+(0..(strlen(x25)+1)-1)));
 assigns \nothing;
-ensures ((((\result ==> match_any_w(x23)) &&
-(match_any_w(x23) ==> \result)) &&
-((!\result) ==> (!match_any_w(x23)))) &&
-((!match_any_w(x23)) ==> (!\result)));
+ensures ((((\result ==> match_any_w(x25)) &&
+(match_any_w(x25) ==> \result)) &&
+((!\result) ==> (!match_any_w(x25)))) &&
+((!match_any_w(x25)) ==> (!\result)));
 */
-int matcher(char  * x23) {
-  int x25 = 0;
-  int x26 = 0;
+int matcher(char  * x25) {
+  int x27 = 0;
+  int x28 = 0;
   /*@
-  loop invariant (((((((0<=x26) &&
-  (x26<=strlen(x23))) &&
-  (0<=x25)) &&
-  (x25<=3)) &&
-  ((strlen(x23)>=0) &&
-  \valid(x23+(0..(strlen(x23)+1)-1)))) &&
-  (\forall int  x103; (((0<=x103) &&
-  (x103<(x26-x25))) ==> (!match_w((x23+x103)))))) &&
-  (((x25==1) ==> ((x26>=1) &&
-  (x23[(x26-1)]=='a'))) &&
-  (((x25==2) ==> ((x26>=2) &&
-  ((x23[(x26-2)]=='a') &&
-  (x23[(x26-1)]=='a')))) &&
-  ((x25==3) ==> ((x26>=3) &&
-  ((x23[(x26-3)]=='a') &&
-  ((x23[(x26-2)]=='a') &&
-  (x23[(x26-1)]=='b'))))))));
-  loop assigns x25, x26;
-  loop variant ((((strlen(x23)*2)-(2*x26))+3)-x25);
+  loop invariant (((((((0<=x28) &&
+  (x28<=strlen(x25))) &&
+  (0<=x27)) &&
+  (x27<=3)) &&
+  ((strlen(x25)>=0) &&
+  \valid(x25+(0..(strlen(x25)+1)-1)))) &&
+  (\forall int  x105; (((0<=x105) &&
+  (x105<(x28-x27))) ==> (!match_w((x25+x105)))))) &&
+  (((x27==1) ==> ((x28>=1) &&
+  (x25[(x28-1)]=='a'))) &&
+  (((x27==2) ==> ((x28>=2) &&
+  ((x25[(x28-2)]=='a') &&
+  (x25[(x28-1)]=='a')))) &&
+  ((x27==3) ==> ((x28>=3) &&
+  ((x25[(x28-3)]=='a') &&
+  ((x25[(x28-2)]=='a') &&
+  (x25[(x28-1)]=='b'))))))));
+  loop assigns x27, x28;
+  loop variant ((((strlen(x25)*2)-(2*x28))+3)-x27);
   */
   for (;;) {
-    int x27 = x26;
-    char x28 = x23[x27];
-    int x30 = x28 == '\0';
-    int x34;
-    if (x30) {
-      x34 = 0/*false*/;
+    int x29 = x28;
+    char x30 = x25[x29];
+    int x32 = x30 == '\0';
+    int x36;
+    if (x32) {
+      x36 = 0/*false*/;
     } else {
-      int x31 = x25;
-      int x32 = x31 < 3;
-      x34 = x32;
+      int x33 = x27;
+      int x34 = x33 < 3;
+      x36 = x34;
     }
-    if (!x34) break;
-    int x36 = x25;
-    int x37 = x36 == 0;
-    if (x37) {
-      int x38 = x26;
-      char x39 = x23[x38];
-      int x40 = 'a' == x39;
-      if (x40) {
-        x25 += 1;
-        x26 += 1;
+    if (!x36) break;
+    int x38 = x27;
+    int x39 = x38 == 0;
+    if (x39) {
+      int x40 = x28;
+      char x41 = x25[x40];
+      int x42 = 'a' == x41;
+      if (x42) {
+        x27 += 1;
+        x28 += 1;
       } else {
-        x25 = 0;
-        x26 += 1;
+        x27 = 0;
+        x28 += 1;
       }
     } else {
-      int x49 = x36 == 1;
-      if (x49) {
-        int x50 = x26;
-        char x51 = x23[x50];
-        int x52 = 'a' == x51;
-        if (x52) {
-          x25 += 1;
-          x26 += 1;
+      int x51 = x38 == 1;
+      if (x51) {
+        int x52 = x28;
+        char x53 = x25[x52];
+        int x54 = 'a' == x53;
+        if (x54) {
+          x27 += 1;
+          x28 += 1;
         } else {
-          x25 = 0;
+          x27 = 0;
         }
       } else {
-        int x60 = x36 == 2;
-        if (x60) {
-          int x61 = x26;
-          char x62 = x23[x61];
-          int x63 = 'b' == x62;
-          if (x63) {
-            x25 += 1;
-            x26 += 1;
+        int x62 = x38 == 2;
+        if (x62) {
+          int x63 = x28;
+          char x64 = x25[x63];
+          int x65 = 'b' == x64;
+          if (x65) {
+            x27 += 1;
+            x28 += 1;
           } else {
-            x25 = 1;
+            x27 = 1;
           }
         } else {
         }
       }
     }
   }
-  int x191 = x25;
-  int x192 = x191 == 3;
-  return x192;
+  int x193 = x27;
+  int x194 = x193 == 3;
+  return x194;
 }

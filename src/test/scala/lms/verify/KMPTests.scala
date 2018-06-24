@@ -17,7 +17,7 @@ class KMPTest extends TestSuite {
           { (s: Rep[String]) => match_range(s, 0, w.length) })
         val match_any_w = predicate("match_any_w",
           { (s: Rep[String]) =>
-            exists{i: Rep[Int] => 0 <= i && i < s.length && match_w(s)}
+            exists{i: Rep[Int] => 0 <= i && i < s.length && match_w(s+i)}
           },
           code=false)
         def rematch(w: String, i: Int): Int = {
