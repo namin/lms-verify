@@ -95,7 +95,7 @@ class KMPTest extends TestSuite {
       check(w, (new KMPProg with Impl).code)
     }
   }
+  gen("aa")
   gen("aab")
-  //gen("aa")
-  //gen("aabaa")
+  gen("aabaa")
 }
