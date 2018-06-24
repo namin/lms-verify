@@ -63,6 +63,13 @@ In the spec, you can spell out each entry in the known matrix, as well as the de
 In the implementation, you can optimize the matrix vector product, unrolling sparse rows and optimizing arithmetic operations (multipliying by 1 or 0, adding 0).
 Verify that the optimized implementation still implements the matrix vector product. ([code](src/test/scala/lms/verify/ShonanTests.scala))
 
+#### Functionally Correct String Matching Algorithms
+Comparing naive string matching (as a spec) to optimized string matching like Knuth-Morris-Pratt.
+The starting point is from this BRICS report [(PDF)](http://cs.au.dk/~danvy/DSc/06_BRICS-RS-04-40.pdf).
+Verified functionally correct (equivalent to spec), except termination argument is missing.
+([code](src/test/scala/lms/verify/KMPTests.scala))
+([hand-coded example](src/out/kmp_aab.c))
+
 #### Functionally Correct Optimized Regular Expression Matcher
 Implement an optimized regular expression matcher, where the regular expression is known.
 As a first step, you can do a naive compiler via a staged interpreter, but then you could also do a staged NFA to DFA exploration.
@@ -70,6 +77,7 @@ In the spec, you can specify regular expression matching in simple terms as an i
 Verify that the optimized implementation still matches as specified by the spec.
 ([code for naive compiler](src/test/scala/lms/verify/CRegexTests.scala))
 ([code for NFA to DFA compiler](src/test/scala/lms/verify/AutomataTests.scala))
+([hand-coded example](src/out/dfa_spec_aab.c))
 
 #### Bidirectional Combinators and Round-Tripping Properties
 At a high level, we might be able to specify parsing / unparsing (i.e., printing) once using bidirectional combinators,
