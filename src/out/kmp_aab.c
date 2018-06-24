@@ -2,7 +2,7 @@
 
 /*@
 predicate match_aab(char* s) =
- strlen(s) >= 3 && s[0]=='a' && s[1]=='a' && s[2]=='b';
+ s[0]=='a' && s[1]=='a' && s[2]=='b';
 
 predicate match_anyaab(char* s) =
  \exists int i; 0 <= i < strlen(s) && match_aab(s+i);
@@ -27,7 +27,7 @@ int match(char *s) {
     loop invariant (j==2 ==> k>=2 && s[k-2]=='a' && s[k-1]=='a');
     loop invariant (j==3 ==> k>=3 && s[k-3]=='a' && s[k-2]=='a' && s[k-1]=='b');
     loop assigns j, k;
-    loop variant strlen(s)*2 - k+j; // TODO
+    loop variant strlen(s)*2 - k*2 + 3 - j; // TODO
   */
   while (s[k] != '\0' && j < 3) {
     if (j == 0) {

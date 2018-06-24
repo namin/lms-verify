@@ -68,7 +68,7 @@ int matcher(char  * x23) {
   ((x23[(x26-2)]=='a') &&
   (x23[(x26-1)]=='b'))))))));
   loop assigns x25, x26;
-  loop variant (((strlen(x23)*2)-x26)+x25);
+  loop variant ((((strlen(x23)*2)-(2*x26))+3)-x25);
   */
   for (;;) {
     int x27 = x26;
@@ -125,7 +125,7 @@ int matcher(char  * x23) {
       }
     }
   }
-  int x189 = x25;
-  int x190 = x189 == 3;
-  return x190;
+  int x191 = x25;
+  int x192 = x191 == 3;
+  return x192;
 }
