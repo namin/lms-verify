@@ -5,7 +5,7 @@ generate first-order verifiable C code from a higher-level counterpart in Scala.
 
 Presentation with some highlights ([PDF](http://lampwww.epfl.ch/~amin/lms/verify-slides.pdf)).
 
-POPL'17 Paper ([PDF](http://lampwww.epfl.ch/~amin/pub/lms-verify.pdf)).
+POPL'17 paper ([PDF](http://lampwww.epfl.ch/~amin/pub/lms-verify.pdf)) and slides ([PDF](http://lampwww.epfl.ch/~amin/lms/lms-verify-popl.pdf)).
 
 ## C Verification
 
