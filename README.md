@@ -41,7 +41,7 @@ Fun fact: the generic interpreter comes from C ([original code with hand-written
 #### HTTP Parser
 
 We write a high-level HTTP parser, using a small staged parser combinator library, and generate low-level C code that validates HTTP responses at a fast rate -- ~1 millions items per second, which is competitive with hand-written optimized parsers such as [nginx/nodejs HTTP parser in C](https://github.com/nodejs/http-parser).
-With little effort in the generator, the generated code is verified to be free of memory and overflow errors. ([code](src/test/scala/lms/verify/ParserTests.scala))
+With little effort in the generator, the generated code is verified to be free of memory and overflow errors. This is significant as major HTTP servers have had serious security advisories ([nginx](https://cve.mitre.org/cgi-bin/cvename.cgi?name=cve-2013-2028), [Apache](https://cve.mitre.org/cgi-bin/cvename.cgi?name=cve-2002-0392)) related to chunked parsing. ([code](src/test/scala/lms/verify/ParserTests.scala))
 
 ### Case Studies in Progress
 
