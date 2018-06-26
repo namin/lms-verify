@@ -17,6 +17,8 @@ All the files in the [`src/out`](src/out) directory should verify with this comm
 
 Other useful options: `-wp-skip-fct p` to skip verifying a function `p`, `-wp-timeout 50` to increase the timeout in case of flakiness.
 
+TODO: Consider [VeriFast](https://github.com/verifast/verifast) as a backend. Does it have a better memory model and separation logic? To find out by trying C programs. Is it compatible with ACSL as used here to target Frama-C? Probably not entirely, if at all.
+
 ### Docs
 * [Frama-C WP manual (PDF)](http://frama-c.com/download/frama-c-wp-manual.pdf)
 * [ACSL tutorial (PDF)](http://frama-c.com/download/acsl-tutorial.pdf)
