@@ -87,6 +87,7 @@ requires \valid(s2+(0..n-1));
 requires \valid(s3+(0..n-1));
 requires \forall int i1,i2,i3; 0 <= i1 < n && 0 <= i2 < n && 0 <= i3 < n ==> \separated(s1+i1,s2+i2,s3+i3);
 requires \forall int i; 0 <= i < n ==> 0 <= s1[i] <= 26;
+ensures \forall int i; 0 <= i < n ==> s3[i]==s1[i];
 ensures \forall int i; 0 <= i < n ==> \old(s1[i])==s1[i];
 assigns s2[0..n-1], s3[0..n-1];
 */
@@ -97,4 +98,5 @@ void autoencode(int* s1, int* s2, int* s3, int n) {
   //@assert \forall int i; 0 <= i < n ==> s2[i]==cypher(s1[i]);
   //@assert \forall int i; 0 <= i < n ==> s3[i]==decypher(s2[i]);
   //@assert \forall int i; 0 <= i < n ==> s3[i]==decypher(cypher(s1[i]));
+  //@assert \forall int i; 0 <= i < n ==> s3[i]==s1[i];
 }
