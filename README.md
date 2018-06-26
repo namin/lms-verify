@@ -83,3 +83,5 @@ Verify that the optimized implementation still matches as specified by the spec.
 At a high level, we might be able to specify parsing / unparsing (i.e., printing) once using bidirectional combinators,
 and then stage these combinators.
 Can we preserve the bidirectional properties, such as round-tripping (i.e., that parsing and printing are almost inverse), all the way to the generated code?
+
+From [hand-coded example](src/bip_cesar1.c): the abstraction seems a bit leaky in terms of the separation verification. Maybe this can still be encapsulated nicely, and generalized, using appropriate blame when the cypher/decypher pair do not compose to the identity.
