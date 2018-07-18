@@ -19,8 +19,7 @@ class BipTests extends TestSuite {
 
       val decypher = gencypher("decypher", req, { s: Rep[Int] => if (s==0) 26 else s-1 })
 
-      def gencode(s: String, f: Rep[Int] => Rep[Int]) = toplevel(s, {
-        (s1: Rep[Array[Int]], s2: Rep[Array[Int]], s3: Rep[Array[Int]], n: Rep[Int]) =>
+      def routine_requires(s1: Rep[Array[Int]], s2: Rep[Array[Int]], s3: Rep[Array[Int]], n: Rep[Int]) = {
         requires(n > 0)
         requires(valid(s1, 0 until n))
         requires(valid(s2, 0 until n))
@@ -32,6 +31,11 @@ class BipTests extends TestSuite {
             separated(s1,i1,s2,i2) &&
             separated(s1,i1,s3,i3) &&
               separated(s2,i2,s3,i3))})})})
+      }
+
+      def gencode(s: String, f: Rep[Int] => Rep[Int]) = toplevel(s, {
+        (s1: Rep[Array[Int]], s2: Rep[Array[Int]], s3: Rep[Array[Int]], n: Rep[Int]) =>
+        routine_requires(s1, s2, s3, n)
         requires(forall{i: Rep[Int] => (0 <= i && i < n) ==> req(s1(i))})
         ensures{_ : Rep[Unit] => forall{i: Rep[Int] => (0 <= i && i < n) ==>
           (s2(i) == f(s1(i)))}}
@@ -67,17 +71,7 @@ class BipTests extends TestSuite {
 
       val autoencode = toplevel("autoencode", {
         (s1: Rep[Array[Int]], s2: Rep[Array[Int]], s3: Rep[Array[Int]], n: Rep[Int]) =>
-        requires(n > 0)
-        requires(valid(s1, 0 until n))
-        requires(valid(s2, 0 until n))
-        requires(valid(s3, 0 until n))
-        requires(
-          forall{i1: Rep[Int] => (0 <= i1 && i1 < n) ==> (
-          forall{i2: Rep[Int] => (0 <= i2 && i2 < n) ==> (
-          forall{i3: Rep[Int] => (0 <= i3 && i3 < n) ==> (
-            separated(s1,i1,s2,i2) &&
-            separated(s1,i1,s3,i3) &&
-              separated(s2,i2,s3,i3))})})})
+        routine_requires(s1, s2, s3, n)
         requires(forall{i: Rep[Int] => (0 <= i && i < n) ==> req(s1(i))})
         ensures{_ : Rep[Unit] => forall{i: Rep[Int] => (0 <= i && i < n) ==>
           (s3(i)==s1(i))}}
