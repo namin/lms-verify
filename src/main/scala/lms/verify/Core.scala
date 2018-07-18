@@ -874,8 +874,10 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
     val sig_app = functionName+"("+(args.map(s => quote(s))).mkString(", ")+")"
     withStream(out) {
       if (spec) {
-        if (!axiom)
-          stream.println("/*@ predicate "+sig+" = "+exprOfBlock[B](body, default_m)+";*/")
+        if (!axiom) {
+          val p = if (mB.toString != "Boolean" && sB=="int") "logic integer" else "predicate"
+          stream.println("/*@ "+p+" "+sig+" = "+exprOfBlock[B](body, default_m)+";*/")
+        }
         else {
           stream.println(s"$functionName:")
           if (args.nonEmpty) stream.print(s"\\forall $sig_args; ")
@@ -891,7 +893,8 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
           if (assignsNothing) stream.println("assigns \\nothing;")
           stream.println(postStr)
           if (spec) {
-            stream.println("ensures \\result <==> "+sig_app+";")
+            val equiv = if (mB.toString != "Boolean") "==" else "<==>"
+            stream.println("ensures \\result "+equiv+" "+sig_app+";")
           }
           if (!customAssignsStr.isEmpty) stream.println(customAssignsStr)
           stream.println("*/")
