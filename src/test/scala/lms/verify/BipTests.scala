@@ -7,17 +7,17 @@ class BipTests extends TestSuite {
     trait Program extends Dsl {
       override def includes = super.includes:+"<string.h>"
 
-      val cypher = toplevel("cypher", { s: Rep[Int] =>
-        requires(0 <= s && s <= 26)
-        ensures{r: Rep[Int] => 0 <= r && r <= 26}
-        if (s==26) 0 else s+1
+      val req = { s: Rep[Int] => 0 <= s && s <= 26 }
+
+      def gencypher(n: String, p: Rep[Int] => Rep[Boolean], f: Rep[Int] => Rep[Int]) = toplevel(n, { s: Rep[Int] =>
+        requires(req(s))
+        ensures{r: Rep[Int] => req(r)}
+        f(s)
       }, spec=true, code=true)
 
-      val decypher = toplevel("decypher", { s: Rep[Int] =>
-        requires(0 <= s && s <= 26)
-        ensures{r: Rep[Int] => 0 <= r && r <= 26}
-        if (s==0) 26 else s-1
-      }, spec=true, code=true)
+      val cypher = gencypher("cypher", req, { s: Rep[Int] => if (s==26) 0 else s+1 })
+
+      val decypher = gencypher("decypher", req, { s: Rep[Int] => if (s==0) 26 else s-1 })
 
       def gencode(s: String, f: Rep[Int] => Rep[Int]) = toplevel(s, {
         (s1: Rep[Array[Int]], s2: Rep[Array[Int]], s3: Rep[Array[Int]], n: Rep[Int]) =>
@@ -32,11 +32,11 @@ class BipTests extends TestSuite {
             separated(s1,i1,s2,i2) &&
             separated(s1,i1,s3,i3) &&
               separated(s2,i2,s3,i3))})})})
-        requires(forall{i: Rep[Int] => (0 <= i && i < n) ==> (0 <= s1(i) && s1(i) <= 26)})
+        requires(forall{i: Rep[Int] => (0 <= i && i < n) ==> req(s1(i))})
         ensures{_ : Rep[Unit] => forall{i: Rep[Int] => (0 <= i && i < n) ==>
           (s2(i) == f(s1(i)))}}
         ensures{_ : Rep[Unit] => forall{i: Rep[Int] => (0 <= i && i < n) ==>
-          (0 <= s2(i) && s2(i) <= 26)}}
+          req(s2(i))}}
         ensures{_ : Rep[Unit] => forall{i: Rep[Int] => (0 <= i && i < n) ==>
           (old(s1(i))==s1(i))}}
         ensures{_ : Rep[Unit] => forall{i: Rep[Int] => (0 <= i && i < n) ==>
@@ -45,7 +45,7 @@ class BipTests extends TestSuite {
         assigns(s2, 0 until n)
         for(i <- 0 until n) {
           loop_invariant(forall{j: Rep[Int] => (0 <= j && j < n) ==>
-            (0 <= s1(j) && s1(j) <= 26)
+            req(s1(j))
           })
           loop_invariant(forall{j: Rep[Int] => (0 <= j && j < n) ==>
             (at(s1(j),"Pre")==s1(j))
@@ -78,7 +78,7 @@ class BipTests extends TestSuite {
             separated(s1,i1,s2,i2) &&
             separated(s1,i1,s3,i3) &&
               separated(s2,i2,s3,i3))})})})
-        requires(forall{i: Rep[Int] => (0 <= i && i < n) ==> (0 <= s1(i) && s1(i) <= 26)})
+        requires(forall{i: Rep[Int] => (0 <= i && i < n) ==> req(s1(i))})
         ensures{_ : Rep[Unit] => forall{i: Rep[Int] => (0 <= i && i < n) ==>
           (s3(i)==s1(i))}}
         ensures{_ : Rep[Unit] => forall{i: Rep[Int] => (0 <= i && i < n) ==>
