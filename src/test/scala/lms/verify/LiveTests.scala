@@ -19,7 +19,7 @@ class LiveTests extends TestSuite {
         if (s==0) 26 else s-1
       }, spec=true, code=true)
 
-      val encode = toplevel("encode", {
+      def gencode(s: String, f: Rep[Int] => Rep[Int]) = toplevel(s, {
         (s1: Rep[Array[Int]], s2: Rep[Array[Int]], s3: Rep[Array[Int]], n: Rep[Int]) =>
         requires(n > 0)
         requires(valid(s1, 0 until n))
@@ -34,7 +34,7 @@ class LiveTests extends TestSuite {
               separated(s2,i2,s3,i3))})})})
         requires(forall{i: Rep[Int] => 0 <= i && i < n ==> 0 <= s1(i) && s1(i) <= 26})
         ensures{_ : Rep[Unit] => forall{i: Rep[Int] => (0 <= i && i < n) ==>
-          (s2(i) == cypher(s1(i)))}}
+          (s2(i) == f(s1(i)))}}
         ensures{_ : Rep[Unit] => forall{i: Rep[Int] => (0 <= i && i < n) ==>
           (0 <= s2(i) && s2(i) <= 26)}}
         ensures{_ : Rep[Unit] => forall{i: Rep[Int] => (0 <= i && i < n) ==>
@@ -54,13 +54,16 @@ class LiveTests extends TestSuite {
             (at(s3(j),"Pre")==s3(j))
           })
           loop_invariant(forall{j: Rep[Int] => (0 <= j && j < i) ==>
-            (s2(j) == cypher(s1(j)))
+            (s2(j) == f(s1(j)))
           })
           loop_assigns(list_new(i::(s2 within (0 until n))::Nil))
-          s2(i) = cypher(s1(i))
-          _assert(s2(i) == cypher(s1(i)))
+          s2(i) = f(s1(i))
+          _assert(s2(i) == f(s1(i)))
         }
       })
+
+      val encode = gencode("encode", cypher)
+      val decode = gencode("decode", decypher)
     }
     exec("playground", (new Program with Impl).code)
   }
