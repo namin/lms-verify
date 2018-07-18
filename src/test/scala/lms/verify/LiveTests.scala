@@ -32,7 +32,7 @@ class LiveTests extends TestSuite {
             separated(s1,i1,s2,i2) &&
             separated(s1,i1,s3,i3) &&
               separated(s2,i2,s3,i3))})})})
-        requires(forall{i: Rep[Int] => 0 <= i && i < n ==> 0 <= s1(i) && s1(i) <= 26})
+        requires(forall{i: Rep[Int] => (0 <= i && i < n) ==> (0 <= s1(i) && s1(i) <= 26)})
         ensures{_ : Rep[Unit] => forall{i: Rep[Int] => (0 <= i && i < n) ==>
           (s2(i) == f(s1(i)))}}
         ensures{_ : Rep[Unit] => forall{i: Rep[Int] => (0 <= i && i < n) ==>
@@ -64,6 +64,37 @@ class LiveTests extends TestSuite {
 
       val encode = gencode("encode", cypher)
       val decode = gencode("decode", decypher)
+
+      val autoencode = toplevel("autoencode", {
+        (s1: Rep[Array[Int]], s2: Rep[Array[Int]], s3: Rep[Array[Int]], n: Rep[Int]) =>
+        requires(n > 0)
+        requires(valid(s1, 0 until n))
+        requires(valid(s2, 0 until n))
+        requires(valid(s3, 0 until n))
+        requires(
+          forall{i1: Rep[Int] => (0 <= i1 && i1 < n) ==> (
+          forall{i2: Rep[Int] => (0 <= i2 && i2 < n) ==> (
+          forall{i3: Rep[Int] => (0 <= i3 && i3 < n) ==> (
+            separated(s1,i1,s2,i2) &&
+            separated(s1,i1,s3,i3) &&
+              separated(s2,i2,s3,i3))})})})
+        requires(forall{i: Rep[Int] => (0 <= i && i < n) ==> (0 <= s1(i) && s1(i) <= 26)})
+        ensures{_ : Rep[Unit] => forall{i: Rep[Int] => (0 <= i && i < n) ==>
+          (s3(i)==s1(i))}}
+        ensures{_ : Rep[Unit] => forall{i: Rep[Int] => (0 <= i && i < n) ==>
+          (old(s1(i))==s1(i))}}
+        reflectMutableInput(s2)
+        assigns(s2, 0 until n)
+        reflectMutableInput(s3)
+        assigns(s3, 0 until n)
+        encode(s1, s2, s3, n)
+        decode(s2, s3, s1, n)
+        //_assert(forall{i: Rep[Int] => (0 <= i && i < n) ==> (at(s1(i),"Pre")==s1(i))})
+        //_assert(forall{i: Rep[Int] => (0 <= i && i < n) ==> (s2(i)==cypher(s1(i)))})
+        //_assert(forall{i: Rep[Int] => (0 <= i && i < n) ==> (s3(i)==decypher(s2(i)))})
+        //_assert(forall{i: Rep[Int] => (0 <= i && i < n) ==> (s3(i)==decypher(cypher((s1(i)))))})
+        //_assert(forall{i: Rep[Int] => (0 <= i && i < n) ==> (s3(i)==s1(i))});
+      })
     }
     exec("playground", (new Program with Impl).code)
   }
