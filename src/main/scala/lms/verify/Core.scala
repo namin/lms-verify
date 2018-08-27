@@ -314,6 +314,8 @@ trait VerifyOps extends Base with BooleanOps {
   }
 
   def _at[A:Typ](a: Rep[A], lc: Lc): Rep[A]
+
+  def pointer_plus[A:Typ](a: Rep[Array[A]], i: Rep[Int]): Rep[Array[A]]
 }
 
 trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBoolean with ListOpsExp with BooleanOpsExpOpt {
@@ -533,6 +535,9 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
 
   case class At[A](a: Rep[A], lc: Lc) extends Def[A]
   def _at[A:Typ](a: Exp[A], lc: Lc): Exp[A] = At[A](a, lc)
+
+  case class PointerPlus[A](a: Rep[Array[A]], i: Rep[Int]) extends Def[Array[A]]
+  def pointer_plus[A:Typ](a: Exp[Array[A]], i: Exp[Int]): Exp[Array[A]] = PointerPlus(a, i)
 }
 
 trait Dsl extends VerifyOps with ScalaOpsPkg with TupledFunctions with UncheckedOps with LiftPrimitives with LiftString with LiftVariables with LiftBoolean with LiftNumeric with ZeroVal {
@@ -692,6 +697,7 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
     case ArrayLength(x) => "strlen("+exprOf(x, m)+")"
     case RangeForall(z, n, j, _, y, _) =>
       s"(\\forall int ${exprOf(j, m)}; (${exprOf(z, m)}<=${exprOf(j,m)}<${exprOf(n,m)}) ==> ${exprOfBlock(y, m)})"
+    case PointerPlus(a, i) => s"(${exprOf(a, m)}+${exprOf(i, m)})"
     case _ => "TODO:Def:"+d
   }
   def exprOf[A](e: Exp[A], m: Map[Sym[_], String] = Map()): String = e match {
@@ -788,6 +794,7 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
         emitBlock(b)
         emitAssignment(sym, quote(getBlockResult(b)))
         stream.println("}")
+      case PointerPlus(a,i) => emitValDef(sym, quote(a)+"+"+quote(i))
       case _ => super.emitNode(sym, rhs)
     }
   }
