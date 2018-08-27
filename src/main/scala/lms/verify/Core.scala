@@ -554,7 +554,8 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with PrimitiveOpsEx
     includes.foreach { i => stream.println("#include "+i) }
     rec.foreach { case (k,s) => s match {
       case (x:TopLevel[_]) =>
-        codegen.emitVerify(x.f, x.name, x.spec, x.code, axiom=false, stream)(x.mAs, mtype(x.mB))
+        if (!codegen.alreadyEmitted(x.name))
+          codegen.emitVerify(x.f, x.name, x.spec, x.code, axiom=false, stream)(x.mAs, mtype(x.mB))
       case (x:Logic[_]) =>
         codegen.emitLogic(x, stream)
     }}
@@ -838,6 +839,7 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
     }
   }
 
+  val alreadyEmitted: collection.mutable.Set[String] = collection.mutable.Set[String]()
   def emitVerify[B](f: List[Exp[_]] => Exp[B], functionName: String, spec: Boolean, code: Boolean, axiom: Boolean, out: PrintWriter)(mAs: List[Typ[_]], mB: Typ[B]): Unit = {
     inAxiom = axiom || (spec && !code)
     val args = mAs.map(fresh(_))
@@ -874,7 +876,10 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
         case (x:TopLevel[_]) if (!x.spec) =>
           if (x.code)
             emitHeader(x.name, out)(x.mAs, mtype(x.mB))
-      } // other cases (spec and ind) are TODOs...
+        case (x:TopLevel[_]) if (x.spec && !alreadyEmitted.contains(x.name)) =>
+          alreadyEmitted += x.name
+          emitVerify(x.f, x.name, x.spec, x.code, axiom=false, out)(x.mAs, mtype(x.mB))
+      } // other cases are TODOs...
     }
     val sig_args = (args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")
     val sig = functionName+"("+sig_args+")"
