@@ -1,4 +1,5 @@
 #include "verifast.h"
+// use flag -disable_overflow_check
 
 int v_mult(int* va, int na, int* vb, int nb)
   //@ requires 0 < na &*& 0 < nb &*& na == nb &*& integers(va, na) &*& integers(vb, nb);
