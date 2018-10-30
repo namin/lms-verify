@@ -27,6 +27,7 @@ TODO: Consider [VeriFast](https://github.com/verifast/verifast) as a backend. Do
 ### Installation
 * Install [CVC4](https://cvc4.cs.stanford.edu/downloads/).
 * Install [Frama-C](http://frama-c.com/download.html) -- after installation, do `why3 config --detect` to configure the solvers -- without this extra step, examples that discharge to a backend will fail to verify!
+* Workaround: Frama-C does not seem to work with the latest why3. Downgrade why3 with `opam install --unlock-base why3.0.88.3`. Possibly use `frama-c -wp -wp-rte -wp-prover alt-ergo,cvc4-15 <file.c>` as your command.
 
 ## Lessons Learned
 
