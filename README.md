@@ -73,6 +73,9 @@ Verified functionally correct (equivalent to spec), except termination argument 
 ([code](src/test/scala/lms/verify/KMPTests.scala))
 ([hand-coded example](src/out/kmp_aab.c))
 
+Could bringing in supercompilation like in this work make the code more elegant:
+- Jun Inoue. _Supercompiling with Staging_.  In Proceedings of the Fourth International Valentin Turchin Workshop on Metacomputation, 2014.
+
 #### Functionally Correct Optimized Regular Expression Matcher
 Implement an optimized regular expression matcher, where the regular expression is known.
 As a first step, you can do a naive compiler via a staged interpreter, but then you could also do a staged NFA to DFA exploration.
