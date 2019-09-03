@@ -38,8 +38,9 @@ int match_w(char  * x0) {
 (x13<strlen(x11))) &&
 match_w((x11+x13))));*/
 /*@
-requires ((strlen(x25)>=0) &&
-\valid(x25+(0..(strlen(x25)+1)-1)));
+requires (((strlen(x25)>=0) &&
+\valid(x25+(0..(strlen(x25)+1)-1))) &&
+(((strlen(x25)*2)+3)<=INT_MAX));
 assigns \nothing;
 ensures ((((\result ==> match_any_w(x25)) &&
 (match_any_w(x25) ==> \result)) &&
@@ -68,7 +69,7 @@ int matcher(char  * x25) {
   ((x25[(x28-2)]=='a') &&
   (x25[(x28-1)]=='b'))))))));
   loop assigns x27, x28;
-  loop variant ((((strlen(x25)*2)-(2*x28))+3)-x27);
+  loop variant (((strlen(x25)*2)-(x28*2))+x27);
   */
   for (;;) {
     int x29 = x28;
@@ -125,7 +126,7 @@ int matcher(char  * x25) {
       }
     }
   }
-  int x193 = x27;
-  int x194 = x193 == 3;
-  return x194;
+  int x192 = x27;
+  int x193 = x192 == 3;
+  return x193;
 }

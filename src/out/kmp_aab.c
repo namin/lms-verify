@@ -10,6 +10,7 @@ predicate match_anyaab(char* s) =
 
 /*@
 requires strlen(s)>=0 && \valid(s+(0..strlen(s)));
+requires strlen(s)*2+3 <= INT_MAX;
 assigns \nothing;
 ensures \result==0 || \result==1;
 ensures match_anyaab(s) <==> \result==1;
@@ -27,7 +28,7 @@ int match(char *s) {
     loop invariant (j==2 ==> k>=2 && s[k-2]=='a' && s[k-1]=='a');
     loop invariant (j==3 ==> k>=3 && s[k-3]=='a' && s[k-2]=='a' && s[k-1]=='b');
     loop assigns j, k;
-    loop variant strlen(s)*2 - k*2 + 3 - j; // TODO
+    loop variant strlen(s)*2 - k*2 + j;
   */
   while (s[k] != '\0' && j < 3) {
     if (j == 0) {

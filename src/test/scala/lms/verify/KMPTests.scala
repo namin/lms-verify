@@ -74,7 +74,7 @@ class KMPTest extends TestSuite {
               forall{i: Rep[Int] => (0 <= i && i < k-j) ==> !match_w(s+i)} &&
               gen_invs(1, w.length+1, s, j, k),
               list_new(readVar(j)::readVar(k)::Nil),
-              s.length*2 - 2*readVar(k) + w.length - readVar(j) // TODO
+              s.length*2 - readVar(k)*2 + readVar(j)
             ) {
               while (s(k) != 0.toChar && readVar(j) < w.length) {
                 gen_ifs(0, w.length, s, j, k)
@@ -82,7 +82,9 @@ class KMPTest extends TestSuite {
             }
             j==w.length
           },
-          { (s: Rep[String]) => valid_string(s) },
+          { (s: Rep[String]) => valid_string(s) &&
+            s.length*2+w.length <= Int.MaxValue
+          },
           { (s: Rep[String]) => (r: Rep[Boolean]) =>
             (r ==> match_any_w(s)) &&
             (match_any_w(s) ==> r) &&
