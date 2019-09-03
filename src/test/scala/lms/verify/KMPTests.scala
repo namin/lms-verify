@@ -9,6 +9,7 @@ class KMPTest extends TestSuite {
         override def includes = super.includes:+"<string.h>"
         def valid_string(s: Rep[String]) = s.length>=0 && valid(s, 0 until s.length+1)
 
+        // should be able to generate naive code as well...
         def match_range(s: Rep[String], from: Int, to: Int): Rep[Boolean] =
           if (from == to) true
           else s(from) == w(from) && match_range(s, from+1, to)
