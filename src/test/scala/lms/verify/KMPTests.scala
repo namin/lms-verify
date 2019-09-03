@@ -13,7 +13,8 @@ class KMPTest extends TestSuite {
           if (from == to) true
           else s(from) == w(from) && match_range(s, from+1, to)
         val match_w = predicate("match_w",
-          { (s: Rep[String]) => match_range(s, 0, w.length) })
+          { (s: Rep[String]) => match_range(s, 0, w.length) },
+          code=false)
         val match_any_w = predicate("match_any_w",
           { (s: Rep[String]) =>
             exists{i: Rep[Int] => 0 <= i && i < s.length && match_w(s+i)}

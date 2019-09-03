@@ -2,36 +2,13 @@
 #include <string.h>
 /*@ predicate match_w(char  * x0) = ((x0[0]=='a') &&
 (x0[1]=='a'));*/
-/*@
-assigns \nothing;
-ensures \result <==> match_w(x0);
-*/
-int match_w(char  * x0) {
-  char x2 = x0[0];
-  int x3 = x2 == 'a';
-  int x7;
-  if (x3) {
-    char x4 = x0[1];
-    int x5 = x4 == 'a';
-    int x6;
-    if (x5) {
-      x6 = 1/*true*/;
-    } else {
-      x6 = 0/*false*/;
-    }
-    x7 = x6;
-  } else {
-    x7 = 0/*false*/;
-  }
-  return x7;
-}
 /*@ predicate match_any_w(char  * x8) = (\exists integer  x10; (((0<=x10) &&
 (x10<strlen(x8))) &&
 match_w((x8+x10))));*/
 /*@
 requires (((strlen(x22)>=0) &&
 \valid(x22+(0..(strlen(x22)+1)-1))) &&
-(((strlen(x22)*2)+3)<=INT_MAX));
+(((strlen(x22)*2)+2)<=INT_MAX));
 assigns \nothing;
 ensures ((((\result ==> match_any_w(x22)) &&
 (match_any_w(x22) ==> \result)) &&
