@@ -25,5 +25,3 @@ libraryDependencies += "org.scala-lang.virtualized" % "scala-actors" % "2.11.2" 
 scalacOptions += "-Yvirtualize"
 
 scalacOptions += "-deprecation"
-
-parallelExecution in Test := false
