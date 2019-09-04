@@ -69,7 +69,7 @@ Verify that the optimized implementation still implements the matrix vector prod
 #### Functionally Correct String Matching Algorithms
 Comparing naive string matching (as a spec) to optimized string matching like Knuth-Morris-Pratt.
 The starting point is from this BRICS report [(PDF)](http://cs.au.dk/~danvy/DSc/06_BRICS-RS-04-40.pdf).
-Verified functionally correct (equivalent to spec), except termination argument is missing.
+Verified functionally correct (equivalent to spec), including termination argument.
 ([code](src/test/scala/lms/verify/KMPTests.scala))
 ([hand-coded example](src/out/kmp_aab.c))
 
