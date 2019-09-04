@@ -792,7 +792,7 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
         if (k=="\\forall")
           gen"""int $sym = 1;
              |/*@ loop invariant ($start <= $i <= $end);
-             |    loop invariant \forall int $j; (0 <= $j < $i) ==> ${exprOf(y.res, Map())};
+             |    loop invariant \forall int $j; ($start <= $j < $i) ==> ${exprOf(y.res, Map())};
              |    loop invariant $sym==1;
              |    loop assigns $i, $sym;
              |    loop variant ($end-$i); */
@@ -809,7 +809,7 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
           }
           gen"""int $sym = 0;
              |/*@ loop invariant ($start <= $i <= $endc);
-             |    loop invariant !(\exists int $j; (0 <= $j < $i) && ${exprOf(y.res, Map())});
+             |    loop invariant !(\exists int $j; ($start <= $j < $i) && ${exprOf(y.res, Map())});
              |    loop invariant $sym==0;
              |    loop assigns $i, $sym;
              |    loop variant ($endc-$i); */
