@@ -208,13 +208,13 @@ trait NFAtoDFA extends DFAOps with ClosureCompare { this: Dsl with Functions =>
     case NTrans(cset, e, s)::rest =>
       if (cset contains cin) {
         val xs1 = for (NTrans(rcset, re, rs) <- rest;
-		       kcset <- rcset knowing cset) yield
-			 NTrans(kcset,re,rs)
+		      kcset <- rcset knowing cset) yield
+            NTrans(kcset,re,rs)
         exploreNFA(xs1,cin)((flag,acc) => k(flag || e(), acc ++ s()))
       } else {
         val xs1 = for (NTrans(rcset, re, rs) <- rest;
-		       kcset <- rcset knowing_not cset) yield
-			 NTrans(kcset,re,rs)
+		      kcset <- rcset knowing_not cset) yield
+            NTrans(kcset,re,rs)
         exploreNFA(xs1, cin)(k)
       }
   }
