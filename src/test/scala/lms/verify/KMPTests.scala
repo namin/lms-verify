@@ -9,18 +9,18 @@ class KMPTest extends TestSuite {
         override def includes = super.includes:+"<string.h>"
         def valid_string(s: Rep[String]) = s.length>=0 && valid(s, 0 until s.length+1)
 
-        // should be able to generate naive code as well...
         def match_range(s: Rep[String], from: Int, to: Int): Rep[Boolean] =
           if (from == to) true
           else s(from) == w(from) && match_range(s, from+1, to)
         val match_w = predicate("match_w",
-          { (s: Rep[String]) => match_range(s, 0, w.length) },
-          code=false)
+          { (s: Rep[String]) =>
+            requires(valid_string(s))
+            match_range(s, 0, w.length) })
         val match_any_w = predicate("match_any_w",
           { (s: Rep[String]) =>
-            exists{i: Rep[Int] => 0 <= i && i < s.length && match_w(s+i)}
-          },
-          code=false)
+            requires(valid_string(s))
+            (0 until s.length).exists{i => match_w(s+i)}
+          })
         def rematch(w: String, i: Int): Int = {
           if (i == 0) -1 else {
             def rec(jp: Int, kp: Int): Int = {

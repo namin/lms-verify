@@ -17,8 +17,9 @@ int eq_vec_Int(int  * x16, int  x17, int  * x18, int  x19) {
   if (x21) {
     int x32 = 1;
     /*@ loop invariant (0 <= x24 <= x17);
-    loop invariant \forall int x23; (0 <= x23 < x24) ==>  (x16[x23]==x18[x23]);
-    loop assigns x24;
+    loop invariant \forall int x23; (0 <= x23 < x24) ==> (x16[x23]==x18[x23]);
+    loop invariant x32==1;
+    loop assigns x24, x32;
     loop variant (x17-x24); */
     for (int x24 = 0; x24 < x17; x24++) {
       int x29 = x16[x24];
@@ -52,8 +53,9 @@ int eq_vec_vec_Int(int  * * x61, int  * x62, int  x63, int  * * x64, int  * x65,
   if (x68) {
     int x83 = 1;
     /*@ loop invariant (0 <= x71 <= x63);
-    loop invariant \forall int x70; (0 <= x70 < x71) ==>  eq_vec_Int(x61[x70],x62[x70],x64[x70],x65[x70]);
-    loop assigns x71;
+    loop invariant \forall int x70; (0 <= x70 < x71) ==> eq_vec_Int(x61[x70],x62[x70],x64[x70],x65[x70]);
+    loop invariant x83==1;
+    loop assigns x71, x83;
     loop variant (x63-x71); */
     for (int x71 = 0; x71 < x63; x71++) {
       int  *x78 = x61[x71];

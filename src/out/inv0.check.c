@@ -17,8 +17,9 @@ int eq_vec_Int(int  * x16, int  x17, int  * x18, int  x19) {
   if (x21) {
     int x32 = 1;
     /*@ loop invariant (0 <= x24 <= x17);
-    loop invariant \forall int x23; (0 <= x23 < x24) ==>  (x16[x23]==x18[x23]);
-    loop assigns x24;
+    loop invariant \forall int x23; (0 <= x23 < x24) ==> (x16[x23]==x18[x23]);
+    loop invariant x32==1;
+    loop assigns x24, x32;
     loop variant (x17-x24); */
     for (int x24 = 0; x24 < x17; x24++) {
       int x29 = x16[x24];

@@ -247,10 +247,12 @@ trait VerifyOps extends Base with BooleanOps {
     g
   }
 
-  implicit class RangeForall(r: Rep[Range]) {
+  implicit class RangeQuantifier(r: Rep[Range]) {
     def forall(f: Rep[Int] => Rep[Boolean]): Rep[Boolean] = range_forall(r, f)
+    def exists(f: Rep[Int] => Rep[Boolean]): Rep[Boolean] = range_exists(r, f)
   }
   def range_forall(r: Rep[Range], f: Rep[Int] => Rep[Boolean]): Rep[Boolean]
+  def range_exists(r: Rep[Range], f: Rep[Int] => Rep[Boolean]): Rep[Boolean]
 
 
   type Lc = String
@@ -441,8 +443,8 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
   case class Within[A](p: Rep[Array[A]], r: Rep[Range]) extends Def[Any]
   def infix_within[A](p: Rep[Array[A]], r: Rep[Range]): Rep[Any] = Within[A](p, r)
 
-  case class RangeForall(start: Exp[Int], end: Exp[Int], j: Sym[Int], i: Sym[Int], spec: Block[Boolean], body: Block[Boolean]) extends Def[Boolean]
-  override def range_forall(r: Rep[Range], f: Rep[Int] => Rep[Boolean]): Rep[Boolean] = {
+  case class RangeQuantifier(k: String, start: Exp[Int], end: Exp[Int], j: Sym[Int], i: Sym[Int], spec: Block[Boolean], body: Block[Boolean]) extends Def[Boolean]
+  def range_quantifier(k: String, r: Rep[Range], f: Rep[Int] => Rep[Boolean]): Rep[Boolean] = {
     val j = fresh[Int]
     val i = fresh[Int]
     val y = reifySpec(f(j))
@@ -451,9 +453,13 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
       case Const(true) => Const(true)
       case Def(Reify(Const(true), _, _)) => Const(true)
       case _ =>
-        reflectEffect(RangeForall(r.start, r.end, j, i, y, a), summarizeEffects(a).star)
+        reflectEffect(RangeQuantifier(k, r.start, r.end, j, i, y, a), summarizeEffects(a).star)
     }
   }
+  override def range_forall(r: Rep[Range], f: Rep[Int] => Rep[Boolean]): Rep[Boolean] =
+    range_quantifier("\\forall", r, f)
+  override def range_exists(r: Rep[Range], f: Rep[Int] => Rep[Boolean]): Rep[Boolean] =
+    range_quantifier("\\exists", r, f)
 
   case class Loop(invariant: Block[Boolean], assigns: Block[List[Any]], variant: Block[Int]) extends Def[Unit]
   val loops = new scala.collection.mutable.LinkedHashMap[Sym[_], Loop]
@@ -515,21 +521,21 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
   override def syms(e: Any): List[Sym[Any]] = e match {
     case Assert(y) => syms(y)
     case Quantifier(k, x, y) => syms(y)
-    case RangeForall(start, end, j, i, spec, body) => syms(start):::syms(end):::syms(spec):::syms(body)
+    case RangeQuantifier(k, start, end, j, i, spec, body) => syms(start):::syms(end):::syms(spec):::syms(body)
     case _ => super.syms(e)
   }
 
   override def boundSyms(e: Any): List[Sym[Any]] = e match {
     case Assert(y) => effectSyms(y)
     case Quantifier(k, x, y) => syms(x) ::: effectSyms(y)
-    case RangeForall(start, end, j, i, y, z) => j :: i :: effectSyms(y) ::: effectSyms(z)
+    case RangeQuantifier(k, start, end, j, i, y, z) => j :: i :: effectSyms(y) ::: effectSyms(z)
     case _ => super.boundSyms(e)
   }
 
   override def symsFreq(e: Any): List[(Sym[Any], Double)] = e match {
     case Assert(y) => freqCold(y)
     case Quantifier(k, x, y) => freqCold(y)
-    case RangeForall(start, end, j, i, y, z) => freqNormal(start):::freqNormal(end):::freqCold(y):::freqHot(z)
+    case RangeQuantifier(k, start, end, j, i, y, z) => freqNormal(start):::freqNormal(end):::freqCold(y):::freqHot(z)
     case _ => super.symsFreq(e)
   }
 
@@ -696,8 +702,13 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
     // FIXME: only works for strings / Seq[Char] / Array[Char]
     case SeqLength(x) => "strlen("+exprOf(x, m)+")"
     case ArrayLength(x) => "strlen("+exprOf(x, m)+")"
-    case RangeForall(z, n, j, _, y, _) =>
-      s"(\\forall int ${exprOf(j, m)}; (${exprOf(z, m)}<=${exprOf(j,m)}<${exprOf(n,m)}) ==> ${exprOfBlock(y, m)})"
+    case RangeQuantifier(k, z, n, j, _, y, _) => {
+      val imp = k match {
+        case "\\forall" => "==>"
+        case "\\exists" => "&&"
+      }
+      s"($k int ${exprOf(j, m)}; (${exprOf(z, m)}<=${exprOf(j,m)}<${exprOf(n,m)}) $imp ${exprOfBlock(y, m)})"
+    }
     case PointerPlus(a, i) => s"(${exprOf(a, m)}+${exprOf(i, m)})"
     case _ => "TODO:Def:"+d
   }
@@ -743,6 +754,9 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
       case SeqLength(x) =>
         // FIXME: only works for strings / Seq[Char]
         emitValDef(sym, "strlen("+quote(x)+")")
+      case ArrayLength(x) =>
+        // FIXME: only works for strings / Array[Char]
+        emitValDef(sym, "strlen("+quote(x)+")")
       case SeqApply(x,n) => emitValDef(sym, quote(x) + "[" + quote(n) + "]")
       case _ if loops.contains(sym) && !loopsDone.contains(sym) =>
         loopsDone += sym
@@ -774,16 +788,36 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
         stream.println("loop variant "+quote(end)+"-"+quote(i)+";")
         stream.println("*/")
         super.emitNode(sym, rhs)
-      case RangeForall(start, end, j, i, y, body) =>
-        gen"""int $sym = 1;
+      case RangeQuantifier(k, start, end, j, i, y, body) =>
+        if (k=="\\forall")
+          gen"""int $sym = 1;
              |/*@ loop invariant (0 <= $i <= $end);
-             |    loop invariant \forall int $j; (0 <= $j < $i) ==> ${exprOfBlock("", y)}
-             |    loop assigns $i;
+             |    loop invariant \forall int $j; (0 <= $j < $i) ==> ${exprOf(y.res, Map())};
+             |    loop invariant $sym==1;
+             |    loop assigns $i, $sym;
              |    loop variant ($end-$i); */
              |for (int $i = $start; $i < $end; $i++) {
              |  ${nestedBlock(body)}
              |  if (!${getBlockResult(body)}) { $sym = 0; break; }
              |}"""
+        else {
+          val endc = end match {
+            case Const(_) => quote(end)
+            case s@Sym(n) => s match {
+              case Def(d) => exprOfDef(d, Map())
+            }
+          }
+          gen"""int $sym = 0;
+             |/*@ loop invariant (0 <= $i <= $endc);
+             |    loop invariant !(\exists int $j; (0 <= $j < $i) && ${exprOf(y.res, Map())});
+             |    loop invariant $sym==0;
+             |    loop assigns $i, $sym;
+             |    loop variant ($endc-$i); */
+             |for (int $i = $start; $i < $endc; $i++) {
+             |  ${nestedBlock(body)}
+             |  if (${getBlockResult(body)}) { $sym = 1; break; }
+             |}"""
+        }
       case IfThenElse(c,a,b) if !isVoidVar(sym) =>
         // TODO: should rather fix LMS core
         //   to properly delegate to emit helpers.
@@ -796,6 +830,7 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
         emitAssignment(sym, quote(getBlockResult(b)))
         stream.println("}")
       case PointerPlus(a,i) => emitValDef(sym, quote(a)+"+"+quote(i))
+      case StringPlus(a,i) => emitValDef(sym, quote(a)+"+"+quote(i))
       case _ => super.emitNode(sym, rhs)
     }
   }
