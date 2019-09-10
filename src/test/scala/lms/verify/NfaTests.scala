@@ -25,6 +25,21 @@ trait NfaLib {
   }
 }
 
+trait LetrecLib {
+  def letrec[A,B,C](rhs: (A => B) => A => Int => B, body: (A => B) => C): C = {
+    var table: List[(A,B)] = Nil
+    def resolve(index: A): B =
+      (table.find{case (k, _) => k==index}) match {
+        case Some((_, v)) => v
+        case None =>
+          val r = rhs(resolve)(index)(table.size)
+          table = (index, r) :: table
+          r
+      }
+    body(resolve)
+  }
+}
+
 trait DfaLib extends NfaLib {
   type CharSet = Set[Char]
   type StSetMap[T] = Map[StSet,T]
@@ -56,22 +71,7 @@ trait DfaLib extends NfaLib {
     }
 }
 
-trait NfaStagedLib extends NfaLib with DfaLib with Dsl with Reader {
-  def letrec[A,B:Typ,C,D:Typ](rhs: (A => Rep[D] => Rep[B]) => A => Rep[D] => Rep[B],
-    body: (A => Rep[D] => Rep[B]) => C): C = {
-    var table: List[(A,Rep[D] => Rep[B])] = Nil
-    def resolve(index: A): Rep[D] => Rep[B] =
-      (table.find{case (k, _) => k==index}) match {
-        case Some((_, v)) => v
-        case None =>
-          val r = toplevel[Rep[D],Rep[B]]("nfa_"+table.size,
-            rhs(resolve)(index))
-          table = (index, r) :: table
-          r
-      }
-    body(resolve)
-  }
-
+trait NfaStagedLib extends NfaLib with DfaLib with LetrecLib with Dsl with Reader {
   def infix_contains(cs: CharSet, c: Rep[Char]) =
     cs.foldLeft(unit(false))(_ || _==c)
 
@@ -83,9 +83,9 @@ trait NfaStagedLib extends NfaLib with DfaLib with Dsl with Reader {
     }
   }
   def staged_accept(nfa: Nfa) = {
-    def rhs(step: (StSet => Rep[Array[Char]] => Rep[Boolean]))(ss: StSet)(cs: Rep[Array[Char]]) =
+    def rhs(step: (StSet => Rep[Array[Char]] => Rep[Boolean]))(ss: StSet)(id: Int) = toplevel("nfa_"+id, {(cs: Rep[Array[Char]]) =>
       if (cs.atEnd) unit(!(ss intersect nfa.finals).isEmpty)
-      else splitc(nfa, ss, cs.first, {(ss: StSet) => step(ss)(cs.rest) })
+      else splitc(nfa, ss, cs.first, {(ss: StSet) => step(ss)(cs.rest) })})
     letrec(rhs,
       {(resolve: (StSet => Rep[Array[Char]] => Rep[Boolean])) =>
         resolve(set(nfa.start))})
