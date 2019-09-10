@@ -142,11 +142,6 @@ https://github.com/devongovett/regexgen/blob/master/src/regex.js
 TODO: simplify regular expression.
 */
 trait Dfa2ReLib extends DfaLib with Re {
-  def dfa2re_backwards(dfa: Dfa)(resolve: RE => RE) = {
-    val n = dfa.finals.size
-    val r0n = ((0 until n):Range).toVector
-    r0n.map{i => dfa2re(Dfa(r0n.map{j => i==j || dfa.finals(j)}, dfa.transitions))(resolve)(0)}
-  }
   def union(re1: Option[RE], re2: Option[RE]): Option[RE] = (re1, re2) match {
     case (Some(re1), Some(re2)) => Some(alt(re1, re2))
     case (Some(re1), None) => Some(re1)
@@ -181,18 +176,6 @@ trait Dfa2ReLib extends DfaLib with Re {
   }
 }
 
-trait Re2Str extends Re {
-  type RE = String
-
-  def c(c0: Char): RE = c0.toString
-  def in(a: Char, b: Char) = "["+a+"-"+b+"]"
-  def wildcard = "."
-  def alt(x: RE, y: RE) = s"($x|$y)"
-  def seq(x: RE, y: RE) = s"$x$y"
-  val id = ""
-  def star(x: RE)(resolve: RE => RE) = s"($x)*"
-}
-
 trait Re2Spec extends Re with StagedLib with LetrecLib {
   case class RE(id: String, f: Rep[Input] => Rep[Input])
 
@@ -208,7 +191,7 @@ trait Re2Spec extends Re with StagedLib with LetrecLib {
   def seq(x: RE, y: RE): RE = {RE(x.id+y.id, {cs: Rep[Input] =>
     val cx = x.f(cs)
     if (cx != unit(null)) y.f(cx) else unit(null)})}
-  val id: RE = {RE("", {cs: Rep[Input] => cs})}
+  val id: RE = {RE("I", {cs: Rep[Input] => unit(null)})}
   def star(x: RE)(resolve: RE => RE): RE = {
     lazy val star_x: RE = resolve(RE("("+x.id+")*",
       {cs => alt(seq(x, star_x), id).f(cs)}))
@@ -254,15 +237,10 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec {
       {resolve: (RE => RE) =>
         val n = dfa.finals.size
         val r0n = ((0 until n):Range).toVector
-        val pre = (dfa2re(dfa)(resolve)).map(resolve)
-        val re = pre(0)
+        val fwd = (dfa2re(dfa)(resolve)).map(resolve)
+        val re = fwd(0)
         def matching(re: RE, cs0: Rep[Input]): Rep[Boolean] = re.f(cs0)!=null && re.f(cs0).atEnd
-        def matching_at_state(j: Int, i: Int, cs0: Rep[Input], cs:Rep[Input], csOld: Rep[Input]): Rep[Boolean] = (
-          (if (j == 0) (csOld==cs0) else unit(false)) ||
-          (pre(j).f(cs)!=null)) && (
-          (if (i == 0) (csOld==cs0) else unit(false)) ||
-          (re.f(cs0)!=null))
-        def re_invariant(i: Int, cs0: Rep[Input], cs: Rep[Input]): Rep[Boolean] = matching_at_state(i, i, cs0, cs, cs)
+        def re_invariant(i: Int, cs0: Rep[Input], cs: Rep[Input]): Rep[Boolean] = ((fwd(i).f(cs)!=null) ==> (re.f(cs0)!=null))
         def re_invariants(cs0: Rep[Input], cs: Rep[Input], id: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(r,i) =>
           ((id == i) ==> re_invariant(i, cs0, cs)) && r
         }
@@ -296,14 +274,15 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec {
                       if (chars.nonEmpty) {
                         if (chars.contains(c)) {
                           id = j
-                          _assert(matching_at_state(j, i, cs0, cs.rest, cs))
+                          _assert(valid_input(cs.rest))
+                          _assert(re_invariant(j, cs0, cs.rest))
                           unit(true)
                         } else r
                       } else r
                     }
                 } else r
               }
-                cs = cs.rest
+              cs = cs.rest
             }}
           val finalId = readVar(id)
           val res = cs.atEnd && r0n.foldLeft(unit(false)){(r: Rep[Boolean],i: Int) => if (dfa.finals(i)) (i==finalId || r) else r}
@@ -379,16 +358,12 @@ class DfaTests extends TestSuite {
 
 class Dfa2ReTests extends TestSuite {
   val under = "dfa2re_"
-  trait Dfa2RePrinter extends Dfa2ReLib with Re2Str {
+  trait Dfa2RePrinter extends Dfa2ReLib with Re2Spec {
     def print(dfa: Dfa) {
       val n = dfa.finals.size
-      for ((t,p) <- List(
-        ("forward",dfa2re(dfa)(null)),
-        ("backward", dfa2re_backwards(dfa)(null)))) {
-        println(t)
-        for (i <- 0 until n) {
-          println(i+": "+p(i))
-        }
+      val p = dfa2re(dfa)(null)
+      for (i <- 0 until n) {
+        println(i+": "+p(i).id)
       }
     }
   }
