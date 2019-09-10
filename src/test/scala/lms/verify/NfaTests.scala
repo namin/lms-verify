@@ -7,7 +7,6 @@ trait NfaLib {
   type CharMap[T] = Map[Char,T]
   type Transitions = CharMap[StSet]
   def empty_t = Map.empty[Char,StSet]
-  def set(xs: St*) = Set(xs: _*)
   case class Nfa(start: St, finals: StSet, next: St => Transitions)
 
   def find_states(sym: Char, nfa: Nfa, m: St): StSet =
@@ -212,8 +211,58 @@ trait Re2Spec extends Re with StagedLib with LetrecLib {
   def sameRe(x: RE, y: RE) = x.id==y.id
 }
 
+trait Re2Ast extends Re {
+  abstract class RE
+  case class C(c0: Char) extends RE
+  case class R(a: Char, b: Char) extends RE
+  case object W extends RE
+  case class Alt(x: RE, y: RE) extends RE
+  case class Cat(x: RE, y: RE) extends RE
+  case object I extends RE
+  case class Star(x: RE) extends RE
+  def c(c0: Char): RE = C(c0)
+  def in(a: Char, b: Char): RE = R(a, b)
+  def wildcard: RE = W
+  def alt(x: RE, y: RE): RE = Alt(x, y)
+  def seq(x: RE, y: RE): RE = Cat(x, y)
+  val id: RE = I
+  def star(x: RE)(resolve: RE => RE): RE = Star(x)
+}
+
+trait Re2Pr extends Re with Re2Ast with StagedLib with LetrecLib {
+  type RF = (Rep[Input], Rep[Int], Rep[Int]) => Rep[Boolean]
+  // redoing letrec...
+  var prtable: Set[String] = set()
+  def mkpr(name: String, f: RF): RF = {
+    if (prtable.contains(name)) {
+      val r: RF = {(inp,i,j) =>
+        toplevelApply[Boolean](name, list(inp, i, j))}
+      r
+    } else {
+      prtable += name
+      val r: RF = unwrap3(toplevel(name, wrap3(f), spec=true, code=false))
+      r
+    }
+  }
+  def re2pr(r: RE): RF = r match {
+    case C(c) => {(inp,i,j) => c==inp(i) && j==i+1}
+    case R(a, b) => {(inp,i,j) => a<=inp(i) && inp(i)<=b && j==i+1}
+    case W => {(inp,i,j) => !inp.to(i).atEnd && j==i+1}
+    case Alt(x, y) => {(inp,i,j) => re2pr(x)(inp,i,j) || re2pr(y)(inp,i,j) }
+    case Cat(x, y) => {(inp,i,j) => exists{m: Rep[Int] =>
+      re2pr(x)(inp,i,m) && re2pr(y)(inp,m,j)}}
+    case I => {(inp,i,j) => inp.to(i).atEnd && i==j}
+    case Star(C(c)) => {
+      lazy val rec: RF = { mkpr("star_"+c, { (inp, i, j) =>
+        (c==inp(i) && rec(inp, i+1, j)) || (i==j)}) }
+      {(inp,i,j) => rec(inp, i, j)}
+    }
+  }
+}
+
 trait CommonLib {
   type CharSet = Set[Char]
+  def set[A](xs: A*) = Set(xs: _*)
   def list[A](xs: A*) = List(xs: _*)
 }
 
@@ -240,70 +289,64 @@ trait NfaStagedLib extends NfaLib with DfaLib with LetrecLib with StagedLib {
   }
 }
 
-trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec {
+trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
   def staged_dfa_accept(dfa: Dfa) = {
-    def name(i: Int) = "re_"+i
-    letrec[RE,RE,Rep[Input]=>Rep[Boolean]](sameRe,
-      {step: (RE => RE) => x: RE => i: Int =>
-        RE(x.id, toplevel(name(i), x.f, spec=true, code=false))},
-      {resolve: (RE => RE) =>
-        val n = dfa.finals.size
-        val r0n = ((0 until n):Range).toVector
-        val fwd = (dfa2re(dfa)(resolve)).map(resolve)
-        val re = fwd(0)
-        def matching(re: RE, cs0: Rep[Input]): Rep[Boolean] = re.f(cs0)!=null && re.f(cs0).atEnd
-        def re_invariant(i: Int, cs0: Rep[Input], cs: Rep[Input]): Rep[Boolean] = ((fwd(i).f(cs)!=null) ==> (re.f(cs0)!=null))
-        def re_invariants(cs0: Rep[Input], cs: Rep[Input], id: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(r,i) =>
-          ((id == i) ==> re_invariant(i, cs0, cs)) && r
-        }
-        def finals_invariants(cs0: Rep[Input], cs: Rep[Input], id: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(r,i) =>
-          if (dfa.finals(i)) ((id == i) ==> (matching(fwd(i), cs) ==> matching(re, cs0))) else unit(true)
-        }
-        def id_invariant(id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(false)){(r,i) =>
-          (id == i) || r
-        }
-        toplevel("dfa", { cs0: Rep[Array[Char]] =>
-          requires(valid_input(cs0))
-          ensures{(res: Rep[Boolean]) => res ==> matching(re, cs0)}
-          var matched = true
-          var id = 0
-          var cs = cs0
-          loop((valid_input(cs0) &&
-            valid_input(cs) &&
-            re_invariants(cs0, cs, id) &&
-            finals_invariants(cs0, cs, id) &&
-            id_invariant(id)),
-            List[Any](cs, id, matched),
-            cs.length) {
-            while (!cs.atEnd && matched) {
-              var c = cs.first
-              r0n.foldLeft(unit(())){(r,i) =>
-                if (id == i) {
-                  _assert(re_invariant(i, cs0, cs))
-                  matched =
-                    r0n.foldLeft(unit(false)){(r,j) =>
-                      val chars = dfa.transitions(i)(j)
-                      if (chars.nonEmpty && chars.contains(c)) {
-                        id = j
-                        _assert(valid_input(cs.rest))
-                        _assert(re_invariant(j, cs0, cs.rest))
-                        if (dfa.finals(j)) {
-                          _assert(cs.atEnd ==> matching(re, cs0))
-                        }
-                        unit(true)
-                      } else r
+    val n = dfa.finals.size
+    val r0n = ((0 until n):Range).toVector
+    val res = dfa2re(dfa)(null).map(re2pr)
+    val fwd = r0n.map{i:Int => mkpr("re_"+i, res(i))}
+    val re = fwd(0)
+    def matching(re: RF, cs0: Rep[Input]): Rep[Boolean] = re(cs0, 0, cs0.length)
+    def re_invariant(i: Int, cs0: Rep[Input], cs: Rep[Input]): Rep[Boolean] = (matching(fwd(i), cs) ==> matching(re, cs0))
+    def re_invariants(cs0: Rep[Input], cs: Rep[Input], id: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(r,i) =>
+      ((id == i) ==> re_invariant(i, cs0, cs)) && r
+    }
+    def finals_invariants(cs0: Rep[Input], cs: Rep[Input], id: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(r,i) =>
+      if (dfa.finals(i)) ((id == i) ==> (matching(fwd(i), cs) ==> matching(re, cs0))) else unit(true)
+    }
+    def id_invariant(id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(false)){(r,i) =>
+      (id == i) || r
+    }
+    toplevel("dfa", { cs0: Rep[Array[Char]] =>
+      requires(valid_input(cs0))
+      ensures{(res: Rep[Boolean]) => res ==> matching(re, cs0)}
+      var matched = true
+      var id = 0
+      var cs = cs0
+      loop((valid_input(cs0) &&
+        valid_input(cs) &&
+        re_invariants(cs0, cs, id) &&
+        finals_invariants(cs0, cs, id) &&
+        id_invariant(id)),
+        List[Any](cs, id, matched),
+        cs.length) {
+        while (!cs.atEnd && matched) {
+          var c = cs.first
+          r0n.foldLeft(unit(())){(r,i) =>
+            if (id == i) {
+              _assert(re_invariant(i, cs0, cs))
+              matched =
+                r0n.foldLeft(unit(false)){(r,j) =>
+                  val chars = dfa.transitions(i)(j)
+                  if (chars.nonEmpty && chars.contains(c)) {
+                    id = j
+                    _assert(valid_input(cs.rest))
+                    _assert(re_invariant(j, cs0, cs.rest))
+                    if (dfa.finals(j)) {
+                      _assert(cs.atEnd ==> matching(re, cs0))
                     }
-                } else r
-              }
-              cs = cs.rest
-            }}
-          val finalId = readVar(id)
-          val res = cs.atEnd && r0n.foldLeft(unit(false)){(r: Rep[Boolean],i: Int) => if (dfa.finals(i)) (i==finalId || r) else r}
-          _assert(res ==> matching(re, cs0))
-          res
-        })},
-      Some{i: Int => RE(name(i), {cs: Rep[Input] =>
-        toplevelApply[Input](name(i), list(cs))})})
+                    unit(true)
+                  } else r
+                }
+            } else r
+          }
+          cs = cs.rest
+        }}
+      val finalId = readVar(id)
+      val res = cs.atEnd && r0n.foldLeft(unit(false)){(r: Rep[Boolean],i: Int) => if (dfa.finals(i)) (i==finalId || r) else r}
+      _assert(res ==> matching(re, cs0))
+      res
+    })
   }
 }
 
@@ -322,7 +365,7 @@ trait DfaExamples extends DfaLib {
 
 }
 
-trait NfaExamples extends NfaLib {
+trait NfaExamples extends NfaLib with CommonLib {
   val nfa1 = Nfa(1, set(3), {s => s match {
     case 1 => Map(('A' -> set(2)))
     case 2 => Map(('A' -> set(2)), ('B' -> set(3)))

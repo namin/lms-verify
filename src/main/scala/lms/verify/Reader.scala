@@ -26,6 +26,7 @@ trait Reader extends ReaderI with Dsl {
     def second: Rep[Elem] = s(1)
     def atEnd: Rep[Boolean] = s(0) == unit(0.toChar)
     def rest: Rep[Input] = pointer_plus(s, 1)
+    def to(i: Rep[Int]) = pointer_plus(s, i)
     def foreach(f: Rep[Char] => Rep[Unit]) = {
       var t = s
       while (readVar(t).atEnd) {
