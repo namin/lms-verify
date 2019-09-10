@@ -3,8 +3,6 @@ package lms.verify
 // inspired by http://manojo.github.io/2015/09/04/staged-parser-combinators-recursion
 
 trait StagedParser extends Dsl with Reader {
-  override def includes = super.includes:+"<string.h>"
-
   // Parser Result
   abstract class ParseResultCPS[T: Typ] { self =>
 

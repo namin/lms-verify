@@ -131,7 +131,6 @@ class CRegexTests extends TestSuite {
   def gen(msg: String, re: String) {
     test(msg) {
       trait RegexProg extends StagedCRegexpMatcher {
-        override def includes = super.includes:+"<string.h>"
         override def autoAssignNothing = false
 
         toplevel("matcher_"+msg,

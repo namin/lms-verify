@@ -220,8 +220,9 @@ trait Re2Spec extends Regexp with StagedLib with LetrecLib with FreshNames {
     val h = freshName
     def name(i: Int) = "star_"+h+"_"+i
     letrec[RE,RE,RE]({step: (RE => RE) => x: RE => i: Int =>
-      toplevel(name(i),
-        alt(seq(x, step(x)), id),
+      toplevel(name(i), { cs =>
+        requires(valid_input(cs))
+        alt(seq(x, step(x)), id)(cs)},
         spec=true)},
       {resolve: (RE => RE) => resolve(x)},
       Some{i: Int => cs: Rep[Input] =>
@@ -259,32 +260,45 @@ trait NfaStagedLib extends NfaLib with DfaLib with LetrecLib with StagedLib {
 
 trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec {
   def staged_dfa_accept(dfa: Dfa) = {
+    val n = dfa.finals.size
+    val r0n = (0 until n):Range
     val re = dfa2re(dfa)
+    val pre = dfa2re_partials(dfa)
+    def re_invariants(cs0: Rep[Input], cs: Var[Input], id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(r,i) =>
+      ((id == i) ==> (pre(i)(cs0)==cs)) && r
+    }
+    def id_invariant(id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(false)){(r,i) =>
+      (id == i) || r
+    }
     toplevel("dfa", { cs0: Rep[Array[Char]] =>
-      val r = re(cs0).atEnd
-      ensures{(res: Rep[Boolean]) => res ==> r && r == res}
-      val n = dfa.finals.size
+      requires(valid_input(cs0))
+      ensures{(res: Rep[Boolean]) => res == (re(cs0)!=null && re(cs0).atEnd)}
       var matched = true
       var id = 0
       var cs = cs0
+      loop(valid_input(cs) && re_invariants(cs0, cs, id) && id_invariant(id),
+          List[Any](cs, id, matched),
+          cs.length) {
       while (!cs.atEnd && matched) {
         var c = cs.first
-          (0 until n:Range).foldLeft(unit(())){(r,i) =>
-            if (id == i) {
-              matched =
-                (0 until n:Range).foldLeft(unit(false)){(r,j) =>
-                  val cs = dfa.transitions(i)(j)
-                  if (cs.nonEmpty) {
-                    if (cs.contains(c)) {
-                      id = j
-                      unit(true)
-                    } else r
+        r0n.foldLeft(unit(())){(r,i) =>
+          if (id == i) {
+            _assert(pre(i)(cs0)!=null)
+            matched =
+              r0n.foldLeft(unit(false)){(r,j) =>
+                val chars = dfa.transitions(i)(j)
+                if (chars.nonEmpty) {
+                  if (chars.contains(c)) {
+                    id = j
+                    _assert(pre(j)(cs0)!=null)
+                    unit(true)
                   } else r
-                }
-            } else r
-          }
+                } else r
+              }
+          } else r
+        }
         cs = cs.rest
-      }
+      }}
       cs.atEnd &&
         (0 until n:Range).foldLeft(unit(false)){(r: Rep[Boolean],i: Int) =>
           if (dfa.finals(i)) (i==id || r) else r}

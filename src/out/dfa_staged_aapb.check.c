@@ -1,6 +1,9 @@
 #include <limits.h>
+#include <string.h>
 /*@ logic char  * star_0_0(char  * x0) = (((((((((x0[0]=='A')) ? ((x0+1)) : ((char*)0))==(char*)0)) ? ((char*)0) : (star_0_0((((x0[0]=='A')) ? ((x0+1)) : ((char*)0)))))==(char*)0)) ? (x0) : (((((((x0[0]=='A')) ? ((x0+1)) : ((char*)0))==(char*)0)) ? ((char*)0) : (star_0_0((((x0[0]=='A')) ? ((x0+1)) : ((char*)0)))))));*/
 /*@
+requires ((strlen(x0)>=0) &&
+\valid(x0+(0..(strlen(x0)+1)-1)));
 assigns \nothing;
 ensures \result == star_0_0(x0);
 */
@@ -31,127 +34,173 @@ char  * star_0_0(char  * x0) {
   }
   return x13;
 }
+/*@ logic char  * star_1_0(char  * x24) = (((((((((x24[0]=='A')) ? ((x24+1)) : ((char*)0))==(char*)0)) ? ((char*)0) : (star_1_0((((x24[0]=='A')) ? ((x24+1)) : ((char*)0)))))==(char*)0)) ? (x24) : (((((((x24[0]=='A')) ? ((x24+1)) : ((char*)0))==(char*)0)) ? ((char*)0) : (star_1_0((((x24[0]=='A')) ? ((x24+1)) : ((char*)0)))))));*/
 /*@
+requires ((strlen(x24)>=0) &&
+\valid(x24+(0..(strlen(x24)+1)-1)));
 assigns \nothing;
-ensures ((\result ==> (((((((x15[0]=='A')) ? ((x15+1)) : ((char*)0))==(char*)0)) ? ((char*)0) : ((((star_0_0((((x15[0]=='A')) ? ((x15+1)) : ((char*)0)))==(char*)0)) ? ((char*)0) : (((((((star_0_0((((x15[0]=='A')) ? ((x15+1)) : ((char*)0)))[0]=='B')) ? ((star_0_0((((x15[0]=='A')) ? ((x15+1)) : ((char*)0)))+1)) : ((char*)0))==(char*)0)) ? ((char*)0) : ((((star_0_0((((x15[0]=='A')) ? ((x15+1)) : ((char*)0)))[0]=='B')) ? ((star_0_0((((x15[0]=='A')) ? ((x15+1)) : ((char*)0)))+1)) : ((char*)0))))))))[0]=='\0')) &&
-((((((((x15[0]=='A')) ? ((x15+1)) : ((char*)0))==(char*)0)) ? ((char*)0) : ((((star_0_0((((x15[0]=='A')) ? ((x15+1)) : ((char*)0)))==(char*)0)) ? ((char*)0) : (((((((star_0_0((((x15[0]=='A')) ? ((x15+1)) : ((char*)0)))[0]=='B')) ? ((star_0_0((((x15[0]=='A')) ? ((x15+1)) : ((char*)0)))+1)) : ((char*)0))==(char*)0)) ? ((char*)0) : ((((star_0_0((((x15[0]=='A')) ? ((x15+1)) : ((char*)0)))[0]=='B')) ? ((star_0_0((((x15[0]=='A')) ? ((x15+1)) : ((char*)0)))+1)) : ((char*)0))))))))[0]=='\0')==\result));
+ensures \result == star_1_0(x24);
 */
-int dfa(char  * x15) {
-  char x17 = x15[0];
-  int x18 = x17 == 'A';
-  char  *x20;
-  if (x18) {
-    char  *x19 = x15+1;
-    x20 = x19;
+char  * star_1_0(char  * x24) {
+  char x26 = x24[0];
+  int x27 = x26 == 'A';
+  char  *x29;
+  if (x27) {
+    char  *x28 = x24+1;
+    x29 = x28;
   } else {
-    x20 = 0/*null*/;
+    x29 = 0/*null*/;
   }
-  int x22 = x20 == 0/*null*/;
-  char  *x35;
-  if (x22) {
-    x35 = 0/*null*/;
+  int x31 = x29 == 0/*null*/;
+  char  *x34;
+  if (x31) {
+    x34 = 0/*null*/;
   } else {
-    char  *x23 = star_0_0(x20);
-    int x25 = x23 == 0/*null*/;
-    char  *x33;
-    if (x25) {
-      x33 = 0/*null*/;
-    } else {
-      char x26 = x23[0];
-      int x27 = x26 == 'B';
-      char  *x29;
-      if (x27) {
-        char  *x28 = x23+1;
-        x29 = x28;
-      } else {
-        x29 = 0/*null*/;
-      }
-      int x31 = x29 == 0/*null*/;
-      char  *x32;
-      if (x31) {
-        x32 = 0/*null*/;
-      } else {
-        x32 = x29;
-      }
-      x33 = x32;
-    }
-    x35 = x33;
+    char  *x32 = star_1_0(x29);
+    x34 = x32;
   }
-  int x38 = 1/*true*/;
-  int x39 = 0;
-  char  *x40 = x15;
+  int x36 = x34 == 0/*null*/;
+  char  *x37;
+  if (x36) {
+    x37 = x24;
+  } else {
+    x37 = x34;
+  }
+  return x37;
+}
+/*@ logic char  * star_2_0(char  * x48) = (((((((((x48[0]=='A')) ? ((x48+1)) : ((char*)0))==(char*)0)) ? ((char*)0) : (star_2_0((((x48[0]=='A')) ? ((x48+1)) : ((char*)0)))))==(char*)0)) ? (x48) : (((((((x48[0]=='A')) ? ((x48+1)) : ((char*)0))==(char*)0)) ? ((char*)0) : (star_2_0((((x48[0]=='A')) ? ((x48+1)) : ((char*)0)))))));*/
+/*@
+requires ((strlen(x48)>=0) &&
+\valid(x48+(0..(strlen(x48)+1)-1)));
+assigns \nothing;
+ensures \result == star_2_0(x48);
+*/
+char  * star_2_0(char  * x48) {
+  char x50 = x48[0];
+  int x51 = x50 == 'A';
+  char  *x53;
+  if (x51) {
+    char  *x52 = x48+1;
+    x53 = x52;
+  } else {
+    x53 = 0/*null*/;
+  }
+  int x55 = x53 == 0/*null*/;
+  char  *x58;
+  if (x55) {
+    x58 = 0/*null*/;
+  } else {
+    char  *x56 = star_2_0(x53);
+    x58 = x56;
+  }
+  int x60 = x58 == 0/*null*/;
+  char  *x61;
+  if (x60) {
+    x61 = x48;
+  } else {
+    x61 = x58;
+  }
+  return x61;
+}
+/*@
+requires ((strlen(x72)>=0) &&
+\valid(x72+(0..(strlen(x72)+1)-1)));
+assigns \nothing;
+ensures (\result==((((((((x72[0]=='A')) ? ((x72+1)) : ((char*)0))!=(char*)0)) ? ((((star_0_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))!=(char*)0)) ? (((((((star_0_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))[0]=='B')) ? ((star_0_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))+1)) : ((char*)0))!=(char*)0)) ? ((((star_0_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))[0]=='B')) ? ((star_0_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))+1)) : ((char*)0))) : ((char*)0))) : ((char*)0))) : ((char*)0))!=(char*)0) &&
+(((((((x72[0]=='A')) ? ((x72+1)) : ((char*)0))!=(char*)0)) ? ((((star_0_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))!=(char*)0)) ? (((((((star_0_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))[0]=='B')) ? ((star_0_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))+1)) : ((char*)0))!=(char*)0)) ? ((((star_0_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))[0]=='B')) ? ((star_0_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))+1)) : ((char*)0))) : ((char*)0))) : ((char*)0))) : ((char*)0))[0]=='\0')));
+*/
+int dfa(char  * x72) {
+  int x74 = 1/*true*/;
+  int x75 = 0;
+  char  *x76 = x72;
+  /*@
+  loop invariant ((((strlen(x76)>=0) &&
+  \valid(x76+(0..(strlen(x76)+1)-1))) &&
+  (((x75==2) ==> (((((((x72[0]=='A')) ? ((x72+1)) : ((char*)0))!=(char*)0)) ? ((((star_2_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))!=(char*)0)) ? (((((((star_2_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))[0]=='B')) ? ((star_2_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))+1)) : ((char*)0))!=(char*)0)) ? ((((star_2_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))[0]=='B')) ? ((star_2_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))+1)) : ((char*)0))) : ((char*)0))) : ((char*)0))) : ((char*)0))==x76)) &&
+  (((x75==1) ==> (((((((x72[0]=='A')) ? ((x72+1)) : ((char*)0))!=(char*)0)) ? ((((star_1_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))!=(char*)0)) ? (star_1_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))) : ((char*)0))) : ((char*)0))==x76)) &&
+  ((x75==0) ==> (x72==x76))))) &&
+  ((x75==2) || ((x75==1) || (x75==0))));
+  loop assigns x76, x75, x74;
+  loop variant strlen(x76);
+  */
   for (;;) {
-    char  *x41 = x40;
-    char x42 = x41[0];
-    int x43 = x42 == '\0';
-    int x47;
-    if (x43) {
-      x47 = 0/*false*/;
+    char  *x77 = x76;
+    char x78 = x77[0];
+    int x79 = x78 == '\0';
+    int x83;
+    if (x79) {
+      x83 = 0/*false*/;
     } else {
-      int x45 = x38;
-      x47 = x45;
+      int x81 = x74;
+      x83 = x81;
     }
-    if (!x47) break;
-    char  *x49 = x40;
-    char x50 = x49[0];
-    char x51 = x50;
-    int x52 = x39;
-    int x53 = x52 == 0;
-    if (x53) {
-      char x54 = x51;
-      int x55 = 'A' == x54;
-      int x58;
-      if (x55) {
-        x39 = 1;
-        x58 = 1/*true*/;
+    if (!x83) break;
+    char  *x85 = x76;
+    char x86 = x85[0];
+    char x87 = x86;
+    int x88 = x75;
+    int x89 = x88 == 0;
+    if (x89) {
+      /*@assert (x72!=(char*)0);*/
+      char x93 = x87;
+      int x94 = 'A' == x93;
+      int x111;
+      if (x94) {
+        x75 = 1;
+        /*@assert (((((((x72[0]=='A')) ? ((x72+1)) : ((char*)0))!=(char*)0)) ? ((((star_1_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))!=(char*)0)) ? (star_1_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))) : ((char*)0))) : ((char*)0))!=(char*)0);*/
+        x111 = 1/*true*/;
       } else {
-        x58 = 0/*false*/;
+        x111 = 0/*false*/;
       }
-      x38 = x58;
+      x74 = x111;
     } else {
     }
-    int x62 = x39;
-    int x63 = x62 == 1;
-    if (x63) {
-      char x64 = x51;
-      int x65 = 'A' == x64;
-      int x68;
-      if (x65) {
-        x39 = 1;
-        x68 = 1/*true*/;
+    int x115 = x75;
+    int x116 = x115 == 1;
+    if (x116) {
+      /*@assert (((((((x72[0]=='A')) ? ((x72+1)) : ((char*)0))!=(char*)0)) ? ((((star_1_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))!=(char*)0)) ? (star_1_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))) : ((char*)0))) : ((char*)0))!=(char*)0);*/
+      char x131 = x87;
+      int x132 = 'A' == x131;
+      int x149;
+      if (x132) {
+        x75 = 1;
+        /*@assert (((((((x72[0]=='A')) ? ((x72+1)) : ((char*)0))!=(char*)0)) ? ((((star_1_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))!=(char*)0)) ? (star_1_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))) : ((char*)0))) : ((char*)0))!=(char*)0);*/
+        x149 = 1/*true*/;
       } else {
-        x68 = 0/*false*/;
+        x149 = 0/*false*/;
       }
-      int x69 = 'B' == x64;
-      int x72;
-      if (x69) {
-        x39 = 2;
-        x72 = 1/*true*/;
+      int x150 = 'B' == x131;
+      int x175;
+      if (x150) {
+        x75 = 2;
+        /*@assert (((((((x72[0]=='A')) ? ((x72+1)) : ((char*)0))!=(char*)0)) ? ((((star_2_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))!=(char*)0)) ? (((((((star_2_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))[0]=='B')) ? ((star_2_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))+1)) : ((char*)0))!=(char*)0)) ? ((((star_2_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))[0]=='B')) ? ((star_2_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))+1)) : ((char*)0))) : ((char*)0))) : ((char*)0))) : ((char*)0))!=(char*)0);*/
+        x175 = 1/*true*/;
       } else {
-        x72 = x68;
+        x175 = x149;
       }
-      x38 = x72;
+      x74 = x175;
     } else {
     }
-    int x76 = x39;
-    int x77 = x76 == 2;
-    if (x77) {
-      x38 = 0/*false*/;
+    int x179 = x75;
+    int x180 = x179 == 2;
+    if (x180) {
+      /*@assert (((((((x72[0]=='A')) ? ((x72+1)) : ((char*)0))!=(char*)0)) ? ((((star_2_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))!=(char*)0)) ? (((((((star_2_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))[0]=='B')) ? ((star_2_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))+1)) : ((char*)0))!=(char*)0)) ? ((((star_2_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))[0]=='B')) ? ((star_2_0((((x72[0]=='A')) ? ((x72+1)) : ((char*)0)))+1)) : ((char*)0))) : ((char*)0))) : ((char*)0))) : ((char*)0))!=(char*)0);*/
+      x74 = 0/*false*/;
     } else {
     }
-    char  *x81 = x49+1;
-    x40 = x81;
+    char  *x206 = x85+1;
+    x76 = x206;
   }
-  char  *x85 = x40;
-  char x86 = x85[0];
-  int x87 = x86 == '\0';
-  int x91;
-  if (x87) {
-    int x88 = x39;
-    int x89 = 2 == x88;
-    x91 = x89;
+  char  *x288 = x76;
+  char x289 = x288[0];
+  int x290 = x289 == '\0';
+  int x294;
+  if (x290) {
+    int x291 = x75;
+    int x292 = 2 == x291;
+    x294 = x292;
   } else {
-    x91 = 0/*false*/;
+    x294 = 0/*false*/;
   }
-  return x91;
+  return x294;
 }

@@ -17,6 +17,8 @@ trait SimulatedReader extends ReaderI {
 }
 
 trait Reader extends ReaderI with Dsl {
+  override def includes = super.includes:+"<string.h>"
+
   def valid_input(s: Rep[Input]) = s.length>=0 && valid(s, 0 until s.length+1)
 
   implicit class InputOps(s: Rep[Input]) {

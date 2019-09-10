@@ -1,4 +1,5 @@
 #include <limits.h>
+#include <string.h>
 int nfa_1(char  * x12);
 /*@
 assigns \nothing;
