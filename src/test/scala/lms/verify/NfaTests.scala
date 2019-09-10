@@ -147,6 +147,32 @@ trait Dfa2ReLib extends DfaLib with Regexp/*from AutomataTests.scala*/ {
     }
     b(0).get
   }
+
+  def dfa2re_partials(dfa: Dfa): Vector[RE] = {
+    val a: Array[Array[Option[RE]]] = dfa.transitions.toArray.map{ts => ts.toArray.map{cs => if (cs.isEmpty) None else {
+      val xs = cs.toList.map(c)
+      Some(many(alt)(xs.head, xs.tail: _*))
+    }}}
+    val bs: Vector[Array[Option[RE]]] = (0 until dfa.finals.size).toVector.map{i => (0 until dfa.finals.size).toArray.map{j => if (i==j) Some(id) else None}}
+
+    for (n <- dfa.finals.size - 1 to 0 by -1) {
+      a(n)(n).foreach{ ann =>
+        bs.foreach{b => b(n) = b(n).map{bn => seq(star(ann), bn)}}
+        for (j <- 0 until n) {
+          a(n)(j) = a(n)(j).map{anj => seq(star(ann), anj)}
+        }
+      }
+      for (i <- 0 until n) {
+        a(i)(n).foreach{ ain =>
+          bs.foreach{b => b(i) = union(b(i), b(n).map{bn => seq(ain, bn)})}
+          for (j <- 0 until n) {
+            a(i)(j) = union(a(i)(i), a(n)(j).map{anj => seq(ain, anj)})
+          }
+        }
+      }
+    }
+    bs.map{b => b(0).get}
+  }
 }
 
 trait Re2Str extends Regexp {
@@ -230,6 +256,17 @@ class DfaToReTests extends TestSuite {
       }
     }
     checkOut("aapb", new Ex1 {}, "txt")
+  }
+  test("2") {
+    trait Ex2 extends Dfa2ReLib with Re2Str with DfaExamples {
+      val n = dfa1.finals.size
+      println(dfa2re(dfa1))
+      val p = dfa2re_partials(dfa1)
+      for (i <- 0 until n) {
+        println(i+": "+p(i))
+      }
+    }
+    checkOut("aapb", new Ex2 {}, "txt")
   }
 }
 class NfaTests extends TestSuite {
