@@ -252,12 +252,16 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec {
         val pre = (dfa2re(dfa)(resolve)).map(resolve)
         val re = pre(0)
         def matching(re: RE, cs0: Rep[Input]): Rep[Boolean] = re.f(cs0)!=null && re.f(cs0).atEnd
-        def matching_at_state(i: Int, from: Int, cs0: Rep[Input], cs:Rep[Input]): Rep[Boolean] = (pre(i).f(cs)!=null) && ((if (from == 0) (cs==cs0) else unit(false)) || (re.f(cs0)!=null))
-        def re_invariant(i: Int, cs0: Rep[Input], cs: Var[Input]): Rep[Boolean] = matching_at_state(i, i, cs0, cs)
-        def re_invariants(cs0: Rep[Input], cs: Var[Input], id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(r,i) =>
+        def matching_at_state(j: Int, i: Int, cs0: Rep[Input], cs:Rep[Input], csOld: Rep[Input]): Rep[Boolean] = (
+          (if (j == 0) (csOld==cs0) else unit(false)) ||
+          (pre(j).f(cs)!=null)) && (
+          (if (i == 0) (csOld==cs0) else unit(false)) ||
+          (re.f(cs0)!=null))
+        def re_invariant(i: Int, cs0: Rep[Input], cs: Rep[Input]): Rep[Boolean] = matching_at_state(i, i, cs0, cs, cs)
+        def re_invariants(cs0: Rep[Input], cs: Rep[Input], id: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(r,i) =>
           ((id == i) ==> re_invariant(i, cs0, cs)) && r
         }
-        def finals_invariants(cs0: Rep[Input], cs: Var[Input], id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(r,i) =>
+        def finals_invariants(cs0: Rep[Input], cs: Rep[Input], id: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(r,i) =>
           if (dfa.finals(i)) (((id == i) && cs.atEnd) ==> matching(re, cs0)) else unit(true)
         }
         def id_invariant(id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(false)){(r,i) =>
@@ -287,7 +291,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec {
                       if (chars.nonEmpty) {
                         if (chars.contains(c)) {
                           id = j
-                          _assert(matching_at_state(j, i, cs0, cs.rest))
+                          _assert(matching_at_state(j, i, cs0, cs.rest, cs))
                           unit(true)
                         } else r
                       } else r
