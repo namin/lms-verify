@@ -248,11 +248,11 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec {
         RE(x.id, toplevel(name(i), x.f, spec=true, code=false))},
       {resolve: (RE => RE) =>
         val n = dfa.finals.size
-        val r0n = (0 until n):Range
+        val r0n = ((0 until n):Range).toVector
         val pre = (dfa2re(dfa)(resolve)).map(resolve)
         val re = pre(0)
         def matching(re: RE, cs0: Rep[Input]): Rep[Boolean] = re.f(cs0)!=null && re.f(cs0).atEnd
-        def matching_at_state(i: Int, cs: Rep[Input], cs0: Rep[Input]): Rep[Boolean] = pre(i).f(cs)!=null ==> matching(re, cs0)
+        def matching_at_state(i: Int, cs: Rep[Input], cs0: Rep[Input]): Rep[Boolean] = (pre(i).f(cs)!=null) && (re.f(cs0)!=null)
         def re_invariants(cs0: Rep[Input], cs: Var[Input], id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(r,i) =>
           ((id == i) ==> matching_at_state(i, cs, cs0)) && r
         }
