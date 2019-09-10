@@ -265,7 +265,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec {
         }
         toplevel("dfa", { cs0: Rep[Array[Char]] =>
           requires(valid_input(cs0))
-          ensures{(res: Rep[Boolean]) => matching(re, cs0) ==> res}
+          ensures{(res: Rep[Boolean]) => res ==> matching(re, cs0)}
           var matched = true
           var id = 0
           var cs = cs0
