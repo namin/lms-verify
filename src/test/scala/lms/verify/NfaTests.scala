@@ -44,8 +44,7 @@ trait LetrecLib {
   }
 }
 
-trait DfaLib extends NfaLib with LetrecLib {
-  type CharSet = Set[Char]
+trait DfaLib extends NfaLib with CommonLib with LetrecLib {
   type StSetMap[T] = Map[StSet,T]
   def empty_ssm = Map.empty:StSetMap[CharSet]
 
@@ -187,10 +186,16 @@ trait Re2Str extends Regexp {
   def star(x: RE) = s"($x)*"
 }
 
-trait NfaStagedLib extends NfaLib with DfaLib with LetrecLib with Dsl with Reader {
+trait CommonLib {
+  type CharSet = Set[Char]
+}
+
+trait StagedLib extends Dsl with Reader with CommonLib {
   def infix_contains(cs: CharSet, c: Rep[Char]) =
     cs.foldLeft(unit(false))(_ || _==c)
+}
 
+trait NfaStagedLib extends NfaLib with DfaLib with LetrecLib with StagedLib {
   def splitc(nfa: Nfa, cur: StSet, c: Rep[Char], k: StSet => Rep[Boolean]): Rep[Boolean] = {
     nexts(nfa, cur).foldLeft{unit(false)}{(r: Rep[Boolean], kv: (StSet, CharSet)) =>
       val ss = kv._1
@@ -205,6 +210,35 @@ trait NfaStagedLib extends NfaLib with DfaLib with LetrecLib with Dsl with Reade
     letrec(rhs,
       {(resolve: (StSet => Rep[Array[Char]] => Rep[Boolean])) =>
         resolve(set(nfa.start))})
+  }
+}
+
+trait DfaStagedLib extends DfaLib with StagedLib {
+  def staged_dfa_accept(dfa: Dfa) = { cs0: Rep[Array[Char]] =>
+    val n = dfa.finals.size
+    var matched = true
+    var id = 0
+    var cs = cs0
+    while (!cs.atEnd && matched) {
+      var c = cs.first
+      (0 until n:Range).foldLeft(unit(())){(r,i) =>
+        if (id == i) {
+          matched =
+            (0 until n:Range).foldLeft(unit(false)){(r,j) =>
+              _assert(unit(i)==unit(j))
+              val cs = dfa.transitions(i)(j)
+              if (cs.nonEmpty) {
+                if (cs.contains(c)) {
+                  id = j
+                  unit(true)
+                } else r
+              } else r
+            }
+        } else r
+      }
+      cs = cs.rest
+    }
+    cs.atEnd && (0 until n:Range).foldLeft(unit(false)){(r: Rep[Boolean],i: Int) => if (dfa.finals(i)) (i==id || r) else r}
   }
 }
 
@@ -269,6 +303,18 @@ class DfaToReTests extends TestSuite {
     checkOut("aapb", new Ex2 {}, "txt")
   }
 }
+
+class StagedDfaTests extends TestSuite {
+  val under = "dfa_staged_"
+
+  test("1") {
+    trait Dfa1 extends DfaStagedLib with NfaExamples with DfaExamples {
+      val machine = toplevel("dfa", staged_dfa_accept(dfa1))
+    }
+    check("aapb", (new Dfa1 with Impl).code)
+  }
+}
+
 class NfaTests extends TestSuite {
   val under = "nfa_"
 
