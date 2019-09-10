@@ -1,6 +1,5 @@
-A(A)*B((B|C(C)*B))*C(C)*D(D)*
-0:
-1: A(A)*
-2: A(A)*B((B|C(C)*B))*
-3: A(A)*B((B|C(C)*B))*C(C)*
-4: A(A)*B((B|C(C)*B))*C(C)*D(D)*
+0: A(A)*B((B|C(C)*B))*C(C)*D(D)*
+1: (A)*B((B|C(C)*B))*C(C)*D(D)*
+2: ((B|C(C)*B))*C(C)*D(D)*
+3: (C)*D(D)*
+4: (D)*
