@@ -26,7 +26,7 @@ trait NfaLib {
 }
 
 trait LetrecLib {
-  def letrec[A,B,C](rhs: (A => B) => A => Int => B, body: (A => B) => C): C = {
+  def letrec[A,B,C](rhs: (A => B) => A => Int => B, body: (A => B) => C, pre: Option[Int => B] = None): C = {
     var seen: Map[A,Int] = Map.empty
     var table: Map[A,B] = Map.empty
     def resolve(index: A): B =
@@ -38,7 +38,7 @@ trait LetrecLib {
           val r = rhs(resolve)(index)(id)
           table += (index -> r)
           r
-        case (None, Some(id)) => id.asInstanceOf[B] // hack
+        case (None, Some(id)) => pre.get(id)
       }
     body(resolve)
   }
@@ -106,7 +106,8 @@ trait DfaLib extends NfaLib with LetrecLib {
     }
     letrec(rhs,
       {(resolve: (StSet => Int)) =>
-        resolve(set(nfa.start))})
+        resolve(set(nfa.start))},
+      Some{(id: Int) => id})
     val finalsVec = finals.toVector
     val transitionsVec = transitions.toVector.map{ts => grow(ts, finalsVec.size, Set[Char]()).toVector}
     Dfa(finalsVec, transitionsVec)
