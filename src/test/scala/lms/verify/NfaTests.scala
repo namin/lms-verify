@@ -176,6 +176,18 @@ trait Dfa2ReLib extends DfaLib with Re {
   }
 }
 
+trait Re2Str extends Re {
+  type RE = String
+
+  def c(c0: Char): RE = c0.toString
+  def in(a: Char, b: Char): RE = "["+a+"-"+b+"]"
+  def wildcard: RE = "."
+  def alt(x: RE, y: RE): RE = "("+x+"|"+y+")"
+  def seq(x: RE, y: RE): RE = x+y
+  val id: RE = "$"
+  def star(x: RE)(resolve: RE => RE): RE = "("+x+")*"
+}
+
 trait Re2Spec extends Re with StagedLib with LetrecLib {
   case class RE(id: String, f: Rep[Input] => Rep[Input])
 
@@ -185,13 +197,13 @@ trait Re2Spec extends Re with StagedLib with LetrecLib {
     if (a<=cs.first && cs.first<=b) cs.rest else unit(null)})}
   def wildcard: RE = {RE(".", {cs: Rep[Input] =>
     if (cs.atEnd) unit(null) else cs.rest})}
-  def alt(x: RE, y: RE): RE = {RE(s"("+x.id+"|"+y.id+")", {cs: Rep[Input] =>
+  def alt(x: RE, y: RE): RE = {RE("("+x.id+"|"+y.id+")", {cs: Rep[Input] =>
     val cx = x.f(cs)
     if (cx != unit(null)) cx else y.f(cx)})}
   def seq(x: RE, y: RE): RE = {RE(x.id+y.id, {cs: Rep[Input] =>
     val cx = x.f(cs)
     if (cx != unit(null)) y.f(cx) else unit(null)})}
-  val id: RE = {RE("I", {cs: Rep[Input] => unit(null)})}
+  val id: RE = {RE("$", {cs: Rep[Input] => if (cs.atEnd) cs else unit(null)})}
   def star(x: RE)(resolve: RE => RE): RE = {
     lazy val star_x: RE = resolve(RE("("+x.id+")*",
       {cs => alt(seq(x, star_x), id).f(cs)}))
@@ -245,7 +257,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec {
           ((id == i) ==> re_invariant(i, cs0, cs)) && r
         }
         def finals_invariants(cs0: Rep[Input], cs: Rep[Input], id: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(r,i) =>
-          if (dfa.finals(i)) (((id == i) && cs.atEnd) ==> matching(re, cs0)) else unit(true)
+          if (dfa.finals(i)) ((id == i) ==> (cs.atEnd ==> matching(re, cs0))) else unit(true)
         }
         def id_invariant(id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(false)){(r,i) =>
           (id == i) || r
@@ -276,6 +288,9 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec {
                           id = j
                           _assert(valid_input(cs.rest))
                           _assert(re_invariant(j, cs0, cs.rest))
+                          if (dfa.finals(j)) {
+                            _assert(cs.atEnd ==> matching(re, cs0))
+                          }
                           unit(true)
                         } else r
                       } else r
@@ -358,12 +373,12 @@ class DfaTests extends TestSuite {
 
 class Dfa2ReTests extends TestSuite {
   val under = "dfa2re_"
-  trait Dfa2RePrinter extends Dfa2ReLib with Re2Spec {
+  trait Dfa2RePrinter extends Dfa2ReLib with Re2Str {
     def print(dfa: Dfa) {
       val n = dfa.finals.size
       val p = dfa2re(dfa)(null)
       for (i <- 0 until n) {
-        println(i+": "+p(i).id)
+        println(i+": "+p(i))
       }
     }
   }
