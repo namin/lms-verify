@@ -142,6 +142,11 @@ https://github.com/devongovett/regexgen/blob/master/src/regex.js
 TODO: simplify regular expression.
 */
 trait Dfa2ReLib extends DfaLib with Re {
+  def dfa2re_backwards(dfa: Dfa)(resolve: RE => RE) = {
+    val n = dfa.finals.size
+    val r0n = ((0 until n):Range).toVector
+    r0n.map{i => dfa2re(Dfa(r0n.map{j => i==j || dfa.finals(j)}, dfa.transitions))(resolve)(0)}
+  }
   def union(re1: Option[RE], re2: Option[RE]): Option[RE] = (re1, re2) match {
     case (Some(re1), Some(re2)) => Some(alt(re1, re2))
     case (Some(re1), None) => Some(re1)
@@ -377,9 +382,13 @@ class Dfa2ReTests extends TestSuite {
   trait Dfa2RePrinter extends Dfa2ReLib with Re2Str {
     def print(dfa: Dfa) {
       val n = dfa.finals.size
-      val p = dfa2re(dfa)(null)
-      for (i <- 0 until n) {
-        println(i+": "+p(i))
+      for ((t,p) <- List(
+        ("forward",dfa2re(dfa)(null)),
+        ("backward", dfa2re_backwards(dfa)(null)))) {
+        println(t)
+        for (i <- 0 until n) {
+          println(i+": "+p(i))
+        }
       }
     }
   }
