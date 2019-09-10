@@ -252,9 +252,10 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec {
         val pre = (dfa2re(dfa)(resolve)).map(resolve)
         val re = pre(0)
         def matching(re: RE, cs0: Rep[Input]): Rep[Boolean] = re.f(cs0)!=null && re.f(cs0).atEnd
-        def matching_at_state(i: Int, cs: Rep[Input], cs0: Rep[Input]): Rep[Boolean] = (pre(i).f(cs)!=null) && (re.f(cs0)!=null)
-        def re_invariants(cs0: Rep[Input], cs: Var[Input], id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(r,i) =>
-          ((id == i) ==> matching_at_state(i, cs, cs0)) && r
+        def matching_at_state(i: Int, cs0: Rep[Input], cs: Rep[Input]): Rep[Boolean] = (pre(i).f(cs)!=null) && (re.f(cs0)!=null)
+        def re_invariant(i: Int, cs0: Rep[Input], cs: Rep[Input]): Rep[Boolean] = (if (i == 0) (cs==cs0) else unit(false)) || matching_at_state(i, cs0, cs)
+        def re_invariants(cs0: Rep[Input], cs: Rep[Input], id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(r,i) =>
+          ((id == i) ==> re_invariant(i, cs0, cs)) && r
         }
         def id_invariant(id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(false)){(r,i) =>
           (id == i) || r
@@ -265,21 +266,24 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec {
           var matched = true
           var id = 0
           var cs = cs0
-          loop(valid_input(cs) && re_invariants(cs0, cs, id) && id_invariant(id),
+          loop(valid_input(cs0) &&
+            valid_input(cs) &&
+            re_invariants(cs0, cs, id) &&
+            id_invariant(id),
             List[Any](cs, id, matched),
             cs.length) {
             while (!cs.atEnd && matched) {
               var c = cs.first
               r0n.foldLeft(unit(())){(r,i) =>
                 if (id == i) {
-                  _assert(matching_at_state(i, cs, cs0))
+                  _assert(re_invariant(i, cs0, cs))
                   matched =
                     r0n.foldLeft(unit(false)){(r,j) =>
                       val chars = dfa.transitions(i)(j)
                       if (chars.nonEmpty) {
                         if (chars.contains(c)) {
                           id = j
-                          _assert(matching_at_state(j, cs.rest, cs0))
+                          _assert(matching_at_state(j, cs0, cs.rest))
                           unit(true)
                         } else r
                       } else r
@@ -289,7 +293,9 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec {
                 cs = cs.rest
             }}
           val finalId = readVar(id)
-          cs.atEnd && r0n.foldLeft(unit(false)){(r: Rep[Boolean],i: Int) => if (dfa.finals(i)) (i==finalId || r) else r}
+          val res = cs.atEnd && r0n.foldLeft(unit(false)){(r: Rep[Boolean],i: Int) => if (dfa.finals(i)) (i==finalId || r) else r}
+          _assert(res ==> matching(re, cs0))
+          res
         })},
       Some{i: Int => RE(name(i), {cs: Rep[Input] =>
         toplevelApply[Input](name(i), list(cs))})})
