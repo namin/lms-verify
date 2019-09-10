@@ -188,34 +188,28 @@ trait Re2Str extends Re {
   def star(x: RE)(resolve: RE => RE) = s"($x)*"
 }
 
-trait FreshNames {
-  var counter = 0
-  def freshName = {
-    val id = counter
-    counter += 1
-    id
-  }
-}
-
 trait Re2Spec extends Re with StagedLib with LetrecLib {
-  type RE = Rep[Input] => Rep[Input]
+  case class RE(id: String, f: Rep[Input] => Rep[Input])
 
-  def c(c0: Char): RE = {cs => if (cs.first==c0) cs.rest else unit(null)}
-  def in(a: Char, b: Char): RE = {cs => if (a<=cs.first && cs.first<=b) cs.rest else unit(null)}
-  def wildcard: RE = {cs => if (cs.atEnd) unit(null) else cs.rest}
-  def alt(x: RE, y: RE): RE = {cs =>
-    val rx = x(cs)
-    if (rx != unit(null)) rx else y(cs)
-  }
-  def seq(x: RE, y: RE): RE = {cs =>
-    val rx = x(cs)
-    if (rx != unit(null)) y(rx) else unit(null)
-  }
-  val id: RE = {cs => cs}
+  def c(c0: Char): RE = {RE(c0.toString, {cs: Rep[Input] =>
+    if (cs.first==c0) cs.rest else unit(null)})}
+  def in(a: Char, b: Char): RE = {RE("["+a+"-"+b+"]", {cs: Rep[Input] =>
+    if (a<=cs.first && cs.first<=b) cs.rest else unit(null)})}
+  def wildcard: RE = {RE(".", {cs: Rep[Input] =>
+    if (cs.atEnd) unit(null) else cs.rest})}
+  def alt(x: RE, y: RE): RE = {RE(s"("+x.id+"|"+y.id+")", {cs: Rep[Input] =>
+    val cx = x.f(cs)
+    if (cx != unit(null)) cx else y.f(cx)})}
+  def seq(x: RE, y: RE): RE = {RE(x.id+y.id, {cs: Rep[Input] =>
+    val cx = x.f(cs)
+    if (cx != unit(null)) y.f(cx) else unit(null)})}
+  val id: RE = {RE("", {cs: Rep[Input] => cs})}
   def star(x: RE)(resolve: RE => RE): RE = {
-    lazy val star_x: RE = {cs:Rep[Input] => alt(seq(x, star_x), id)(cs)}
-    resolve(star_x)
+    lazy val star_x: RE = resolve(RE("("+x.id+")*",
+      {cs => alt(seq(x, star_x), id).f(cs)}))
+    star_x
   }
+  def sameRe(x: RE, y: RE) = x.id==y.id
 }
 
 trait CommonLib {
@@ -246,19 +240,19 @@ trait NfaStagedLib extends NfaLib with DfaLib with LetrecLib with StagedLib {
   }
 }
 
-trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec with scala.lms.util.ClosureCompare {
+trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec {
   def staged_dfa_accept(dfa: Dfa) = {
     def name(i: Int) = "re_"+i
-    letrec[RE,RE,Rep[Input]=>Rep[Boolean]](sameFunction,
+    letrec[RE,RE,Rep[Input]=>Rep[Boolean]](sameRe,
       {step: (RE => RE) => x: RE => i: Int =>
-      toplevel(name(i), x, spec=true, code=false)},
+        RE(x.id, toplevel(name(i), x.f, spec=true, code=false))},
       {resolve: (RE => RE) =>
         val n = dfa.finals.size
         val r0n = (0 until n):Range
         val pre = (dfa2re(dfa)(resolve)).map(resolve)
         val re = pre(0)
-        def matching(re: RE, cs0: Rep[Input]): Rep[Boolean] = re(cs0)!=null && re(cs0).atEnd
-        def matching_at_state(i: Int, cs: Rep[Input], cs0: Rep[Input]): Rep[Boolean] = pre(i)(cs)!=null ==> matching(re, cs0)
+        def matching(re: RE, cs0: Rep[Input]): Rep[Boolean] = re.f(cs0)!=null && re.f(cs0).atEnd
+        def matching_at_state(i: Int, cs: Rep[Input], cs0: Rep[Input]): Rep[Boolean] = pre(i).f(cs)!=null ==> matching(re, cs0)
         def re_invariants(cs0: Rep[Input], cs: Var[Input], id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(r,i) =>
           ((id == i) ==> matching_at_state(i, cs, cs0)) && r
         }
@@ -297,8 +291,8 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec wit
           val finalId = readVar(id)
           cs.atEnd && r0n.foldLeft(unit(false)){(r: Rep[Boolean],i: Int) => if (dfa.finals(i)) (i==finalId || r) else r}
         })},
-      Some{i: Int => cs: Rep[Input] =>
-        toplevelApply[Input](name(i), list(cs))})
+      Some{i: Int => RE(name(i), {cs: Rep[Input] =>
+        toplevelApply[Input](name(i), list(cs))})})
   }
 }
 
