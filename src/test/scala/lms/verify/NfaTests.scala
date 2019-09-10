@@ -127,7 +127,7 @@ trait Dfa2ReLib extends DfaLib with Regexp/*from AutomataTests.scala*/ {
     case (None, None) => None
   }
 
-  def dfa2re(dfa: Dfa): RE = {
+  def dfa2re(dfa: Dfa): Vector[RE] = {
     val a: Array[Array[Option[RE]]] = dfa.transitions.toArray.map{ts => ts.toArray.map{cs => if (cs.isEmpty) None else {
       val xs = cs.toList.map(c)
       Some(many(alt)(xs.head, xs.tail: _*))
@@ -150,33 +150,7 @@ trait Dfa2ReLib extends DfaLib with Regexp/*from AutomataTests.scala*/ {
         }
       }
     }
-    b(0).get
-  }
-
-  def dfa2re_partials(dfa: Dfa): Vector[RE] = {
-    val a: Array[Array[Option[RE]]] = dfa.transitions.toArray.map{ts => ts.toArray.map{cs => if (cs.isEmpty) None else {
-      val xs = cs.toList.map(c)
-      Some(many(alt)(xs.head, xs.tail: _*))
-    }}}
-    val bs: Vector[Array[Option[RE]]] = (0 until dfa.finals.size).toVector.map{i => (0 until dfa.finals.size).toArray.map{j => if (i==j) Some(id) else None}}
-
-    for (n <- dfa.finals.size - 1 to 0 by -1) {
-      a(n)(n).foreach{ ann =>
-        bs.foreach{b => b(n) = b(n).map{bn => seq(star(ann), bn)}}
-        for (j <- 0 until n) {
-          a(n)(j) = a(n)(j).map{anj => seq(star(ann), anj)}
-        }
-      }
-      for (i <- 0 until n) {
-        a(i)(n).foreach{ ain =>
-          bs.foreach{b => b(i) = union(b(i), b(n).map{bn => seq(ain, bn)})}
-          for (j <- 0 until n) {
-            a(i)(j) = union(a(i)(j), a(n)(j).map{anj => seq(ain, anj)})
-          }
-        }
-      }
-    }
-    bs.map{b => b(0).get}
+    b.toVector.map(_.get)
   }
 }
 
@@ -220,10 +194,7 @@ trait Re2Spec extends Regexp with StagedLib with LetrecLib with FreshNames {
     val h = freshName
     def name(i: Int) = "star_"+h+"_"+i
     letrec[RE,RE,RE]({step: (RE => RE) => x: RE => i: Int =>
-      toplevel(name(i), { cs =>
-        requires(valid_input(cs))
-        alt(seq(x, step(x)), id)(cs)},
-        spec=true)},
+      toplevel(name(i), alt(seq(x, step(x)), id), spec=true, code=false)},
       {resolve: (RE => RE) => resolve(x)},
       Some{i: Int => cs: Rep[Input] =>
         toplevelApply[Input](name(i), list(cs))})
@@ -262,17 +233,19 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec {
   def staged_dfa_accept(dfa: Dfa) = {
     val n = dfa.finals.size
     val r0n = (0 until n):Range
-    val re = dfa2re(dfa)
-    val pre = dfa2re_partials(dfa)
+    val pre: Vector[Rep[Input]=>Rep[Input]] = r0n.toVector.map{i => toplevel("re_"+i, dfa2re(dfa)(i), spec=true, code=false)}
+    val re = pre(0)
+    def matching(re: RE, cs0: Rep[Input]): Rep[Boolean] = re(cs0)!=null && re(cs0).atEnd
+    def matching_at_state(i: Int, cs: Rep[Input], cs0: Rep[Input]): Rep[Boolean] = pre(i)(cs)!=null ==> matching(re, cs0)
     def re_invariants(cs0: Rep[Input], cs: Var[Input], id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(r,i) =>
-      ((id == i) ==> (pre(i)(cs0)==cs)) && r
+      ((id == i) ==> matching_at_state(i, cs, cs0)) && r
     }
     def id_invariant(id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(false)){(r,i) =>
       (id == i) || r
     }
     toplevel("dfa", { cs0: Rep[Array[Char]] =>
       requires(valid_input(cs0))
-      ensures{(res: Rep[Boolean]) => res == (re(cs0)!=null && re(cs0).atEnd)}
+      ensures{(res: Rep[Boolean]) => res == matching(re, cs0)}
       var matched = true
       var id = 0
       var cs = cs0
@@ -283,14 +256,14 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec {
         var c = cs.first
         r0n.foldLeft(unit(())){(r,i) =>
           if (id == i) {
-            _assert(pre(i)(cs0)!=null)
+            _assert(matching_at_state(i, cs, cs0))
             matched =
               r0n.foldLeft(unit(false)){(r,j) =>
                 val chars = dfa.transitions(i)(j)
                 if (chars.nonEmpty) {
                   if (chars.contains(c)) {
                     id = j
-                    _assert(pre(j)(cs0)!=null)
+                    _assert(matching_at_state(j, cs.rest, cs0))
                     unit(true)
                   } else r
                 } else r
@@ -370,32 +343,20 @@ class DfaTests extends TestSuite {
 
 class Dfa2ReTests extends TestSuite {
   val under = "dfa2re_"
-  test("1") {
-    trait Ex1 extends Dfa2ReLib with Re2Str with DfaExamples {
-      val n = dfa1.finals.size
-      println(dfa2re(dfa1))
-      for (i <- 0 until n) {
-        val finali = for (j <- (0 until n).toVector) yield i==j
-        println(i+": "+dfa2re(Dfa(finali, dfa1.transitions)))
-      }
-    }
-    checkOut("aapb", new Ex1 {}, "txt")
-  }
   trait Dfa2RePrinter extends Dfa2ReLib with Re2Str {
     def print(dfa: Dfa) {
       val n = dfa.finals.size
-      println(dfa2re(dfa))
-      val p = dfa2re_partials(dfa)
+      val p = dfa2re(dfa)
       for (i <- 0 until n) {
         println(i+": "+p(i))
       }
     }
   }
-  test("2") {
-    trait Ex2 extends Dfa2RePrinter with DfaExamples {
+  test("1") {
+    trait Ex1 extends Dfa2RePrinter with DfaExamples {
       print(dfa1)
     }
-    checkOut("aapb", new Ex2 {}, "txt")
+    checkOut("aapb", new Ex1 {}, "txt")
   }
   test("3") {
     trait Ex3 extends Dfa2RePrinter with DfaExamples {
