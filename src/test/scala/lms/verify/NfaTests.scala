@@ -252,13 +252,12 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec {
         val fwd = (dfa2re(dfa)(resolve)).map(resolve)
         val re = fwd(0)
         def matching(re: RE, cs0: Rep[Input]): Rep[Boolean] = re.f(cs0)!=null && re.f(cs0).atEnd
-        def re_invariant(i: Int, cs0: Rep[Input], cs: Rep[Input]): Rep[Boolean] = //((fwd(i).f(cs)!=null) ==> (re.f(cs0)!=null))
-          ((matching(fwd(i), cs) ==> matching(re, cs0)))
+        def re_invariant(i: Int, cs0: Rep[Input], cs: Rep[Input]): Rep[Boolean] = ((fwd(i).f(cs)!=null) ==> (re.f(cs0)!=null))
         def re_invariants(cs0: Rep[Input], cs: Rep[Input], id: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(r,i) =>
           ((id == i) ==> re_invariant(i, cs0, cs)) && r
         }
         def finals_invariants(cs0: Rep[Input], cs: Rep[Input], id: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(r,i) =>
-          if (dfa.finals(i)) ((id == i) ==> (cs.atEnd ==> matching(re, cs0))) else unit(true)
+          if (dfa.finals(i)) ((id == i) ==> (matching(fwd(i), cs) ==> matching(re, cs0))) else unit(true)
         }
         def id_invariant(id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(false)){(r,i) =>
           (id == i) || r
@@ -284,16 +283,14 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec {
                   matched =
                     r0n.foldLeft(unit(false)){(r,j) =>
                       val chars = dfa.transitions(i)(j)
-                      if (chars.nonEmpty) {
-                        if (chars.contains(c)) {
-                          id = j
-                          _assert(valid_input(cs.rest))
-                          _assert(re_invariant(j, cs0, cs.rest))
-                          if (dfa.finals(j)) {
-                            _assert(cs.atEnd ==> matching(re, cs0))
-                          }
-                          unit(true)
-                        } else r
+                      if (chars.nonEmpty && chars.contains(c)) {
+                        id = j
+                        _assert(valid_input(cs.rest))
+                        _assert(re_invariant(j, cs0, cs.rest))
+                        if (dfa.finals(j)) {
+                          _assert(cs.atEnd ==> matching(re, cs0))
+                        }
+                        unit(true)
                       } else r
                     }
                 } else r
