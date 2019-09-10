@@ -113,6 +113,12 @@ trait DfaLib extends NfaLib with CommonLib with LetrecLib {
   }
 }
 
+/**
+This is inspired by
+https://github.com/devongovett/regexgen/blob/master/src/regex.js
+
+TODO: simplify regular expression.
+*/
 trait Dfa2ReLib extends DfaLib with Regexp/*from AutomataTests.scala*/ {
   def union(re1: Option[RE], re2: Option[RE]): Option[RE] = (re1, re2) match {
     case (Some(re1), Some(re2)) => Some(alt(re1, re2))
