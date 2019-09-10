@@ -50,32 +50,33 @@ trait NfaStagedLib extends NfaLib with Dsl with Reader {
   def infix_contains(cs: CharSet, c: Rep[Char]) =
     cs.foldLeft(unit(false))(_ || _==c)
 
-  def splitc(nfa: Nfa, cur: StSet, c: Rep[Char], k: StSet => Rep[Boolean]): Rep[Boolean] = {
-    def next_states(s: St): StSetMap[CharSet] =
-      nfa.next(s).foldLeft(empty_ssm){(ssm, kv) =>
-        val c = kv._1
-        val v = kv._2
+  def next_states(nfa: Nfa, s: St): StSetMap[CharSet] =
+    nfa.next(s).foldLeft(empty_ssm){(ssm, kv) =>
+      val c = kv._1
+      val v = kv._2
         ssm.get(v) match {
           case None => ssm + (v -> immutable.Set(c))
           case Some(s) => ssm + (v -> (s + c))
         }
-      }
-
-    def mergeMaps(maps: StSetMap[CharSet]*): StSetMap[CharSet] =
-      maps.foldLeft(empty_ssm){
-        (r: StSetMap[CharSet], m: StSetMap[CharSet]) =>
-        m.foldLeft(r){
-          (dict: StSetMap[CharSet], (kv: (StSet,CharSet))) =>
-          val k = kv._1; val v = kv._2
-            dict + (k -> (v.union(dict.getOrElse(k, immutable.Set.empty[Char]))))
-        }}
-
-    def nexts: StSetMap[CharSet] = cur.foldLeft(empty_ssm){
-      (ssm: StSetMap[CharSet], st: St) =>
-      mergeMaps(ssm, next_states(st))
     }
 
-    nexts.foldLeft{unit(false)}{(r: Rep[Boolean], kv: (StSet, CharSet)) =>
+  def mergeMaps(maps: StSetMap[CharSet]*): StSetMap[CharSet] =
+    maps.foldLeft(empty_ssm){
+      (r: StSetMap[CharSet], m: StSetMap[CharSet]) =>
+      m.foldLeft(r){
+        (dict: StSetMap[CharSet], (kv: (StSet,CharSet))) =>
+        val k = kv._1; val v = kv._2
+        dict + (k -> (v.union(dict.getOrElse(k, immutable.Set.empty[Char]))))
+      }}
+
+  def nexts(nfa: Nfa, cur: StSet): StSetMap[CharSet] =
+    cur.foldLeft(empty_ssm){
+      (ssm: StSetMap[CharSet], st: St) =>
+      mergeMaps(ssm, next_states(nfa, st))
+    }
+
+  def splitc(nfa: Nfa, cur: StSet, c: Rep[Char], k: StSet => Rep[Boolean]): Rep[Boolean] = {
+    nexts(nfa, cur).foldLeft{unit(false)}{(r: Rep[Boolean], kv: (StSet, CharSet)) =>
       val ss = kv._1
       val cs = kv._2
       if (cs.contains(c)) k(ss) else r
