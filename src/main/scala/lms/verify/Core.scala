@@ -595,6 +595,7 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
     val s = m.toString
     if (s.startsWith("Array["))
       return remapWithRef(m.typeArguments.head)
+    if (s == "Null") return "NULL " // TODO: not sure why this is necessary
     val tpe = super.remap(m)
     if (tpe.startsWith("int") || tpe.startsWith("uint") || tpe=="bool")
       if (s == "Char") "char" else "int"
