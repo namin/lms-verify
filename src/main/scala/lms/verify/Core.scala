@@ -579,10 +579,12 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
   import IR._
 
   var emitFileAndLine: Boolean = false
-  override def quote(x: Exp[Any]) = x match {
+  def quotee(x: Exp[Any]) = quotex(x, true)
+  override def quote(x: Exp[Any]) = quotex(x, false)
+  def quotex(x: Exp[Any], spec: Boolean) = x match {
     case Const(true) => "1/*true*/"
     case Const(false) => "0/*false*/"
-    case Const(null) => "0/*null*/"
+    case Const(null) => if (spec) "(char*)0" else "0/*null*/"
     case Const(c: Char) if c==0.toChar => "'\\0'"
     case Const(c: Char) if c=='\r' => "'\\r'"
     case Const(s: String) =>
@@ -670,7 +672,7 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
       case Def(IntPlus(c1, Const(1))) => "("+exprOf(a, m)+".."+exprOf(c1, m)+")"
       case _ => "("+exprOf(a, m)+".."+exprOf(b, m)+"-1)"
     }
-    case Quantifier(k, x, y) => "("+k+" "+remapWithRef(x.tp)+" "+quote(x)+"; "+exprOfBlock(y, m)+")"
+    case Quantifier(k, x, y) => "("+k+" "+remapWithRef(x.tp)+" "+quotee(x)+"; "+exprOfBlock(y, m)+")"
     case Implies(a, b) => "("+exprOf(a, m)+" ==> "+exprOf(b, m)+")"
     case Within(p, r) => exprOf(p, m)+"["+exprOf(r, m)+"]"
     case Equal(a, b) => "("+exprOf(a, m)+"=="+exprOf(b, m)+")"
@@ -698,7 +700,7 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
     case ArrayApply(p, i) => exprOf(p, m)+"["+exprOf(i, m)+"]"
     case Reify(r, _, _) => exprOf(r, m)
     case Reflect(r, _, _) => exprOfDef(r, m)
-    case ReadVar(Variable(s@Sym(n))) => if (isVoidVar(s)) "" else quote(s)
+    case ReadVar(Variable(s@Sym(n))) => if (isVoidVar(s)) "" else quotee(s)
     case ListNew(xs) => xs.map(exprOf(_, m)).filter(_.nonEmpty).mkString(", ")
     // FIXME: only works for strings / Seq[Char] / Array[Char]
     case SeqLength(x) => "strlen("+exprOf(x, m)+")"
@@ -716,12 +718,12 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
   def exprOf[A](e: Exp[A], m: Map[Sym[_], String] = Map()): String = e match {
     case Const(Nil) => ""
     case Const(b: Boolean) => "\\"+b.toString
-    case Const(_) => quote(e)
+    case Const(_) => quotee(e)
     case s@Sym(n) => s match {
       case Def(d) if !emitted(s) => exprOfDef(d, m)
       case _ => m.get(s) match {
         case Some(v) => v
-        case None => quote(e)
+        case None => quotee(e)
       }
     }
   }
@@ -923,7 +925,7 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
     withStream(out) {
       if (spec) {
         if (!axiom) {
-          val p = if (mB.toString != "Boolean" && sB=="int") "logic integer" else "predicate"
+          val p = if (mB.toString != "Boolean") "logic "+sB.replace("int", "integer") else "predicate"
           stream.println("/*@ "+p+" "+sig+" = "+exprOfBlock[B](body, default_m)+";*/")
         }
         else {
