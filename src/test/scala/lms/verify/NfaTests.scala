@@ -317,7 +317,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
         re_invariants(id, inp, i) &&
         finals_invariants(id, inp) &&
         id_invariant(id)),
-        List[Any](id, matched),
+        List[Any](i, id, matched),
         n-i) {
         while (i<n && matched) {
           var c = inp(i)
