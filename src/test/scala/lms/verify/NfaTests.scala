@@ -252,7 +252,8 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec {
         val fwd = (dfa2re(dfa)(resolve)).map(resolve)
         val re = fwd(0)
         def matching(re: RE, cs0: Rep[Input]): Rep[Boolean] = re.f(cs0)!=null && re.f(cs0).atEnd
-        def re_invariant(i: Int, cs0: Rep[Input], cs: Rep[Input]): Rep[Boolean] = ((fwd(i).f(cs)!=null) ==> (re.f(cs0)!=null))
+        def re_invariant(i: Int, cs0: Rep[Input], cs: Rep[Input]): Rep[Boolean] = //((fwd(i).f(cs)!=null) ==> (re.f(cs0)!=null))
+          ((matching(fwd(i), cs) ==> matching(re, cs0)))
         def re_invariants(cs0: Rep[Input], cs: Rep[Input], id: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(r,i) =>
           ((id == i) ==> re_invariant(i, cs0, cs)) && r
         }
