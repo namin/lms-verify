@@ -291,60 +291,58 @@ trait NfaStagedLib extends NfaLib with DfaLib with LetrecLib with StagedLib {
 
 trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
   def staged_dfa_accept(dfa: Dfa) = {
-    val n = dfa.finals.size
-    val r0n = ((0 until n):Range).toVector
+    val r0n = ((0 until dfa.finals.size):Range).toVector
     val res = dfa2re(dfa)(null).map(re2pr)
-    val fwd = r0n.map{i:Int => mkpr("re_"+i, res(i))}
+    val fwd = r0n.map{r:Int => mkpr("re_"+r, res(r))}
     val re = fwd(0)
-    def matching(re: RF, cs0: Rep[Input]): Rep[Boolean] = re(cs0, 0, cs0.length)
-    def re_invariant(i: Int, cs0: Rep[Input], cs: Rep[Input]): Rep[Boolean] = (matching(fwd(i), cs) ==> matching(re, cs0))
-    def re_invariants(cs0: Rep[Input], cs: Rep[Input], id: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(r,i) =>
-      ((id == i) ==> re_invariant(i, cs0, cs)) && r
+    def matching(re: RF, inp: Rep[Input], i: Rep[Int], j: Rep[Int]): Rep[Boolean] = re(inp, i, j)
+    def re_invariant(r: Int, inp: Rep[Input], i: Rep[Int]): Rep[Boolean] = (matching(fwd(r), inp, 0, i) ==> matching(re, inp, 0, i))
+    def re_invariants(id: Rep[Int], inp: Rep[Input], i: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(b,r) =>
+      ((id == r) ==> (re_invariant(r, inp, i))) && b
     }
-    def finals_invariants(cs0: Rep[Input], cs: Rep[Input], id: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(r,i) =>
-      if (dfa.finals(i)) ((id == i) ==> (matching(fwd(i), cs) ==> matching(re, cs0))) else unit(true)
+    def finals_invariants(id: Rep[Int], inp: Rep[Input]): Rep[Boolean] = r0n.foldLeft(unit(true)){(b,r) =>
+      if (dfa.finals(r)) ((id == r) ==> (matching(fwd(r), inp, 0, inp.length) ==> matching(re, inp, 0, inp.length))) else b
     }
-    def id_invariant(id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(false)){(r,i) =>
-      (id == i) || r
+    def id_invariant(id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(false)){(b,r) =>
+      (id == r) || b
     }
-    toplevel("dfa", { cs0: Rep[Array[Char]] =>
-      requires(valid_input(cs0))
-      ensures{(res: Rep[Boolean]) => res ==> matching(re, cs0)}
+    toplevel("dfa", { inp: Rep[Array[Char]] =>
+      requires(valid_input(inp))
+      ensures{(res: Rep[Boolean]) => res ==> matching(re, inp, 0, inp.length)}
       var matched = true
       var id = 0
-      var cs = cs0
-      loop((valid_input(cs0) &&
-        valid_input(cs) &&
-        re_invariants(cs0, cs, id) &&
-        finals_invariants(cs0, cs, id) &&
+      var i = 0
+      val n = inp.length
+      loop((valid_input(inp) &&
+        re_invariants(id, inp, i) &&
+        finals_invariants(id, inp) &&
         id_invariant(id)),
-        List[Any](cs, id, matched),
-        cs.length) {
-        while (!cs.atEnd && matched) {
-          var c = cs.first
-          r0n.foldLeft(unit(())){(r,i) =>
-            if (id == i) {
-              _assert(re_invariant(i, cs0, cs))
+        List[Any](id, matched),
+        n-i) {
+        while (i<n && matched) {
+          var c = inp(i)
+          r0n.foldLeft(unit(())){(b,r) =>
+            if (id == r) {
+              _assert(re_invariant(r, inp, i))
               matched =
-                r0n.foldLeft(unit(false)){(r,j) =>
-                  val chars = dfa.transitions(i)(j)
+                r0n.foldLeft(unit(false)){(b,t) =>
+                  val chars = dfa.transitions(r)(t)
                   if (chars.nonEmpty && chars.contains(c)) {
-                    id = j
-                    _assert(valid_input(cs.rest))
-                    _assert(re_invariant(j, cs0, cs.rest))
-                    if (dfa.finals(j)) {
-                      _assert(cs.atEnd ==> matching(re, cs0))
+                    id = t
+                    _assert(re_invariant(t, inp, i+1))
+                    if (dfa.finals(t)) {
+                      _assert(i==n ==> matching(re, inp, 0, inp.length))
                     }
                     unit(true)
-                  } else r
+                  } else b
                 }
-            } else r
+            } else b
           }
-          cs = cs.rest
+          i = i+1
         }}
       val finalId = readVar(id)
-      val res = cs.atEnd && r0n.foldLeft(unit(false)){(r: Rep[Boolean],i: Int) => if (dfa.finals(i)) (i==finalId || r) else r}
-      _assert(res ==> matching(re, cs0))
+      val res = i==n && r0n.foldLeft(unit(false)){(b: Rep[Boolean],r: Int) => if (dfa.finals(r)) (r==finalId || b) else b}
+      _assert(res ==> matching(re, inp, 0, inp.length))
       res
     })
   }
