@@ -114,6 +114,53 @@ trait DfaLib extends NfaLib with LetrecLib {
   }
 }
 
+trait Dfa2ReLib extends DfaLib with Regexp/*from AutomataTests.scala*/ {
+  def union(re1: Option[RE], re2: Option[RE]): Option[RE] = (re1, re2) match {
+    case (Some(re1), Some(re2)) => Some(alt(re1, re2))
+    case (Some(re1), None) => Some(re1)
+    case (None, Some(re2)) => Some(re2)
+    case (None, None) => None
+  }
+
+  def dfa2re(dfa: Dfa): RE = {
+    val a: Array[Array[Option[RE]]] = dfa.transitions.toArray.map{ts => ts.toArray.map{cs => if (cs.isEmpty) None else {
+      val xs = cs.toList.map(c)
+      Some(many(alt)(xs.head, xs.tail: _*))
+    }}}
+    val b: Array[Option[RE]] = dfa.finals.toArray.map{b => if (b) Some(id) else None}
+
+    for (n <- dfa.finals.size - 1 to 0 by -1) {
+      a(n)(n).foreach{ ann =>
+        b(n) = b(n).map{bn => seq(star(ann), bn)}
+        for (j <- 0 until n) {
+          a(n)(j) = a(n)(j).map{anj => seq(star(ann), anj)}
+        }
+      }
+      for (i <- 0 until n) {
+        a(i)(n).foreach{ ain =>
+          b(i) = union(b(i), b(n).map{bn => seq(ain, bn)})
+          for (j <- 0 until n) {
+            a(i)(j) = union(a(i)(i), a(n)(j).map{anj => seq(ain, anj)})
+          }
+        }
+      }
+    }
+    b(0).get
+  }
+}
+
+trait Re2Str extends Regexp {
+  type RE = String
+
+  def c(c0: Char): RE = c0.toString
+  def in(a: Char, b: Char) = "["+a+"-"+b+"]"
+  def wildcard = "."
+  def alt(x: RE, y: RE) = s"($x|$y)"
+  def seq(x: RE, y: RE) = s"$x$y"
+  val id = ""
+  def star(x: RE) = s"($x)*"
+}
+
 trait NfaStagedLib extends NfaLib with DfaLib with LetrecLib with Dsl with Reader {
   def infix_contains(cs: CharSet, c: Rep[Char]) =
     cs.foldLeft(unit(false))(_ || _==c)
@@ -171,6 +218,20 @@ class DfaTests extends TestSuite {
   }
 }
 
+class DfaToReTests extends TestSuite {
+  val under = "dfa2re_"
+  test("1") {
+    trait Ex1 extends Dfa2ReLib with Re2Str with DfaExamples {
+      val n = dfa1.finals.size
+      println(dfa2re(dfa1))
+      for (i <- 0 until n) {
+        val finali = for (j <- (0 until n).toVector) yield i==j
+        println(i+": "+dfa2re(Dfa(finali, dfa1.transitions)))
+      }
+    }
+    checkOut("aapb", new Ex1 {}, "txt")
+  }
+}
 class NfaTests extends TestSuite {
   val under = "nfa_"
 
