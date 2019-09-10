@@ -258,7 +258,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec {
           ((id == i) ==> re_invariant(i, cs0, cs)) && r
         }
         def finals_invariants(cs0: Rep[Input], cs: Var[Input], id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(r,i) =>
-          if (dfa.finals(i)) ((id == i) && cs.atEnd ==> matching(re, cs0)) else unit(true)
+          if (dfa.finals(i)) (((id == i) && cs.atEnd) ==> matching(re, cs0)) else unit(true)
         }
         def id_invariant(id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(false)){(r,i) =>
           (id == i) || r
