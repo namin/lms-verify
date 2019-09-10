@@ -26,17 +26,19 @@ trait NfaLib {
 }
 
 trait LetrecLib {
-  def letrec[A,B,C](rhs: (A => B) => A => Int => B, body: (A => B) => C, pre: Option[Int => B] = None): C = {
-    var seen: Map[A,Int] = Map.empty
-    var table: Map[A,B] = Map.empty
+  def letrec[A,B,C](same: (A,A) => Boolean, rhs: (A => B) => A => Int => B, body: (A => B) => C, pre: Option[Int => B] = None): C = {
+    def infix_get[B](m: List[(A,B)], x: A): Option[B] =
+      m.find{kv => same(kv._1,x)}.map(_._2)
+    var seen: List[(A,Int)] = Nil
+    var table: List[(A,B)] = Nil
     def resolve(index: A): B =
       (table.get(index), seen.get(index)) match {
         case (Some(r), _) => r
         case (None, None) =>
           val id = seen.size
-          seen += (index -> id)
+          seen = (index -> id)::seen
           val r = rhs(resolve)(index)(id)
-          table += (index -> r)
+          table = (index -> r)::table
           r
         case (None, Some(id)) => pre.get(id)
       }
@@ -103,7 +105,7 @@ trait DfaLib extends NfaLib with CommonLib with LetrecLib {
       }
       id
     }
-    letrec(rhs,
+    letrec({(x:StSet,y:StSet) => x==y}, rhs,
       {(resolve: (StSet => Int)) =>
         resolve(set(nfa.start))},
       Some{(id: Int) => id})
@@ -114,12 +116,32 @@ trait DfaLib extends NfaLib with CommonLib with LetrecLib {
 }
 
 /**
-This is inspired by
+Adapted from Regexp in AutomataTests.scala
+*/
+trait Re {
+  type RE
+
+  val id: RE
+  def c(c0: Char): RE
+  def in(a: Char, b: Char): RE
+  def alt(x: RE, y: RE): RE
+  def seq(x: RE, y: RE): RE
+  def star(x: RE)(resolve: RE => RE): RE
+  def opt(x: RE): RE = alt(x, id)
+  def many(f: (RE, RE) => RE)(x: RE, xs: RE*): RE = xs.length match {
+    case 0 => x
+    case 1 => f(x, xs(0))
+    case n => f(x, many(f)(xs(0), xs.slice(1, n) : _*))
+  }
+}
+
+/**
+Adapted from
 https://github.com/devongovett/regexgen/blob/master/src/regex.js
 
 TODO: simplify regular expression.
 */
-trait Dfa2ReLib extends DfaLib with Regexp/*from AutomataTests.scala*/ {
+trait Dfa2ReLib extends DfaLib with Re {
   def union(re1: Option[RE], re2: Option[RE]): Option[RE] = (re1, re2) match {
     case (Some(re1), Some(re2)) => Some(alt(re1, re2))
     case (Some(re1), None) => Some(re1)
@@ -127,7 +149,7 @@ trait Dfa2ReLib extends DfaLib with Regexp/*from AutomataTests.scala*/ {
     case (None, None) => None
   }
 
-  def dfa2re(dfa: Dfa): Vector[RE] = {
+  def dfa2re(dfa: Dfa)(resolve: RE => RE): Vector[RE] = {
     val a: Array[Array[Option[RE]]] = dfa.transitions.toArray.map{ts => ts.toArray.map{cs => if (cs.isEmpty) None else {
       val xs = cs.toList.map(c)
       Some(many(alt)(xs.head, xs.tail: _*))
@@ -136,9 +158,9 @@ trait Dfa2ReLib extends DfaLib with Regexp/*from AutomataTests.scala*/ {
 
     for (n <- dfa.finals.size - 1 to 0 by -1) {
       a(n)(n).foreach{ ann =>
-        b(n) = b(n).map{bn => seq(star(ann), bn)}
+        b(n) = b(n).map{bn => seq(star(ann)(resolve), bn)}
         for (j <- 0 until n) {
-          a(n)(j) = a(n)(j).map{anj => seq(star(ann), anj)}
+          a(n)(j) = a(n)(j).map{anj => seq(star(ann)(resolve), anj)}
         }
       }
       for (i <- 0 until n) {
@@ -154,7 +176,7 @@ trait Dfa2ReLib extends DfaLib with Regexp/*from AutomataTests.scala*/ {
   }
 }
 
-trait Re2Str extends Regexp {
+trait Re2Str extends Re {
   type RE = String
 
   def c(c0: Char): RE = c0.toString
@@ -163,7 +185,7 @@ trait Re2Str extends Regexp {
   def alt(x: RE, y: RE) = s"($x|$y)"
   def seq(x: RE, y: RE) = s"$x$y"
   val id = ""
-  def star(x: RE) = s"($x)*"
+  def star(x: RE)(resolve: RE => RE) = s"($x)*"
 }
 
 trait FreshNames {
@@ -175,7 +197,7 @@ trait FreshNames {
   }
 }
 
-trait Re2Spec extends Regexp with StagedLib with LetrecLib with FreshNames {
+trait Re2Spec extends Re with StagedLib with LetrecLib {
   type RE = Rep[Input] => Rep[Input]
 
   def c(c0: Char): RE = {cs => if (cs.first==c0) cs.rest else unit(null)}
@@ -190,14 +212,9 @@ trait Re2Spec extends Regexp with StagedLib with LetrecLib with FreshNames {
     if (rx != unit(null)) y(rx) else unit(null)
   }
   val id: RE = {cs => cs}
-  def star(x: RE): RE = {
-    val h = freshName
-    def name(i: Int) = "star_"+h+"_"+i
-    letrec[RE,RE,RE]({step: (RE => RE) => x: RE => i: Int =>
-      toplevel(name(i), alt(seq(x, step(x)), id), spec=true, code=false)},
-      {resolve: (RE => RE) => resolve(x)},
-      Some{i: Int => cs: Rep[Input] =>
-        toplevelApply[Input](name(i), list(cs))})
+  def star(x: RE)(resolve: RE => RE): RE = {
+    lazy val star_x: RE = {cs:Rep[Input] => alt(seq(x, star_x), id)(cs)}
+    resolve(star_x)
   }
 }
 
@@ -223,59 +240,65 @@ trait NfaStagedLib extends NfaLib with DfaLib with LetrecLib with StagedLib {
     def rhs(step: (StSet => Rep[Array[Char]] => Rep[Boolean]))(ss: StSet)(id: Int) = toplevel("nfa_"+id, {(cs: Rep[Array[Char]]) =>
       if (cs.atEnd) unit(!(ss intersect nfa.finals).isEmpty)
       else splitc(nfa, ss, cs.first, {(ss: StSet) => step(ss)(cs.rest) })})
-    letrec(rhs,
+    letrec({(x:StSet,y:StSet) => x==y}, rhs,
       {(resolve: (StSet => Rep[Array[Char]] => Rep[Boolean])) =>
         resolve(set(nfa.start))})
   }
 }
 
-trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec {
+trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec with scala.lms.util.ClosureCompare {
   def staged_dfa_accept(dfa: Dfa) = {
-    val n = dfa.finals.size
-    val r0n = (0 until n):Range
-    val pre: Vector[Rep[Input]=>Rep[Input]] = r0n.toVector.map{i => toplevel("re_"+i, dfa2re(dfa)(i), spec=true, code=false)}
-    val re = pre(0)
-    def matching(re: RE, cs0: Rep[Input]): Rep[Boolean] = re(cs0)!=null && re(cs0).atEnd
-    def matching_at_state(i: Int, cs: Rep[Input], cs0: Rep[Input]): Rep[Boolean] = pre(i)(cs)!=null ==> matching(re, cs0)
-    def re_invariants(cs0: Rep[Input], cs: Var[Input], id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(r,i) =>
-      ((id == i) ==> matching_at_state(i, cs, cs0)) && r
-    }
-    def id_invariant(id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(false)){(r,i) =>
-      (id == i) || r
-    }
-    toplevel("dfa", { cs0: Rep[Array[Char]] =>
-      requires(valid_input(cs0))
-      ensures{(res: Rep[Boolean]) => res == matching(re, cs0)}
-      var matched = true
-      var id = 0
-      var cs = cs0
-      loop(valid_input(cs) && re_invariants(cs0, cs, id) && id_invariant(id),
-          List[Any](cs, id, matched),
-          cs.length) {
-      while (!cs.atEnd && matched) {
-        var c = cs.first
-        r0n.foldLeft(unit(())){(r,i) =>
-          if (id == i) {
-            _assert(matching_at_state(i, cs, cs0))
-            matched =
-              r0n.foldLeft(unit(false)){(r,j) =>
-                val chars = dfa.transitions(i)(j)
-                if (chars.nonEmpty) {
-                  if (chars.contains(c)) {
-                    id = j
-                    _assert(matching_at_state(j, cs.rest, cs0))
-                    unit(true)
-                  } else r
+    def name(i: Int) = "re_"+i
+    letrec[RE,RE,Rep[Input]=>Rep[Boolean]](sameFunction,
+      {step: (RE => RE) => x: RE => i: Int =>
+      toplevel(name(i), x, spec=true, code=false)},
+      {resolve: (RE => RE) =>
+        val n = dfa.finals.size
+        val r0n = (0 until n):Range
+        val pre = (dfa2re(dfa)(resolve)).map(resolve)
+        val re = pre(0)
+        def matching(re: RE, cs0: Rep[Input]): Rep[Boolean] = re(cs0)!=null && re(cs0).atEnd
+        def matching_at_state(i: Int, cs: Rep[Input], cs0: Rep[Input]): Rep[Boolean] = pre(i)(cs)!=null ==> matching(re, cs0)
+        def re_invariants(cs0: Rep[Input], cs: Var[Input], id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(r,i) =>
+          ((id == i) ==> matching_at_state(i, cs, cs0)) && r
+        }
+        def id_invariant(id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(false)){(r,i) =>
+          (id == i) || r
+        }
+        toplevel("dfa", { cs0: Rep[Array[Char]] =>
+          requires(valid_input(cs0))
+          ensures{(res: Rep[Boolean]) => res == matching(re, cs0)}
+          var matched = true
+          var id = 0
+          var cs = cs0
+          loop(valid_input(cs) && re_invariants(cs0, cs, id) && id_invariant(id),
+            List[Any](cs, id, matched),
+            cs.length) {
+            while (!cs.atEnd && matched) {
+              var c = cs.first
+              r0n.foldLeft(unit(())){(r,i) =>
+                if (id == i) {
+                  _assert(matching_at_state(i, cs, cs0))
+                  matched =
+                    r0n.foldLeft(unit(false)){(r,j) =>
+                      val chars = dfa.transitions(i)(j)
+                      if (chars.nonEmpty) {
+                        if (chars.contains(c)) {
+                          id = j
+                          _assert(matching_at_state(j, cs.rest, cs0))
+                          unit(true)
+                        } else r
+                      } else r
+                    }
                 } else r
               }
-          } else r
-        }
-        cs = cs.rest
-      }}
-      cs.atEnd &&
-        (0 until n:Range).foldLeft(unit(false)){(r: Rep[Boolean],i: Int) =>
-          if (dfa.finals(i)) (i==id || r) else r}
-    })
+                cs = cs.rest
+            }}
+          val finalId = readVar(id)
+          cs.atEnd && r0n.foldLeft(unit(false)){(r: Rep[Boolean],i: Int) => if (dfa.finals(i)) (i==finalId || r) else r}
+        })},
+      Some{i: Int => cs: Rep[Input] =>
+        toplevelApply[Input](name(i), list(cs))})
   }
 }
 
@@ -346,7 +369,7 @@ class Dfa2ReTests extends TestSuite {
   trait Dfa2RePrinter extends Dfa2ReLib with Re2Str {
     def print(dfa: Dfa) {
       val n = dfa.finals.size
-      val p = dfa2re(dfa)
+      val p = dfa2re(dfa)(null)
       for (i <- 0 until n) {
         println(i+": "+p(i))
       }
