@@ -1,7 +1,5 @@
 package lms.verify
 
-import scala.collection.immutable
-
 trait NfaLib {
   type St = Int
   type StSet = Set[St]
@@ -27,7 +25,38 @@ trait NfaLib {
   }
 }
 
-trait NfaStagedLib extends NfaLib with Dsl with Reader {
+trait DfaLib extends NfaLib {
+  type CharSet = Set[Char]
+  type StSetMap[T] = Map[StSet,T]
+  def empty_ssm = Map.empty:StSetMap[CharSet]
+
+  def next_states(nfa: Nfa, s: St): StSetMap[CharSet] =
+    nfa.next(s).foldLeft(empty_ssm){(ssm, kv) =>
+      val c = kv._1
+      val v = kv._2
+        ssm.get(v) match {
+          case None => ssm + (v -> Set(c))
+          case Some(s) => ssm + (v -> (s + c))
+        }
+    }
+
+  def mergeMaps(maps: StSetMap[CharSet]*): StSetMap[CharSet] =
+    maps.foldLeft(empty_ssm){
+      (r: StSetMap[CharSet], m: StSetMap[CharSet]) =>
+      m.foldLeft(r){
+        (dict: StSetMap[CharSet], (kv: (StSet,CharSet))) =>
+        val k = kv._1; val v = kv._2
+        dict + (k -> (v.union(dict.getOrElse(k, Set.empty[Char]))))
+      }}
+
+  def nexts(nfa: Nfa, cur: StSet): StSetMap[CharSet] =
+    cur.foldLeft(empty_ssm){
+      (ssm: StSetMap[CharSet], st: St) =>
+      mergeMaps(ssm, next_states(nfa, st))
+    }
+}
+
+trait NfaStagedLib extends NfaLib with DfaLib with Dsl with Reader {
   def letrec[A,B:Typ,C,D:Typ](rhs: (A => Rep[D] => Rep[B]) => A => Rep[D] => Rep[B],
     body: (A => Rep[D] => Rep[B]) => C): C = {
     var table: List[(A,Rep[D] => Rep[B])] = Nil
@@ -43,37 +72,8 @@ trait NfaStagedLib extends NfaLib with Dsl with Reader {
     body(resolve)
   }
 
-  type CharSet = Set[Char]
-  type StSetMap[T] = Map[StSet,T]
-  def empty_ssm = Map.empty:StSetMap[CharSet]
-
   def infix_contains(cs: CharSet, c: Rep[Char]) =
     cs.foldLeft(unit(false))(_ || _==c)
-
-  def next_states(nfa: Nfa, s: St): StSetMap[CharSet] =
-    nfa.next(s).foldLeft(empty_ssm){(ssm, kv) =>
-      val c = kv._1
-      val v = kv._2
-        ssm.get(v) match {
-          case None => ssm + (v -> immutable.Set(c))
-          case Some(s) => ssm + (v -> (s + c))
-        }
-    }
-
-  def mergeMaps(maps: StSetMap[CharSet]*): StSetMap[CharSet] =
-    maps.foldLeft(empty_ssm){
-      (r: StSetMap[CharSet], m: StSetMap[CharSet]) =>
-      m.foldLeft(r){
-        (dict: StSetMap[CharSet], (kv: (StSet,CharSet))) =>
-        val k = kv._1; val v = kv._2
-        dict + (k -> (v.union(dict.getOrElse(k, immutable.Set.empty[Char]))))
-      }}
-
-  def nexts(nfa: Nfa, cur: StSet): StSetMap[CharSet] =
-    cur.foldLeft(empty_ssm){
-      (ssm: StSetMap[CharSet], st: St) =>
-      mergeMaps(ssm, next_states(nfa, st))
-    }
 
   def splitc(nfa: Nfa, cur: StSet, c: Rep[Char], k: StSet => Rep[Boolean]): Rep[Boolean] = {
     nexts(nfa, cur).foldLeft{unit(false)}{(r: Rep[Boolean], kv: (StSet, CharSet)) =>
@@ -88,7 +88,7 @@ trait NfaStagedLib extends NfaLib with Dsl with Reader {
       else splitc(nfa, ss, cs.first, {(ss: StSet) => step(ss)(cs.rest) })
     letrec(rhs,
       {(resolve: (StSet => Rep[Array[Char]] => Rep[Boolean])) =>
-        resolve(immutable.Set(nfa.start))})
+        resolve(set(nfa.start))})
   }
 }
 
