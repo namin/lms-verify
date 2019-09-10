@@ -10,7 +10,7 @@ trait TestSuite extends FunSuite {
   val prefix = "src/out/"
   val under: String
 
-  def checkOut(label: String, suffix: String, thunk: => Unit) = {
+  def checkOut(label: String, thunk: => Unit, suffix: String = "c") = {
     val output = new ByteArrayOutputStream()
     scala.Console.setOut(new PrintStream(output))
     thunk

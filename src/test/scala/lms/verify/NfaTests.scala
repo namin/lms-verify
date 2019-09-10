@@ -27,20 +27,24 @@ trait NfaLib {
 
 trait LetrecLib {
   def letrec[A,B,C](rhs: (A => B) => A => Int => B, body: (A => B) => C): C = {
-    var table: List[(A,B)] = Nil
+    var seen: Map[A,Int] = Map.empty
+    var table: Map[A,B] = Map.empty
     def resolve(index: A): B =
-      (table.find{case (k, _) => k==index}) match {
-        case Some((_, v)) => v
-        case None =>
-          val r = rhs(resolve)(index)(table.size)
-          table = (index, r) :: table
+      (table.get(index), seen.get(index)) match {
+        case (Some(r), _) => r
+        case (None, None) =>
+          val id = seen.size
+          seen += (index -> id)
+          val r = rhs(resolve)(index)(id)
+          table += (index -> r)
           r
+        case (None, Some(id)) => id.asInstanceOf[B] // hack
       }
     body(resolve)
   }
 }
 
-trait DfaLib extends NfaLib {
+trait DfaLib extends NfaLib with LetrecLib {
   type CharSet = Set[Char]
   type StSetMap[T] = Map[StSet,T]
   def empty_ssm = Map.empty:StSetMap[CharSet]
@@ -69,6 +73,44 @@ trait DfaLib extends NfaLib {
       (ssm: StSetMap[CharSet], st: St) =>
       mergeMaps(ssm, next_states(nfa, st))
     }
+
+  case class Dfa(finals: Vector[Boolean], transitions: Vector[Vector[CharSet]]) {
+    override def toString = "Dfa("+finals+", Vector(\n"+
+    transitions.map{ts => ts.map{cs => cs.map("'"+_+"'")}}.mkString(",\n")+"))"
+  }
+  def nfa2dfa(nfa: Nfa): Dfa = {
+    import scala.collection.mutable.ArrayBuffer
+
+    def grow[A](x: ArrayBuffer[A], size: Int, v: A) = {
+      (for (i <- 0 until (size-x.size)) yield
+        x += v
+      )
+      x
+    }
+
+    val finals: ArrayBuffer[Boolean] = new ArrayBuffer[Boolean]()
+    val transitions: ArrayBuffer[ArrayBuffer[CharSet]] = new ArrayBuffer[ArrayBuffer[CharSet]]()
+    def rhs(step: (StSet => Int))(cur: StSet)(id: Int) = {
+      grow(finals, id+1, false)
+      grow(transitions, id+1, null)
+      finals(id) = !(cur intersect nfa.finals).isEmpty
+      transitions(id) = new ArrayBuffer[CharSet](id+1)
+      nexts(nfa, cur).foldLeft{()}{(r: Unit, kv: (StSet, CharSet)) =>
+        val ss = kv._1
+        val cs = kv._2
+        val next_id = step(ss)
+        grow(transitions(id), next_id+1, Set[Char]())
+        transitions(id)(next_id) = cs
+      }
+      id
+    }
+    letrec(rhs,
+      {(resolve: (StSet => Int)) =>
+        resolve(set(nfa.start))})
+    val finalsVec = finals.toVector
+    val transitionsVec = transitions.toVector.map{ts => grow(ts, finalsVec.size, Set[Char]()).toVector}
+    Dfa(finalsVec, transitionsVec)
+  }
 }
 
 trait NfaStagedLib extends NfaLib with DfaLib with LetrecLib with Dsl with Reader {
@@ -92,6 +134,13 @@ trait NfaStagedLib extends NfaLib with DfaLib with LetrecLib with Dsl with Reade
   }
 }
 
+trait DfaExamples extends DfaLib {
+  val dfa1 = Dfa(Vector(false, false, true), Vector(
+    Vector(Set(), Set('A'), Set()),
+    Vector(Set(), Set('A'), Set('B')),
+    Vector(Set(), Set(), Set())))
+}
+
 trait NfaExamples extends NfaLib {
   val nfa1 = Nfa(1, set(3), {s => s match {
     case 1 => Map(('A' -> set(2)))
@@ -105,6 +154,20 @@ trait NfaExamples extends NfaLib {
     case 2 => Map(('A' -> set(1,2)), ('B' -> set(3)))
     case 3 => empty_t
   }})
+}
+
+class DfaTests extends TestSuite {
+  val under = "nfa2dfa_"
+
+  test("1") {
+    trait Dfa1 extends DfaLib with NfaExamples with DfaExamples {
+      val res = nfa2dfa(nfa1)
+      println(res)
+    }
+    lazy val ex = new Dfa1 {}
+    checkOut("aapb", ex, "scala")
+    assert(ex.res == ex.dfa1)
+  }
 }
 
 class NfaTests extends TestSuite {
