@@ -283,7 +283,10 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Spec {
                       if (chars.nonEmpty) {
                         if (chars.contains(c)) {
                           id = j
-                          _assert(matching_at_state(j, cs0, cs.rest))
+                          _assert(
+                            (pre(i).f(cs.rest)!=null) &&
+                            ((if (i == 0) (cs==cs0) else unit(false)) ||
+                              (re.f(cs0)!=null)))
                           unit(true)
                         } else r
                       } else r
