@@ -148,7 +148,12 @@ trait Dfa2ReLib extends DfaLib with Re {
     case (None, None) => None
   }
 
-  def dfa2re(dfa: Dfa)(resolve: RE => RE): Vector[RE] = {
+  def dfa2re_backwards(dfa: Dfa)(resolve: RE => RE): Vector[Option[RE]] = {
+    val rn = (0 until dfa.finals.size).toVector
+    (rn.map{r => _dfa2re(Dfa(rn.map{t => r==t}, dfa.transitions))(resolve)}).map(_(0))
+  }
+  def dfa2re(dfa: Dfa)(resolve: RE => RE): Vector[RE] = (_dfa2re(dfa)(resolve)).map(_.get)
+  def _dfa2re(dfa: Dfa)(resolve: RE => RE): Vector[Option[RE]] = {
     val a: Array[Array[Option[RE]]] = dfa.transitions.toArray.map{ts => ts.toArray.map{cs => if (cs.isEmpty) None else {
       val xs = cs.toList.map(c)
       Some(many(alt)(xs.head, xs.tail: _*))
@@ -171,7 +176,7 @@ trait Dfa2ReLib extends DfaLib with Re {
         }
       }
     }
-    b.toVector.map(_.get)
+    b.toVector
   }
 }
 
@@ -294,15 +299,17 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
     val r0n = ((0 until dfa.finals.size):Range).toVector
     val res = dfa2re(dfa)(null).map(re2pr)
     val fwd = r0n.map{r:Int => mkpr("re_"+r, res(r))}
+    val res_bwd = dfa2re_backwards(dfa)(null)
+    val bwd = r0n.map{r => res_bwd(r).map{p => mkpr("re_bwd_"+r, re2pr(p))}}
     val re = fwd(0)
     def matching(re: RF, inp: Rep[Input], i: Rep[Int], j: Rep[Int]): Rep[Boolean] = re(inp, i, j)
     def re_invariant(r: Int, inp: Rep[Input], i: Rep[Int]): Rep[Boolean] =
-      ((matching(re, inp, 0, i) && matching(fwd(r), inp, i, inp.length)) ==> matching(re, inp, 0, inp.length))
+      ((bwd(r).map{x => matching(x, inp, 0, i)}.getOrElse(unit(true)) && matching(fwd(r), inp, i, inp.length)) ==> matching(re, inp, 0, inp.length))
     def re_invariants(id: Rep[Int], inp: Rep[Input], i: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(b,r) =>
       ((id == r) ==> (re_invariant(r, inp, i))) && b
     }
     def final_invariant(r: Int, inp: Rep[Input], i: Rep[Int]): Rep[Boolean] =
-      ((i==inp.length) ==> matching(re, inp, 0, inp.length))
+      (((i==inp.length) && ((bwd(r).map{x => matching(x, inp, 0, i)})).getOrElse(unit(true))) ==> matching(re, inp, 0, inp.length))
     def finals_invariants(id: Rep[Int], inp: Rep[Input], i: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(b,r) =>
       if (dfa.finals(r)) ((id == r) ==> final_invariant(r, inp, i)) else b
     }
@@ -329,16 +336,16 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
           var c = inp(i)
           r0n.foldLeft(unit(())){(b,r) =>
             if (id == r) {
-              _assert(re_invariant(r, inp, i))
+              //_assert(re_invariant(r, inp, i))
               matched =
                 r0n.foldLeft(unit(false)){(b,t) =>
                   val chars = dfa.transitions(r)(t)
                   if (chars.nonEmpty && chars.contains(c)) {
                     id = t
-                    _assert(re_invariant(t, inp, i+1))
-                    if (dfa.finals(t)) {
-                      _assert(final_invariant(t, inp, i+1))
-                    }
+                    //_assert(re_invariant(t, inp, i+1))
+                    //if (dfa.finals(t)) {
+                    //  _assert(final_invariant(t, inp, i+1))
+                    //}
                     unit(true)
                   } else b
                 }
@@ -348,7 +355,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
         }}
       val finalId = readVar(id)
       val res = i==n && r0n.foldLeft(unit(false)){(b: Rep[Boolean],r: Int) => if (dfa.finals(r)) (r==finalId || b) else b}
-      _assert(res ==> matching(re, inp, 0, inp.length))
+      //_assert(res ==> matching(re, inp, 0, inp.length))
       res
     })
   }
