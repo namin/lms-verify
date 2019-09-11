@@ -189,7 +189,7 @@ star_D(x668,x732,x745)) &&
 /*@
 requires (((strlen(x785)>=0) &&
 \valid(x785+(0..(strlen(x785)+1)-1))) &&
-(strlen(x785)<100));
+(strlen(x785)<=INT_MAX));
 assigns \nothing;
 ensures (\result ==> re_0(x785,0,strlen(x785)));
 */

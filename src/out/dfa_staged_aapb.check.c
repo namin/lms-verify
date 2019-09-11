@@ -49,7 +49,7 @@ star_A(x150,x154,x167)) &&
 /*@
 requires (((strlen(x200)>=0) &&
 \valid(x200+(0..(strlen(x200)+1)-1))) &&
-(strlen(x200)<100));
+(strlen(x200)<=INT_MAX));
 assigns \nothing;
 ensures (\result ==> re_0(x200,0,strlen(x200)));
 */
