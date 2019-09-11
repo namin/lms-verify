@@ -283,7 +283,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
       ensures{(res: Rep[Boolean]) => res ==> matching(re, inp, 0, inp.length)}
       var matched = true
       var id = 0
-      var i = 0
+      val i = ghost(__newVar(0))
       var cur = inp
       val n = inp.length
       loop((valid_input(inp) &&

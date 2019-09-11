@@ -196,7 +196,7 @@ ensures (\result ==> re_0(x785,0,strlen(x785)));
 int dfa(char  * x785) {
   int x787 = 1/*true*/;
   int x788 = 0;
-  int x789 = 0;
+  //@ ghost int x789 = 0;
   char  *x790 = x785;
   /*@
   loop invariant ((((((((strlen(x785)>=0) &&
@@ -393,7 +393,7 @@ int dfa(char  * x785) {
     ((x788==0) ==> re_bwd_0(x785,0,(x789+1))))))));*/
     int x1127 = x789;
     int x1128 = x1127 + 1;
-    x789 = x1128;
+    //@ ghost x789 = x1128;
     char  *x1130 = x800+1;
     x790 = x1130;
     /*@assert (x787 ==> (((x788==4) ==> re_bwd_4(x785,0,x789)) &&
