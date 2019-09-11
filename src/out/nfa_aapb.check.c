@@ -1,6 +1,6 @@
 #include <limits.h>
 #include <string.h>
-int  nfa_1(char  * x12);
+int nfa_1(char  * x12);
 /*@
 assigns \nothing;
 */
@@ -24,7 +24,7 @@ int nfa_0(char  * x0) {
   }
   return x10;
 }
-int  nfa_2(char  * x30);
+int nfa_2(char  * x30);
 /*@
 assigns \nothing;
 */

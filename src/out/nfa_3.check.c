@@ -1,6 +1,6 @@
 #include <limits.h>
 #include <string.h>
-int  nfa_1(char  * x12);
+int nfa_1(char  * x12);
 /*@
 assigns \nothing;
 */
@@ -24,7 +24,7 @@ int nfa_0(char  * x0) {
   }
   return x10;
 }
-int  nfa_2(char  * x30);
+int nfa_2(char  * x30);
 /*@
 assigns \nothing;
 */
@@ -57,7 +57,7 @@ int nfa_1(char  * x14) {
   }
   return x28;
 }
-int  nfa_3(char  * x48);
+int nfa_3(char  * x48);
 /*@
 assigns \nothing;
 */
@@ -90,7 +90,7 @@ int nfa_2(char  * x32) {
   }
   return x46;
 }
-int  nfa_4(char  * x70);
+int nfa_4(char  * x70);
 /*@
 assigns \nothing;
 */

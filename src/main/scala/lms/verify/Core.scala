@@ -841,7 +841,7 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
   def emitHeader[B](functionName: String, out: PrintWriter)(mAs: List[Typ[_]], mB: Typ[B]): Unit = {
     val args = mAs.map(fresh(_))
     val r = fresh[B](mB)
-    val sB = remapWithRef(mB)
+    val sB = remapWithRef(mB).trim()
     val sig = functionName+"("+(args.map(s => remapWithRef(s.tp)+" "+quote(s))).mkString(", ")+")"
     withStream(out) {
       stream.println(sB+" "+sig+";");
