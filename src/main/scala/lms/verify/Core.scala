@@ -925,7 +925,7 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
     withStream(out) {
       if (spec) {
         if (!axiom) {
-          val p = if (mB.toString != "Boolean") "logic "+sB else "predicate"
+          val p = if (mB.toString != "Boolean") "logic "+remap(mB).toString.replace("int", "integer").trim() else "predicate"
           stream.println("/*@ "+p+" "+sig+" = "+exprOfBlock[B](body, default_m)+";*/")
         }
         else {

@@ -5,7 +5,7 @@ import org.scalatest.FunSuite
 import utils._
 
 trait TestSuite extends FunSuite {
-  val overwriteCheckFiles = false // should be false; temporary set to true only to simplify development
+  val overwriteCheckFiles = true // should be false; temporary set to true only to simplify development
 
   val prefix = "src/out/"
   val under: String

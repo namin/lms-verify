@@ -1,3 +1,8 @@
+forward
 0: A(A)*B$
 1: (A)*B$
 2: $
+backward
+0: $
+1: A(A)*$
+2: A(A)*B$
