@@ -83,6 +83,7 @@ In the spec, you can specify regular expression matching in simple terms as an i
 Verify that the optimized implementation still matches as specified by the spec.
 ([code for naive compiler](src/test/scala/lms/verify/CRegexTests.scala))
 ([code for NFA to DFA compiler](src/test/scala/lms/verify/AutomataTests.scala))
+([code for NFA to DFA compiler, using first order representation and mapping back to regular expression to prove correctness](src/test/scala/lms/verify/NfaTests.scala))
 ([hand-coded example](src/out/dfa_spec_aab.c))
 
 #### Bidirectional Combinators and Round-Tripping Properties
