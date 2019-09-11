@@ -85,24 +85,22 @@ int dfa(char  * x200) {
     }
     if (!x210) break;
     int x212 = x204;
-    char x213 = x200[x212];
-    char x214 = x213;
     x202 = 0/*false*/;
-    int x216 = x202;
-    int x221;
-    if (x216) {
-      x221 = 0/*false*/;
+    int x215 = x202;
+    int x220;
+    if (x215) {
+      x220 = 0/*false*/;
     } else {
-      int x218 = x203;
-      int x219 = x218 == 0;
-      x221 = x219;
+      int x217 = x203;
+      int x218 = x217 == 0;
+      x220 = x218;
     }
-    if (x221) {
+    if (x220) {
       /*@assert ((x203==0) ==> re_bwd_0(x200,0,x204));*/
       /*@assert re_bwd_0(x200,0,x204);*/
-      char x233 = x214;
-      int x234 = 'A' == x233;
-      if (x234) {
+      char x213 = x200[x212];
+      int x232 = 'A' == x213;
+      if (x232) {
         /*@assert re_bwd_1(x200,0,(x204+1));*/
         x203 = 1;
         x202 = 1/*true*/;
@@ -112,21 +110,21 @@ int dfa(char  * x200) {
       }
     } else {
     }
-    int x259 = x202;
-    int x264;
-    if (x259) {
-      x264 = 0/*false*/;
+    int x257 = x202;
+    int x262;
+    if (x257) {
+      x262 = 0/*false*/;
     } else {
-      int x261 = x203;
-      int x262 = x261 == 1;
-      x264 = x262;
+      int x259 = x203;
+      int x260 = x259 == 1;
+      x262 = x260;
     }
-    if (x264) {
+    if (x262) {
       /*@assert ((x203==1) ==> re_bwd_1(x200,0,x204));*/
       /*@assert re_bwd_1(x200,0,x204);*/
-      char x276 = x214;
-      int x277 = 'A' == x276;
-      if (x277) {
+      char x213 = x200[x212];
+      int x232 = 'A' == x213;
+      if (x232) {
         /*@assert re_bwd_1(x200,0,(x204+1));*/
         x203 = 1;
         x202 = 1/*true*/;
@@ -134,8 +132,8 @@ int dfa(char  * x200) {
         /*@assert ((x203==1) ==> re_bwd_1(x200,0,(x204+1)));*/
       } else {
       }
-      int x300 = 'B' == x276;
-      if (x300) {
+      int x296 = 'B' == x213;
+      if (x296) {
         /*@assert re_bwd_2(x200,0,(x204+1));*/
         x203 = 2;
         x202 = 1/*true*/;
@@ -145,16 +143,16 @@ int dfa(char  * x200) {
       }
     } else {
     }
-    int x325 = x202;
-    int x330;
-    if (x325) {
-      x330 = 0/*false*/;
+    int x321 = x202;
+    int x326;
+    if (x321) {
+      x326 = 0/*false*/;
     } else {
-      int x327 = x203;
-      int x328 = x327 == 2;
-      x330 = x328;
+      int x323 = x203;
+      int x324 = x323 == 2;
+      x326 = x324;
     }
-    if (x330) {
+    if (x326) {
       /*@assert ((x203==2) ==> re_bwd_2(x200,0,x204));*/
       /*@assert re_bwd_2(x200,0,x204);*/
     } else {
@@ -162,28 +160,28 @@ int dfa(char  * x200) {
     /*@assert (x202 ==> (((x203==2) ==> re_bwd_2(x200,0,(x204+1))) &&
     (((x203==1) ==> re_bwd_1(x200,0,(x204+1))) &&
     ((x203==0) ==> re_bwd_0(x200,0,(x204+1))))));*/
-    int x363 = x212 + 1;
-    x204 = x363;
+    int x359 = x212 + 1;
+    x204 = x359;
     /*@assert (x202 ==> (((x203==2) ==> re_bwd_2(x200,0,x204)) &&
     (((x203==1) ==> re_bwd_1(x200,0,x204)) &&
     ((x203==0) ==> re_bwd_0(x200,0,x204)))));*/
   }
-  int x459 = x203;
-  int x460 = x204;
-  int x461 = x460 == x205;
-  int x464;
-  if (x461) {
-    int x462 = x202;
-    x464 = x462;
+  int x455 = x203;
+  int x456 = x204;
+  int x457 = x456 == x205;
+  int x460;
+  if (x457) {
+    int x458 = x202;
+    x460 = x458;
   } else {
-    x464 = 0/*false*/;
+    x460 = 0/*false*/;
   }
-  int x466;
-  if (x464) {
-    int x465 = 2 == x459;
-    x466 = x465;
+  int x462;
+  if (x460) {
+    int x461 = 2 == x455;
+    x462 = x461;
   } else {
-    x466 = 0/*false*/;
+    x462 = 0/*false*/;
   }
-  return x466;
+  return x462;
 }

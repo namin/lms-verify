@@ -294,7 +294,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
         List[Any](i, id, matched),
         n-i) {
         while (i<n && matched) {
-          var c = inp(i)
+          val c = inp(i)
           matched = false
           r0n.foldLeft(unit(())){(b,r) =>
             if (!matched && id == r) {
