@@ -250,12 +250,12 @@ trait Re2Pr extends Re with Re2Ast with StagedLib with LetrecLib {
     case W => {(inp,i,j) => !inp.to(i).atEnd && j==i+1}
     case Alt(x, y) => {(inp,i,j) => re2pr(x)(inp,i,j) || re2pr(y)(inp,i,j) }
     case Cat(x, y) => {(inp,i,j) => exists{m: Rep[Int] =>
-      re2pr(x)(inp,i,m) && re2pr(y)(inp,m,j)}}
-    case I => {(inp,i,j) => inp.to(i).atEnd && i==j}
+      i <= m && m <= j && re2pr(x)(inp,i,m) && re2pr(y)(inp,m,j)}}
+    case I => {(inp,i,j) => i==j}
     case Star(C(c)) => {
       lazy val rec: RF = { mkpr("star_"+c, { (inp, i, j) =>
         (c==inp(i) && rec(inp, i+1, j)) || (i==j)}) }
-      {(inp,i,j) => rec(inp, i, j)}
+      {(inp,i,j) => rec(inp,i,j)}
     }
   }
 }
@@ -296,12 +296,14 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
     val fwd = r0n.map{r:Int => mkpr("re_"+r, res(r))}
     val re = fwd(0)
     def matching(re: RF, inp: Rep[Input], i: Rep[Int], j: Rep[Int]): Rep[Boolean] = re(inp, i, j)
-    def re_invariant(r: Int, inp: Rep[Input], i: Rep[Int]): Rep[Boolean] = (matching(fwd(r), inp, 0, i) ==> matching(re, inp, 0, i))
+    def re_invariant(r: Int, inp: Rep[Input], i: Rep[Int]): Rep[Boolean] = (matching(fwd(r), inp, i, inp.length) ==> matching(re, inp, i, inp.length))
     def re_invariants(id: Rep[Int], inp: Rep[Input], i: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(b,r) =>
       ((id == r) ==> (re_invariant(r, inp, i))) && b
     }
-    def finals_invariants(id: Rep[Int], inp: Rep[Input]): Rep[Boolean] = r0n.foldLeft(unit(true)){(b,r) =>
-      if (dfa.finals(r)) ((id == r) ==> (matching(fwd(r), inp, 0, inp.length) ==> matching(re, inp, 0, inp.length))) else b
+    def final_invariant(r: Int, inp: Rep[Input], i: Rep[Int]): Rep[Boolean] =
+      ((i==inp.length) ==> matching(re, inp, 0, inp.length))
+    def finals_invariants(id: Rep[Int], inp: Rep[Input], i: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(b,r) =>
+      if (dfa.finals(r)) ((id == r) ==> final_invariant(r, inp, i)) else b
     }
     def id_invariant(id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(false)){(b,r) =>
       (id == r) || b
@@ -314,8 +316,9 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
       var i = 0
       val n = inp.length
       loop((valid_input(inp) &&
+        valid_input(inp.to(i)) &&
         re_invariants(id, inp, i) &&
-        finals_invariants(id, inp) &&
+        finals_invariants(id, inp, i) &&
         id_invariant(id)),
         List[Any](i, id, matched),
         n-i) {
@@ -331,7 +334,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
                     id = t
                     _assert(re_invariant(t, inp, i+1))
                     if (dfa.finals(t)) {
-                      _assert(i==n ==> matching(re, inp, 0, inp.length))
+                      _assert(final_invariant(r, inp, i+1))
                     }
                     unit(true)
                   } else b
