@@ -259,7 +259,7 @@ trait Re2Pr extends Re with Re2Ast with StagedLib with LetrecLib {
     case I => {(inp,i,j) => i==j}
     case Star(C(c)) => {
       lazy val rec: RF = { mkpr("star_"+c, { (inp, i, j) =>
-        (c==inp(i) && rec(inp, i+1, j)) || (i==j)}) }
+        (c==inp(i) && j>0 && rec(inp, 0, j-1)) || (i==j)}) }
       {(inp,i,j) => rec(inp,i,j)}
     }
   }
@@ -304,12 +304,12 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
     val re = fwd(0)
     def matching(re: RF, inp: Rep[Input], i: Rep[Int], j: Rep[Int]): Rep[Boolean] = re(inp, i, j)
     def re_invariant(r: Int, inp: Rep[Input], i: Rep[Int]): Rep[Boolean] =
-      ((bwd(r).map{x => matching(x, inp, 0, i)}.getOrElse(unit(true)) && matching(fwd(r), inp, i, inp.length)) ==> matching(re, inp, 0, inp.length))
+      (bwd(r).map{x => matching(x, inp, 0, i)}.getOrElse(unit(true)))
     def re_invariants(id: Rep[Int], inp: Rep[Input], i: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(b,r) =>
       ((id == r) ==> (re_invariant(r, inp, i))) && b
     }
     def final_invariant(r: Int, inp: Rep[Input], i: Rep[Int]): Rep[Boolean] =
-      (((i==inp.length) && ((bwd(r).map{x => matching(x, inp, 0, i)})).getOrElse(unit(true))) ==> matching(re, inp, 0, inp.length))
+      (((bwd(r).map{x => matching(x, inp, 0, i)}).getOrElse(unit(false))) ==> matching(re, inp, 0, i))
     def finals_invariants(id: Rep[Int], inp: Rep[Input], i: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(b,r) =>
       if (dfa.finals(r)) ((id == r) ==> final_invariant(r, inp, i)) else b
     }
@@ -334,21 +334,23 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
         n-i) {
         while (i<n && matched) {
           var c = inp(i)
+          matched = false
           r0n.foldLeft(unit(())){(b,r) =>
-            if (id == r) {
-              //_assert(re_invariant(r, inp, i))
-              matched =
-                r0n.foldLeft(unit(false)){(b,t) =>
-                  val chars = dfa.transitions(r)(t)
-                  if (chars.nonEmpty && chars.contains(c)) {
-                    id = t
-                    //_assert(re_invariant(t, inp, i+1))
-                    //if (dfa.finals(t)) {
-                    //  _assert(final_invariant(t, inp, i+1))
-                    //}
-                    unit(true)
-                  } else b
-                }
+            if (!matched && id == r) {
+              _assert((id==r) ==> re_invariant(r, inp, i))
+              _assert(re_invariant(r, inp, i))
+              r0n.foldLeft(unit(())){(b,t) =>
+                val chars = dfa.transitions(r)(t)
+                if (chars.nonEmpty && chars.contains(c)) {
+                  _assert(re_invariant(t, inp, i+1))
+                  id = t
+                  matched = true
+                  _assert(re_invariant(t, inp, i+1))
+                  //if (dfa.finals(t)) {
+                  //  _assert(final_invariant(t, inp, i+1))
+                  //}
+                } else b
+              }
             } else b
           }
           i = i+1
