@@ -311,12 +311,14 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
     }
     toplevel("dfa", { inp: Rep[Array[Char]] =>
       requires(valid_input(inp))
+      requires(inp.length<100)
       ensures{(res: Rep[Boolean]) => res ==> matching(re, inp, 0, inp.length)}
       var matched = true
       var id = 0
       var i = 0
       val n = inp.length
       loop((valid_input(inp) &&
+        ((unit(0) <= i) && (i <= n)) &&
         valid_input(inp.to(i)) &&
         re_invariants(id, inp, i) &&
         finals_invariants(id, inp, i) &&
@@ -335,7 +337,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
                     id = t
                     _assert(re_invariant(t, inp, i+1))
                     if (dfa.finals(t)) {
-                      _assert(final_invariant(r, inp, i+1))
+                      _assert(final_invariant(t, inp, i+1))
                     }
                     unit(true)
                   } else b
