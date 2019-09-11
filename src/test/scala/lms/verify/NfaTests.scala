@@ -428,9 +428,13 @@ class Dfa2ReTests extends TestSuite {
   trait Dfa2RePrinter extends Dfa2ReLib with Re2Str {
     def print(dfa: Dfa) {
       val n = dfa.finals.size
-      val p = dfa2re(dfa)(null)
-      for (i <- 0 until n) {
-        println(i+": "+p(i))
+      for ((h,p) <- list(
+        ("forward", dfa2re(dfa)(null)),
+        ("backward", (dfa2re_backwards(dfa)(null)).map(_.get)))) {
+        println(h)
+        for (i <- 0 until n) {
+          println(i+": "+p(i))
+        }
       }
     }
   }
