@@ -264,7 +264,7 @@ trait Re2Pr extends Re with Re2Ast with StagedLib with LetrecLib {
       lazy val z: RF = { mkpr("star_"+key(x), { (inp, i, j) => exists{m: Rep[Int] =>
         ((i < m && m <= j) ==>
          (re2pr(x)(inp,i,m) && z(inp, m, j))) || (i==j)} }) }
-      {(inp,i,j) => z(inp,i,j)}
+      z
     }
   }
 }
