@@ -327,7 +327,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
       loop((valid_input(inp) &&
         ((unit(0) <= i) && (i <= n)) &&
         valid_input(inp.to(i)) &&
-        re_invariants(id, inp, i) &&
+        (matched ==> re_invariants(id, inp, i)) &&
         finals_invariants(id, inp, i) &&
         id_invariant(id)),
         List[Any](i, id, matched),
@@ -346,6 +346,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
                   id = t
                   matched = true
                   _assert(re_invariant(t, inp, i+1))
+                  _assert((id==t) ==> re_invariant(t, inp, i+1))
                   //if (dfa.finals(t)) {
                   //  _assert(final_invariant(t, inp, i+1))
                   //}
@@ -353,10 +354,12 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
               }
             } else b
           }
+          _assert(matched ==> re_invariants(id, inp, i+1));
           i = i+1
+          _assert(matched ==> re_invariants(id, inp, i));
         }}
       val finalId = readVar(id)
-      val res = i==n && r0n.foldLeft(unit(false)){(b: Rep[Boolean],r: Int) => if (dfa.finals(r)) (r==finalId || b) else b}
+      val res = i==n && matched && r0n.foldLeft(unit(false)){(b: Rep[Boolean],r: Int) => if (dfa.finals(r)) (r==finalId || b) else b}
       //_assert(res ==> matching(re, inp, 0, inp.length))
       res
     })
