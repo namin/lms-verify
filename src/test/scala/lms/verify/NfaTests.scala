@@ -237,16 +237,15 @@ trait Re2Ast extends Re {
 trait Re2Pr extends Re with Re2Ast with StagedLib with LetrecLib {
   type RF = (Rep[Input], Rep[Int], Rep[Int]) => Rep[Boolean]
   // redoing letrec...
-  var prtable: Set[String] = set()
+  var prtable: Map[String, RF] = Map.empty
   def mkpr(name: String, f: RF): RF = {
-    if (prtable.contains(name)) {
-      val r: RF = {(inp,i,j) =>
-        toplevelApply[Boolean](name, list(inp, i, j))}
-      r
-    } else {
-      prtable += name
-      val r: RF = unwrap3(toplevel(name, wrap3(f), spec=true, code=false))
-      r
+    prtable.get(name) match {
+      case Some(r) => r
+      case None => {
+        lazy val r = unwrap3(toplevel(name, wrap3(f), spec=true, code=false))
+        prtable += (name -> r)
+        r
+      }
     }
   }
   def key(r:RE): String = r match {
@@ -267,10 +266,10 @@ trait Re2Pr extends Re with Re2Ast with StagedLib with LetrecLib {
       i <= m && m <= j && re2pr(x)(inp,i,m) && re2pr(y)(inp,m,j)}}
     case I => {(inp,i,j) => i==j}
     case Star(x) => {
-      lazy val rec: RF = { mkpr("star_"+key(x), { (inp, i, j) => exists{m: Rep[Int] =>
+      lazy val z: RF = { mkpr("star_"+key(x), { (inp, i, j) => exists{m: Rep[Int] =>
         ((i < m && m <= j) ==>
-         (re2pr(x)(inp,i,m) && rec(inp, m, j))) || (i==j)} }) }
-      {(inp,i,j) => rec(inp,i,j)}
+         (re2pr(x)(inp,i,m) && z(inp, m, j))) || (i==j)} }) }
+      {(inp,i,j) => z(inp,i,j)}
     }
   }
 }
