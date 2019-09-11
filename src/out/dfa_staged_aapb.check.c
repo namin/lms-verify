@@ -47,9 +47,8 @@ star_A(x150,x154,x167)) &&
 (x174==(x167+1)))) &&
 (x174==x152)))))));*/
 /*@
-requires (((strlen(x200)>=0) &&
-\valid(x200+(0..(strlen(x200)+1)-1))) &&
-(strlen(x200)<=INT_MAX));
+requires ((strlen(x200)>=0) &&
+\valid(x200+(0..(strlen(x200)+1)-1)));
 assigns \nothing;
 ensures (\result ==> re_0(x200,0,strlen(x200)));
 */
@@ -162,8 +161,8 @@ int dfa(char  * x200) {
     /*@assert (x202 ==> (((x203==2) ==> re_bwd_2(x200,0,(x204+1))) &&
     (((x203==1) ==> re_bwd_1(x200,0,(x204+1))) &&
     ((x203==0) ==> re_bwd_0(x200,0,(x204+1))))));*/
-    int x362 = x204;
-    int x363 = x362 + 1;
+    //@ ghost int x362 = x204;
+    //@ ghost int x363 = x362 + 1;
     //@ ghost x204 = x363;
     char  *x365 = x215+1;
     x205 = x365;
@@ -172,22 +171,22 @@ int dfa(char  * x200) {
     ((x203==0) ==> re_bwd_0(x200,0,x204)))));*/
   }
   int x468 = x203;
-  int x469 = x204;
-  int x206 = strlen(x200);
-  int x470 = x469 == x206;
-  int x473;
-  if (x470) {
-    int x471 = x202;
-    x473 = x471;
+  char  *x469 = x205;
+  char x470 = x469[0];
+  int x471 = x470 == '\0';
+  int x474;
+  if (x471) {
+    int x472 = x202;
+    x474 = x472;
   } else {
-    x473 = 0/*false*/;
+    x474 = 0/*false*/;
   }
-  int x475;
-  if (x473) {
-    int x474 = 2 == x468;
-    x475 = x474;
+  int x476;
+  if (x474) {
+    int x475 = 2 == x468;
+    x476 = x475;
   } else {
-    x475 = 0/*false*/;
+    x476 = 0/*false*/;
   }
-  return x475;
+  return x476;
 }

@@ -278,8 +278,6 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
     }
     toplevel("dfa", { inp: Rep[Array[Char]] =>
       requires(valid_input(inp))
-      //TODO: remove this next constraint by not doing any indexing in the code
-      requires(inp.length<=Int.MaxValue)
       ensures{(res: Rep[Boolean]) => res ==> matching(re, inp, 0, inp.length)}
       var matched = true
       var id = 0
@@ -315,12 +313,12 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
             } else b
           }
           _assert(matched ==> re_invariants(id, inp, i+1));
-          i = i+1
+          i = ghostexp(ghostexp(i)+1) //TODO: could be inferred
           cur = cur.rest
           _assert(matched ==> re_invariants(id, inp, i));
         }}
       val finalId = readVar(id)
-      val res = i==n && matched && r0n.foldLeft(unit(false)){(b: Rep[Boolean],r: Int) => if (dfa.finals(r)) (r==finalId || b) else b}
+      val res = cur.atEnd && matched && r0n.foldLeft(unit(false)){(b: Rep[Boolean],r: Int) => if (dfa.finals(r)) (r==finalId || b) else b}
       res
     })
   }

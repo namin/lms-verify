@@ -322,6 +322,7 @@ trait VerifyOps extends Base with BooleanOps {
   def pointer_plus[A:Typ](a: Rep[Array[A]], i: Rep[Int]): Rep[Array[A]]
 
   def ghost[A:Typ](v: Var[A]): Var[A]
+  def ghostexp[A:Typ](v: Rep[A]): Rep[A]
 }
 
 trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBoolean with ListOpsExp with BooleanOpsExpOpt {
@@ -549,10 +550,14 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
   case class PointerPlus[A](a: Rep[Array[A]], i: Rep[Int]) extends Def[Array[A]]
   def pointer_plus[A:Typ](a: Exp[Array[A]], i: Exp[Int]): Exp[Array[A]] = PointerPlus(a, i)
 
-  var ghostVars: Set[Rep[Var[Any]]] = Set.empty
+  var ghostSyms: Set[Rep[Any]] = Set.empty
   def ghost[A:Typ](v: Var[A]): Var[A] = {
-    ghostVars += v.e
+    ghostSyms += v.e
     v
+  }
+  def ghostexp[A:Typ](e: Rep[A]): Rep[A] = {
+    ghostSyms += e
+    e
   }
 }
 
@@ -635,17 +640,18 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
   }
 
   override def emitValDef(sym: Sym[Any], rhs: String): Unit = {
+    if (ghostSyms.contains(sym)) stream.print("//@ ghost ")
     if (!isVoidType(sym.tp)) super.emitValDef(sym, rhs)
     else emitVoid(rhs)
   }
   override def emitVarDef(sym: Sym[Variable[Any]], rhs: String): Unit = {
-    if (ghostVars.contains(sym)) stream.print("//@ ghost ")
+    if (ghostSyms.contains(sym)) stream.print("//@ ghost ")
     if (!isVoidVar(sym)) {
       val res = super.emitVarDef(sym, rhs)
     } else emitVoid(rhs)
   }
   override def emitAssignment(sym: Sym[Any], rhs: String): Unit = {
-    if (ghostVars.contains(sym.asInstanceOf[Sym[Variable[Any]]])) stream.print("//@ ghost ")
+    if (ghostSyms.contains(sym)) stream.print("//@ ghost ")
     if (!isVoidVar(sym)) {
       if (rhs.endsWith(";")) {
         // by convention, assume we already have a full statement

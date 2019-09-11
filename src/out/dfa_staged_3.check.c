@@ -187,9 +187,8 @@ star_C(x668,x712,x725)) &&
 star_D(x668,x732,x745)) &&
 (x745==x670)))))))))))))))));*/
 /*@
-requires (((strlen(x785)>=0) &&
-\valid(x785+(0..(strlen(x785)+1)-1))) &&
-(strlen(x785)<=INT_MAX));
+requires ((strlen(x785)>=0) &&
+\valid(x785+(0..(strlen(x785)+1)-1)));
 assigns \nothing;
 ensures (\result ==> re_0(x785,0,strlen(x785)));
 */
@@ -391,8 +390,8 @@ int dfa(char  * x785) {
     (((x788==2) ==> re_bwd_2(x785,0,(x789+1))) &&
     (((x788==1) ==> re_bwd_1(x785,0,(x789+1))) &&
     ((x788==0) ==> re_bwd_0(x785,0,(x789+1))))))));*/
-    int x1127 = x789;
-    int x1128 = x1127 + 1;
+    //@ ghost int x1127 = x789;
+    //@ ghost int x1128 = x1127 + 1;
     //@ ghost x789 = x1128;
     char  *x1130 = x800+1;
     x790 = x1130;
@@ -403,22 +402,22 @@ int dfa(char  * x785) {
     ((x788==0) ==> re_bwd_0(x785,0,x789)))))));*/
   }
   int x1255 = x788;
-  int x1256 = x789;
-  int x791 = strlen(x785);
-  int x1257 = x1256 == x791;
-  int x1260;
-  if (x1257) {
-    int x1258 = x787;
-    x1260 = x1258;
+  char  *x1256 = x790;
+  char x1257 = x1256[0];
+  int x1258 = x1257 == '\0';
+  int x1261;
+  if (x1258) {
+    int x1259 = x787;
+    x1261 = x1259;
   } else {
-    x1260 = 0/*false*/;
+    x1261 = 0/*false*/;
   }
-  int x1262;
-  if (x1260) {
-    int x1261 = 4 == x1255;
-    x1262 = x1261;
+  int x1263;
+  if (x1261) {
+    int x1262 = 4 == x1255;
+    x1263 = x1262;
   } else {
-    x1262 = 0/*false*/;
+    x1263 = 0/*false*/;
   }
-  return x1262;
+  return x1263;
 }
