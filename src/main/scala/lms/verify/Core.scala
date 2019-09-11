@@ -128,7 +128,9 @@ trait VerifyOps extends Base with BooleanOps {
     override def check(x:(A1,A2,A3,A4,A5,A6,A7,A8,A9)) = iso1.check(x._1) && iso2.check(x._2) && iso3.check(x._3) && iso4.check(x._4) && iso5.check(x._5) && iso6.check(x._6) && iso7.check(x._7) && iso8.check(x._8) && iso9.check(x._9)
   }
 
-  sealed abstract class Snip
+  sealed abstract class Snip {
+    def name: String
+  }
   case class TopLevel[B](name: String, mAs: List[Typ[_]], mB:Typ[B], f: List[Rep[_]] => Rep[B], spec: Boolean, code: Boolean) extends Snip
   object TopLevel {
     def apply[B](name: String, mAs: List[Typ[_]], mB:Typ[B], f: List[Rep[_]] => Rep[B]): TopLevel[B] =
@@ -555,6 +557,7 @@ trait Impl extends Dsl with VerifyOpsExp with ScalaOpsPkgExp with PrimitiveOpsEx
   val codegen = new CCodeGenDsl {
     val IR: self.type = self
   }
+  def orderDeps(xs: Set[String]): List[String] = xs.toList
   def emitAll(stream: java.io.PrintWriter): Unit = {
     assert(codegen ne null) //careful about initialization order
     includes.foreach { i => stream.println("#include "+i) }
@@ -907,7 +910,7 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
       } else ""
     locs = Nil // reset
 
-    val fns = rec.keys.toSet -- oldFns
+    val fns = orderDeps(rec.keys.toSet -- oldFns)
     fns.foreach { case k =>
       val t = rec(k)
       t match {

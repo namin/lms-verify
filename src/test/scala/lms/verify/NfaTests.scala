@@ -475,7 +475,12 @@ class StagedDfaTests extends TestSuite {
     trait Dfa3 extends DfaStagedLib with NfaExamples with DfaExamples {
       val machine = staged_dfa_accept(dfa3)
     }
-    check("3", (new Dfa3 with Impl).code)
+    check("3", (new Dfa3 with Impl {
+      override def orderDeps(xs: Set[String]) = {
+        val (stars, rests) = xs.partition(_.startsWith("star_"))
+        stars.toList.sortBy(_.length) ++ rests.toList
+      }
+    }).code)
   }
 }
 
