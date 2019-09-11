@@ -284,17 +284,19 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
       var matched = true
       var id = 0
       var i = 0
+      var cur = inp
       val n = inp.length
       loop((valid_input(inp) &&
         ((unit(0) <= i) && (i <= n)) &&
+        (cur==inp.to(i)) &&
         valid_input(inp.to(i)) &&
         (matched ==> re_invariants(id, inp, i)) &&
         finals_invariants(id, inp, i) &&
         id_invariant(id)),
-        List[Any](i, id, matched),
-        n-i) {
-        while (i<n && matched) {
-          val c = inp(i)
+        List[Any](cur, i, id, matched),
+        cur.length) {
+        while (!cur.atEnd && matched) {
+          val c = cur.first
           matched = false
           r0n.foldLeft(unit(())){(b,r) =>
             if (!matched && id == r) {
@@ -314,6 +316,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
           }
           _assert(matched ==> re_invariants(id, inp, i+1));
           i = i+1
+          cur = cur.rest
           _assert(matched ==> re_invariants(id, inp, i));
         }}
       val finalId = readVar(id)
