@@ -362,7 +362,6 @@ trait NfaExamples extends NfaLib with CommonLib {
 
 class DfaTests extends TestSuite {
   val under = "nfa2dfa_"
-
   test("1") {
     trait Dfa1 extends DfaLib with NfaExamples with DfaExamples {
       val res = nfa2dfa(nfa1)
@@ -372,7 +371,6 @@ class DfaTests extends TestSuite {
     checkOut("aapb", ex, "scala")
     assert(ex.res == ex.dfa1)
   }
-
   test("3") {
     trait Dfa3 extends DfaLib with NfaExamples with DfaExamples {
       val res = nfa2dfa(nfa3)
@@ -415,14 +413,12 @@ class Dfa2ReTests extends TestSuite {
 
 class StagedDfaTests extends TestSuite {
   val under = "dfa_staged_"
-
   test("1") {
     trait Dfa1 extends DfaStagedLib with NfaExamples with DfaExamples {
       val machine = staged_dfa_accept(dfa1)
     }
     check("aapb", (new Dfa1 with Impl).code)
   }
-
   test("3") {
     trait Dfa3 extends DfaStagedLib with NfaExamples with DfaExamples {
       val machine = staged_dfa_accept(dfa3)
@@ -438,21 +434,18 @@ class StagedDfaTests extends TestSuite {
 
 class NfaTests extends TestSuite {
   val under = "nfa_"
-
   test("1") {
     trait Nfa1 extends NfaStagedLib with NfaExamples {
       val machine = staged_accept(nfa1)
     }
     check("aapb", (new Nfa1 with Impl).code)
   }
-
   test("2") {
     trait Nfa2 extends NfaStagedLib with NfaExamples {
       val machine = staged_accept(nfa2)
     }
     check("aapb", (new Nfa2 with Impl).code)
   }
-
   test("3") {
     trait Nfa3 extends NfaStagedLib with NfaExamples {
       val machine = staged_accept(nfa3)
