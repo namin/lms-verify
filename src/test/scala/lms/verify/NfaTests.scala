@@ -115,32 +115,12 @@ trait DfaLib extends NfaLib with CommonLib with LetrecLib {
 }
 
 /**
-Adapted from Regexp in AutomataTests.scala
-*/
-trait Re {
-  type RE
-
-  val id: RE
-  def c(c0: Char): RE
-  def in(a: Char, b: Char): RE
-  def alt(x: RE, y: RE): RE
-  def seq(x: RE, y: RE): RE
-  def star(x: RE)(resolve: RE => RE): RE
-  def opt(x: RE): RE = alt(x, id)
-  def many(f: (RE, RE) => RE)(x: RE, xs: RE*): RE = xs.length match {
-    case 0 => x
-    case 1 => f(x, xs(0))
-    case n => f(x, many(f)(xs(0), xs.slice(1, n) : _*))
-  }
-}
-
-/**
 Adapted from
 https://github.com/devongovett/regexgen/blob/master/src/regex.js
 
 TODO: simplify regular expression.
 */
-trait Dfa2ReLib extends DfaLib with Re {
+trait Dfa2ReLib extends DfaLib with Regexp/*from AutomataTests.scala*/ {
   def union(re1: Option[RE], re2: Option[RE]): Option[RE] = (re1, re2) match {
     case (Some(re1), Some(re2)) => Some(alt(re1, re2))
     case (Some(re1), None) => Some(re1)
@@ -148,12 +128,12 @@ trait Dfa2ReLib extends DfaLib with Re {
     case (None, None) => None
   }
 
-  def dfa2re_backwards(dfa: Dfa)(resolve: RE => RE): Vector[Option[RE]] = {
+  def dfa2re_backwards(dfa: Dfa): Vector[Option[RE]] = {
     val rn = (0 until dfa.finals.size).toVector
-    (rn.map{r => _dfa2re(Dfa(rn.map{t => r==t}, dfa.transitions))(resolve)}).map(_(0))
+    (rn.map{r => _dfa2re(Dfa(rn.map{t => r==t}, dfa.transitions))}).map(_(0))
   }
-  def dfa2re(dfa: Dfa)(resolve: RE => RE): Vector[RE] = (_dfa2re(dfa)(resolve)).map(_.get)
-  def _dfa2re(dfa: Dfa)(resolve: RE => RE): Vector[Option[RE]] = {
+  def dfa2re(dfa: Dfa): Vector[RE] = (_dfa2re(dfa)).map(_.get)
+  def _dfa2re(dfa: Dfa): Vector[Option[RE]] = {
     val a: Array[Array[Option[RE]]] = dfa.transitions.toArray.map{ts => ts.toArray.map{cs => if (cs.isEmpty) None else {
       val xs = cs.toList.map(c)
       Some(many(alt)(xs.head, xs.tail: _*))
@@ -162,9 +142,9 @@ trait Dfa2ReLib extends DfaLib with Re {
 
     for (n <- dfa.finals.size - 1 to 0 by -1) {
       a(n)(n).foreach{ ann =>
-        b(n) = b(n).map{bn => seq(star(ann)(resolve), bn)}
+        b(n) = b(n).map{bn => seq(star(ann), bn)}
         for (j <- 0 until n) {
-          a(n)(j) = a(n)(j).map{anj => seq(star(ann)(resolve), anj)}
+          a(n)(j) = a(n)(j).map{anj => seq(star(ann), anj)}
         }
       }
       for (i <- 0 until n) {
@@ -180,7 +160,7 @@ trait Dfa2ReLib extends DfaLib with Re {
   }
 }
 
-trait Re2Str extends Re {
+trait Re2Str extends Regexp {
   type RE = String
 
   def c(c0: Char): RE = c0.toString
@@ -189,34 +169,10 @@ trait Re2Str extends Re {
   def alt(x: RE, y: RE): RE = "("+x+"|"+y+")"
   def seq(x: RE, y: RE): RE = x+y
   val id: RE = "$"
-  def star(x: RE)(resolve: RE => RE): RE = "("+x+")*"
+  def star(x: RE): RE = "("+x+")*"
 }
 
-trait Re2Spec extends Re with StagedLib with LetrecLib {
-  case class RE(id: String, f: Rep[Input] => Rep[Input])
-
-  def c(c0: Char): RE = {RE(c0.toString, {cs: Rep[Input] =>
-    if (cs.first==c0) cs.rest else unit(null)})}
-  def in(a: Char, b: Char): RE = {RE("["+a+"-"+b+"]", {cs: Rep[Input] =>
-    if (a<=cs.first && cs.first<=b) cs.rest else unit(null)})}
-  def wildcard: RE = {RE(".", {cs: Rep[Input] =>
-    if (cs.atEnd) unit(null) else cs.rest})}
-  def alt(x: RE, y: RE): RE = {RE("("+x.id+"|"+y.id+")", {cs: Rep[Input] =>
-    val cx = x.f(cs)
-    if (cx != unit(null)) cx else y.f(cx)})}
-  def seq(x: RE, y: RE): RE = {RE(x.id+y.id, {cs: Rep[Input] =>
-    val cx = x.f(cs)
-    if (cx != unit(null)) y.f(cx) else unit(null)})}
-  val id: RE = {RE("$", {cs: Rep[Input] => if (cs.atEnd) cs else unit(null)})}
-  def star(x: RE)(resolve: RE => RE): RE = {
-    lazy val star_x: RE = resolve(RE("("+x.id+")*",
-      {cs => alt(seq(x, star_x), id).f(cs)}))
-    star_x
-  }
-  def sameRe(x: RE, y: RE) = x.id==y.id
-}
-
-trait Re2Ast extends Re {
+trait Re2Ast extends Regexp {
   abstract class RE
   case class C(c0: Char) extends RE
   case class R(a: Char, b: Char) extends RE
@@ -231,10 +187,10 @@ trait Re2Ast extends Re {
   def alt(x: RE, y: RE): RE = Alt(x, y)
   def seq(x: RE, y: RE): RE = Cat(x, y)
   val id: RE = I
-  def star(x: RE)(resolve: RE => RE): RE = Star(x)
+  def star(x: RE): RE = Star(x)
 }
 
-trait Re2Pr extends Re with Re2Ast with StagedLib with LetrecLib {
+trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
   type RF = (Rep[Input], Rep[Int], Rep[Int]) => Rep[Boolean]
   def mkpr(name: String, f: RF): RF = rec.get(name) match {
     case Some(_) => {
@@ -301,9 +257,9 @@ trait NfaStagedLib extends NfaLib with DfaLib with LetrecLib with StagedLib {
 trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
   def staged_dfa_accept(dfa: Dfa) = {
     val r0n = ((0 until dfa.finals.size):Range).toVector
-    val res = dfa2re(dfa)(null).map(re2pr)
+    val res = dfa2re(dfa).map(re2pr)
     val fwd = r0n.map{r:Int => mkpr("re_"+r, res(r))}
-    val res_bwd = dfa2re_backwards(dfa)(null)
+    val res_bwd = dfa2re_backwards(dfa)
     val bwd = r0n.map{r => res_bwd(r).map{p => mkpr("re_bwd_"+r, re2pr(p))}}
     val re = fwd(0)
     def matching(re: RF, inp: Rep[Input], i: Rep[Int], j: Rep[Int]): Rep[Boolean] = re(inp, i, j)
@@ -351,9 +307,6 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
                   matched = true
                   _assert(re_invariant(t, inp, i+1))
                   _assert((id==t) ==> re_invariant(t, inp, i+1))
-                  //if (dfa.finals(t)) {
-                  //  _assert(final_invariant(t, inp, i+1))
-                  //}
                 } else b
               }
             } else b
@@ -364,7 +317,6 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
         }}
       val finalId = readVar(id)
       val res = i==n && matched && r0n.foldLeft(unit(false)){(b: Rep[Boolean],r: Int) => if (dfa.finals(r)) (r==finalId || b) else b}
-      //_assert(res ==> matching(re, inp, 0, inp.length))
       res
     })
   }
@@ -438,8 +390,8 @@ class Dfa2ReTests extends TestSuite {
     def print(dfa: Dfa) {
       val n = dfa.finals.size
       for ((h,p) <- list(
-        ("forward", dfa2re(dfa)(null)),
-        ("backward", (dfa2re_backwards(dfa)(null)).map(_.get)))) {
+        ("forward", dfa2re(dfa)),
+        ("backward", (dfa2re_backwards(dfa).map(_.get))))) {
         println(h)
         for (i <- 0 until n) {
           println(i+": "+p(i))
