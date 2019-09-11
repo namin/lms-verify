@@ -249,6 +249,15 @@ trait Re2Pr extends Re with Re2Ast with StagedLib with LetrecLib {
       r
     }
   }
+  def key(r:RE): String = r match {
+    case C(c) => c.toString
+    case R(a, b) => a.toString+"_to_"+b.toString
+    case W => "w"
+    case Alt(x, y) => "_or"+key(x)+"_or_"+key(y)+"or_"
+    case Cat(x, y) => key(x)+key(y)
+    case I => "i"
+    case Star(x) => "_s"+key(x)+"s_"
+  }
   def re2pr(r: RE): RF = r match {
     case C(c) => {(inp,i,j) => c==inp(i) && j==i+1}
     case R(a, b) => {(inp,i,j) => a<=inp(i) && inp(i)<=b && j==i+1}
@@ -257,9 +266,10 @@ trait Re2Pr extends Re with Re2Ast with StagedLib with LetrecLib {
     case Cat(x, y) => {(inp,i,j) => exists{m: Rep[Int] =>
       i <= m && m <= j && re2pr(x)(inp,i,m) && re2pr(y)(inp,m,j)}}
     case I => {(inp,i,j) => i==j}
-    case Star(C(c)) => {
-      lazy val rec: RF = { mkpr("star_"+c, { (inp, i, j) =>
-        (c==inp(i) && j>0 && rec(inp, 0, j-1)) || (i==j)}) }
+    case Star(x) => {
+      lazy val rec: RF = { mkpr("star_"+key(x), { (inp, i, j) => exists{m: Rep[Int] =>
+        ((i < m && m <= j) ==>
+         (re2pr(x)(inp,i,m) && rec(inp, m, j))) || (i==j)} }) }
       {(inp,i,j) => rec(inp,i,j)}
     }
   }
