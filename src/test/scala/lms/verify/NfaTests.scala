@@ -236,17 +236,12 @@ trait Re2Ast extends Re {
 
 trait Re2Pr extends Re with Re2Ast with StagedLib with LetrecLib {
   type RF = (Rep[Input], Rep[Int], Rep[Int]) => Rep[Boolean]
-  // redoing letrec...
-  var prtable: Map[String, RF] = Map.empty
-  def mkpr(name: String, f: RF): RF = {
-    prtable.get(name) match {
-      case Some(r) => r
-      case None => {
-        lazy val r = unwrap3(toplevel(name, wrap3(f), spec=true, code=false))
-        prtable += (name -> r)
-        r
-      }
+  def mkpr(name: String, f: RF): RF = rec.get(name) match {
+    case Some(_) => {
+      val r: RF = {(inp,i,j) => toplevelApply[Boolean](name, list(inp,i,j))}
+      r
     }
+    case None => unwrap3(toplevel(name, wrap3(f), spec=true, code=false))
   }
   def key(r:RE): String = r match {
     case C(c) => c.toString
