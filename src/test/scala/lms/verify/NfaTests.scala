@@ -342,8 +342,11 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
               r0n.foldLeft(unit(())){(b,t) =>
                 val chars = dfa.transitions(r)(t)
                 if (chars.contains(c)) {
+                  _assert(re_invariant(t, inp, i+1))
                   id = t
                   matched = true
+                  _assert(re_invariant(t, inp, i+1))
+                  _assert((id==t) ==> re_invariant(t, inp, i+1))
                 } else b
               }
             } else b
@@ -351,9 +354,10 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
           //_assert(!matched ==> !re_cover(inp, i+1))
           //_assert(!re_cover(inp, i+1) ==> !matching(re0, inp, 0, i+1))
           //_assert(matched ==> re_invariants(id, inp, i+1));
+          _assert(matched ==> re_invariants(id, inp, i+1));
           i = ghost(ghost(i)+1) //TODO: could be inferred
           cur = cur.rest
-          //_assert(matched ==> re_invariants(id, inp, i));
+          _assert(matched ==> re_invariants(id, inp, i));
         }}
       val finalId = readVar(id)
       val res = cur.atEnd && matched && r0n.foldLeft(unit(false)){(b: Rep[Boolean],r: Int) => if (dfa.finals(r)) (r==finalId || b) else b}

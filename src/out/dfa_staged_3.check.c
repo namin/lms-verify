@@ -324,135 +324,172 @@ int dfa(char  * x877) {
       char x943 = x942[0];
       int x951 = 'A' == x943;
       if (x951) {
+        /*@assert re_bwd_1(x877,0,(x881+1));*/
         x880 = 1;
         x879 = 1/*true*/;
+        /*@assert re_bwd_1(x877,0,(x881+1));*/
+        /*@assert ((x880==1) ==> re_bwd_1(x877,0,(x881+1)));*/
       } else {
       }
     } else {
     }
-    int x958 = x879;
-    int x963;
-    if (x958) {
-      x963 = 0/*false*/;
+    int x976 = x879;
+    int x981;
+    if (x976) {
+      x981 = 0/*false*/;
     } else {
-      int x960 = x880;
-      int x961 = x960 == 1;
-      x963 = x961;
+      int x978 = x880;
+      int x979 = x978 == 1;
+      x981 = x979;
     }
-    if (x963) {
+    if (x981) {
       char x943 = x942[0];
       int x951 = 'A' == x943;
       if (x951) {
+        /*@assert re_bwd_1(x877,0,(x881+1));*/
         x880 = 1;
         x879 = 1/*true*/;
+        /*@assert re_bwd_1(x877,0,(x881+1));*/
+        /*@assert ((x880==1) ==> re_bwd_1(x877,0,(x881+1)));*/
       } else {
       }
-      int x968 = 'B' == x943;
-      if (x968) {
+      int x1004 = 'B' == x943;
+      if (x1004) {
+        /*@assert re_bwd_2(x877,0,(x881+1));*/
         x880 = 2;
         x879 = 1/*true*/;
+        /*@assert re_bwd_2(x877,0,(x881+1));*/
+        /*@assert ((x880==2) ==> re_bwd_2(x877,0,(x881+1)));*/
       } else {
       }
     } else {
     }
-    int x975 = x879;
-    int x980;
-    if (x975) {
-      x980 = 0/*false*/;
+    int x1029 = x879;
+    int x1034;
+    if (x1029) {
+      x1034 = 0/*false*/;
     } else {
-      int x977 = x880;
-      int x978 = x977 == 2;
-      x980 = x978;
+      int x1031 = x880;
+      int x1032 = x1031 == 2;
+      x1034 = x1032;
     }
-    if (x980) {
+    if (x1034) {
       char x943 = x942[0];
-      int x968 = 'B' == x943;
-      if (x968) {
+      int x1004 = 'B' == x943;
+      if (x1004) {
+        /*@assert re_bwd_2(x877,0,(x881+1));*/
         x880 = 2;
         x879 = 1/*true*/;
+        /*@assert re_bwd_2(x877,0,(x881+1));*/
+        /*@assert ((x880==2) ==> re_bwd_2(x877,0,(x881+1)));*/
       } else {
       }
-      int x985 = 'C' == x943;
-      if (x985) {
+      int x1057 = 'C' == x943;
+      if (x1057) {
+        /*@assert re_bwd_3(x877,0,(x881+1));*/
         x880 = 3;
         x879 = 1/*true*/;
+        /*@assert re_bwd_3(x877,0,(x881+1));*/
+        /*@assert ((x880==3) ==> re_bwd_3(x877,0,(x881+1)));*/
       } else {
       }
     } else {
     }
-    int x992 = x879;
-    int x997;
-    if (x992) {
-      x997 = 0/*false*/;
+    int x1082 = x879;
+    int x1087;
+    if (x1082) {
+      x1087 = 0/*false*/;
     } else {
-      int x994 = x880;
-      int x995 = x994 == 3;
-      x997 = x995;
+      int x1084 = x880;
+      int x1085 = x1084 == 3;
+      x1087 = x1085;
     }
-    if (x997) {
+    if (x1087) {
       char x943 = x942[0];
-      int x968 = 'B' == x943;
-      if (x968) {
+      int x1004 = 'B' == x943;
+      if (x1004) {
+        /*@assert re_bwd_2(x877,0,(x881+1));*/
         x880 = 2;
         x879 = 1/*true*/;
+        /*@assert re_bwd_2(x877,0,(x881+1));*/
+        /*@assert ((x880==2) ==> re_bwd_2(x877,0,(x881+1)));*/
       } else {
       }
-      int x985 = 'C' == x943;
-      if (x985) {
+      int x1057 = 'C' == x943;
+      if (x1057) {
+        /*@assert re_bwd_3(x877,0,(x881+1));*/
         x880 = 3;
         x879 = 1/*true*/;
+        /*@assert re_bwd_3(x877,0,(x881+1));*/
+        /*@assert ((x880==3) ==> re_bwd_3(x877,0,(x881+1)));*/
       } else {
       }
-      int x1006 = 'D' == x943;
-      if (x1006) {
+      int x1132 = 'D' == x943;
+      if (x1132) {
+        /*@assert re_bwd_4(x877,0,(x881+1));*/
         x880 = 4;
         x879 = 1/*true*/;
+        /*@assert re_bwd_4(x877,0,(x881+1));*/
+        /*@assert ((x880==4) ==> re_bwd_4(x877,0,(x881+1)));*/
       } else {
       }
     } else {
     }
-    int x1013 = x879;
-    int x1018;
-    if (x1013) {
-      x1018 = 0/*false*/;
+    int x1157 = x879;
+    int x1162;
+    if (x1157) {
+      x1162 = 0/*false*/;
     } else {
-      int x1015 = x880;
-      int x1016 = x1015 == 4;
-      x1018 = x1016;
+      int x1159 = x880;
+      int x1160 = x1159 == 4;
+      x1162 = x1160;
     }
-    if (x1018) {
+    if (x1162) {
       char x943 = x942[0];
-      int x1006 = 'D' == x943;
-      if (x1006) {
+      int x1132 = 'D' == x943;
+      if (x1132) {
+        /*@assert re_bwd_4(x877,0,(x881+1));*/
         x880 = 4;
         x879 = 1/*true*/;
+        /*@assert re_bwd_4(x877,0,(x881+1));*/
+        /*@assert ((x880==4) ==> re_bwd_4(x877,0,(x881+1)));*/
       } else {
       }
     } else {
     }
-    //@ ghost int x1025 = x881;
-    //@ ghost int x1026 = x1025 + 1;
-    //@ ghost x881 = x1026;
-    char  *x1028 = x942+1;
-    x882 = x1028;
+    /*@assert (x879 ==> (((x880==4) ==> re_bwd_4(x877,0,(x881+1))) &&
+    (((x880==3) ==> re_bwd_3(x877,0,(x881+1))) &&
+    (((x880==2) ==> re_bwd_2(x877,0,(x881+1))) &&
+    (((x880==1) ==> re_bwd_1(x877,0,(x881+1))) &&
+    ((x880==0) ==> re_bwd_0(x877,0,(x881+1))))))));*/
+    //@ ghost int x1214 = x881;
+    //@ ghost int x1215 = x1214 + 1;
+    //@ ghost x881 = x1215;
+    char  *x1217 = x942+1;
+    x882 = x1217;
+    /*@assert (x879 ==> (((x880==4) ==> re_bwd_4(x877,0,x881)) &&
+    (((x880==3) ==> re_bwd_3(x877,0,x881)) &&
+    (((x880==2) ==> re_bwd_2(x877,0,x881)) &&
+    (((x880==1) ==> re_bwd_1(x877,0,x881)) &&
+    ((x880==0) ==> re_bwd_0(x877,0,x881)))))));*/
   }
-  int x1122 = x880;
-  char  *x1123 = x882;
-  char x1124 = x1123[0];
-  int x1125 = x1124 == '\0';
-  int x1128;
-  if (x1125) {
-    int x1126 = x879;
-    x1128 = x1126;
+  int x1337 = x880;
+  char  *x1338 = x882;
+  char x1339 = x1338[0];
+  int x1340 = x1339 == '\0';
+  int x1343;
+  if (x1340) {
+    int x1341 = x879;
+    x1343 = x1341;
   } else {
-    x1128 = 0/*false*/;
+    x1343 = 0/*false*/;
   }
-  int x1130;
-  if (x1128) {
-    int x1129 = 4 == x1122;
-    x1130 = x1129;
+  int x1345;
+  if (x1343) {
+    int x1344 = 4 == x1337;
+    x1345 = x1344;
   } else {
-    x1130 = 0/*false*/;
+    x1345 = 0/*false*/;
   }
-  return x1130;
+  return x1345;
 }
