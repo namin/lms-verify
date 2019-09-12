@@ -641,6 +641,11 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
     }
   }
 
+  override def emitBlock(b: Block[Any]): Unit = {
+    pushEmittedScope()
+    super.emitBlock(b)
+    popEmittedScope()
+  }
   override def emitVarDecl(sym: Sym[Any]): Unit = {
     //TODO: this should be fixed in LMS core to match spacing style of emitVarDef.
     stream.println(remapWithRef(sym.tp) + quote(sym) + ";")
@@ -675,7 +680,12 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
   }
 
   val default_m =  Map[Sym[_], String]()
-  val emitted = new scala.collection.mutable.LinkedHashSet[Sym[_]]
+  def newEmittedScope() = new scala.collection.mutable.LinkedHashSet[Sym[_]]
+  var emitted: List[collection.mutable.Set[Sym[_]]] = newEmittedScope()::Nil
+  def sayEmitted(s: Sym[_]): Unit = emitted.head += s
+  def saidEmitted(s: Sym[_]): Boolean = emitted.foldLeft(false){(b,x) => x(s) || b}
+  def pushEmittedScope(): Unit = emitted = newEmittedScope()::emitted
+  def popEmittedScope(): Unit = emitted = emitted.tail
   def exprOfBlock[A](kw: String, e: Block[A], m: Map[Sym[_], String] = Map(), end:String = ""): String = {
     val r = exprOfBlock(e, m)
     r match {
@@ -749,7 +759,7 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
     case Const(b: Boolean) => "\\"+b.toString
     case Const(_) => quotee(e)
     case s@Sym(n) => s match {
-      case Def(d) if !emitted(s) || specSyms(s) => exprOfDef(d, m)
+      case Def(d) if !saidEmitted(s) || specSyms(s) => exprOfDef(d, m)
       case Def(d:ArrayApply[_]) => exprOfDef(d, m)
       case Def(d:Reflect[_]) => exprOfDef(d, m)
       case _ => m.get(s) match {
@@ -761,7 +771,7 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
 
   override def emitNode(sym: Sym[Any], rhs: Def[Any]): Unit = {
     if (specSyms(sym)) return
-    emitted += sym
+    sayEmitted(sym)
     if (emitFileAndLine && !rhs.isInstanceOf[Reflect[_]]) {
       val s = quotePos(sym).split("//")(0).split(":")
       stream.println(s"""#line ${s(1)} "${s(0)}" """)
