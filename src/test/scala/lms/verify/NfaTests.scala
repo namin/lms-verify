@@ -223,6 +223,22 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
       z
     }
   }
+  def re2pr0(r: RE): RF = r match {
+    case C(c) => {(inp,i,j) => i==j || (c==inp(i) && j>=i+1)}
+    case R(a, b) => {(inp,i,j) => i==j || (a<=inp(i) && inp(i)<=b && j>=i+1)}
+    case W => {(inp,i,j) => i==j || (!inp.to(i).atEnd && j>=i+1)}
+    case Alt(x, y) => {(inp,i,j) => re2pr0(x)(inp,i,j) || re2pr0(y)(inp,i,j) }
+    case Cat(x, y) => {(inp,i,j) =>
+      re2pr0(x)(inp,i,j) ||
+      exists{m: Rep[Int] =>
+        i <= m && m <= j && re2pr(x)(inp,i,m) && re2pr0(y)(inp,m,j)}}
+    case I => {(inp,i,j) => j>=i}
+    case Star(x) => {
+      lazy val z: RF = { mkpr("star_starting_"+key(x), { (inp, i, j) => re2pr0(x)(inp,i,j) ||
+        exists{m: Rep[Int] => (((i < m) && (m  <= j)) ==> (re2pr(x)(inp,i,m) && z(inp, m, j)))} || (j>=i)})}
+      z
+    }
+  }
 }
 
 trait CommonLib {
@@ -257,11 +273,13 @@ trait NfaStagedLib extends NfaLib with DfaLib with LetrecLib with StagedLib {
 trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
   def staged_dfa_accept(dfa: Dfa) = {
     val r0n = ((0 until dfa.finals.size):Range).toVector
-    val res = dfa2re(dfa).map(re2pr)
+    val dfa_res = dfa2re(dfa)
+    val res = dfa_res.map(re2pr)
     val fwd = r0n.map{r:Int => mkpr("re_"+r, res(r))}
     val res_bwd = dfa2re_backwards(dfa)
     val bwd = r0n.map{r => res_bwd(r).map{p => mkpr("re_bwd_"+r, re2pr(p))}}
     val re = fwd(0)
+    val re0 = mkpr("re0", re2pr0(dfa_res(0)))
     def matching(re: RF, inp: Rep[Input], i: Rep[Int], j: Rep[Int]): Rep[Boolean] = re(inp, i, j)
     def re_invariant(r: Int, inp: Rep[Input], i: Rep[Int]): Rep[Boolean] =
       (bwd(r).map{x => matching(x, inp, 0, i)}.getOrElse(unit(true)))
@@ -289,6 +307,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
         (cur==inp.to(i)) &&
         valid_input(inp.to(i)) &&
         (matched ==> re_invariants(id, inp, i)) &&
+        (matched ==> matching(re0, inp, 0, i)) &&
         finals_invariants(id, inp, i) &&
         id_invariant(id)),
         List[Any](cur, i, id, matched),
