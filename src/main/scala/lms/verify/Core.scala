@@ -342,15 +342,10 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
 
   var specSyms: Set[Rep[Any]] = Set.empty
   override protected implicit def toAtom[T:Typ](d: Def[T])(implicit pos: SourceContext): Exp[T] = {
-    def a = super.toAtom[T](d)(implicitly[Typ[T]], pos)
-    if (reifyingSpec) {
-      val x = d match {
-        case _:Reify[_] => a
-        case _ => a//reflectEffect(d)
-      }
-      specSyms += x
-      x
-    } else a
+    val a = super.toAtom[T](d)(implicitly[Typ[T]], pos)
+    if (reifyingSpec)
+      specSyms += a
+    a
   }
 
   case class Valid[A](p: Rep[A], r: Option[Rep[Any]]) extends Def[Boolean]
@@ -416,16 +411,22 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
         case _ =>
       }
     }
-    eff.get(name) match {
-      case Some((params,es)) =>
-        val m = params.zip(args.map{x => x match {
-          case s:Sym[Any] => s
-          case _ => null
-        }}).toMap
-        val es2 = replaceInSummary(m, es)
-        reflectEffect(ToplevelApply[B](name, args), es2)
-      case None => reflectEffect(ToplevelApply[B](name, args))
-    }
+    val d = ToplevelApply[B](name, args)
+    // rec.get(name) match {
+    //   case _:Logic[_] => d
+    //   case (x:TopLevel[_]) if x.spec && !x.code => d
+    //   case _ =>
+        eff.get(name) match {
+          case Some((params,es)) =>
+            val m = params.zip(args.map{x => x match {
+              case s:Sym[Any] => s
+              case _ => null
+            }}).toMap
+            val es2 = replaceInSummary(m, es)
+            reflectEffect(d, es2)
+          case None => reflectEffect(d)
+        }
+    // }
   }
   def replaceInSummary(m: Map[Sym[Any], Sym[Any]], es: Summary) = {
     def r1(x: Sym[Any]): List[Sym[Any]] = m.get(x) match {
@@ -542,7 +543,7 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
   }
 
   override def symsFreq(e: Any): List[(Sym[Any], Double)] = e match {
-    case Assert(y) => freqNormal(y)
+    case Assert(y) => freqCold(y)
     case Quantifier(k, x, y) => freqHot(y)
     case RangeQuantifier(k, start, end, j, i, y, z) => freqNormal(start):::freqNormal(end):::freqCold(y):::freqHot(z)
     case _ => super.symsFreq(e)
@@ -748,6 +749,8 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
     case Const(_) => quotee(e)
     case s@Sym(n) => s match {
       case Def(d) if !emitted(s) || specSyms(s) => exprOfDef(d, m)
+      case Def(d:ArrayApply[_]) => exprOfDef(d, m)
+      case Def(d:Reflect[_]) => exprOfDef(d, m)
       case _ => m.get(s) match {
         case Some(v) => v
         case None => quotee(e)

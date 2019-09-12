@@ -1400,7 +1400,7 @@ int p(char  * x0) {
         ((strlen(x1428)>=0) &&
         \valid(x1428+(0..strlen(x1428)))));
         loop assigns x1430, x1427, x1428;
-        loop variant (x1424-x1430);
+        loop variant (x1186-x1430);
         */
         for(int x1430=0; x1430 < x1424; x1430++) {
           int x1431 = x1427;
@@ -1469,7 +1469,7 @@ int p(char  * x0) {
     ((strlen(x1521)>=0) &&
     \valid(x1521+(0..strlen(x1521)))));
     loop assigns x1523, x1520, x1521;
-    loop variant (x1170-x1523);
+    loop variant (x6-x1523);
     */
     for(int x1523=0; x1523 < x1170; x1523++) {
       int x1524 = x1520;

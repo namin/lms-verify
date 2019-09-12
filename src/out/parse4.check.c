@@ -336,7 +336,7 @@ int p(char  * x0) {
       ((strlen(x290)>=0) &&
       \valid(x290+(0..strlen(x290)))));
       loop assigns x292, x289, x290;
-      loop variant (x286-x292);
+      loop variant (x16-x292);
       */
       for(int x292=0; x292 < x286; x292++) {
         int x293 = x289;
