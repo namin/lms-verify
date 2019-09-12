@@ -281,6 +281,10 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
     val re = fwd(0)
     val re0 = mkpr("re0", re2pr0(dfa_res(0)))
     def matching(re: RF, inp: Rep[Input], i: Rep[Int], j: Rep[Int]): Rep[Boolean] = re(inp, i, j)
+    def re_cover(inp: Rep[Input], i: Rep[Int]): Rep[Boolean] =
+      r0n.foldLeft(unit(false)){(b,r) =>
+        (bwd(r).map{x => matching(x, inp, 0, i)}.getOrElse(unit(false))) || b
+      }
     def re_invariant(r: Int, inp: Rep[Input], i: Rep[Int]): Rep[Boolean] =
       ((bwd(r).map{x => matching(x, inp, 0, i)}.getOrElse(unit(false))) &&
         r0n.foldLeft(unit(true)){(b,t) =>
@@ -316,6 +320,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
         valid_input(inp.to(i)) &&
         (matched ==> re_invariants(id, inp, i)) &&
         (matched ==> matching(re0, inp, 0, i)) &&
+        (matching(re0, inp, 0, i) ==> re_cover(inp, i)) &&
         //(!matched ==> re_not_invariants(inp, i)) &&
         //(!matched ==> !matching(re0, inp, 0, i)) &&
         ((!matching(re0, inp, 0, i)) ==> (!matching(re, inp, 0, n))) &&
