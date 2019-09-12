@@ -10,6 +10,31 @@ predicate match_aapb(char* s) =
 /*@
 requires strlen(s)>=0 && \valid(s+(0..strlen(s)));
 
+requires 0 <= i;
+requires strlen(s)-i>=stop;
+requires 0 <= n <= stop;
+requires !star_A(s, i, n);
+ensures !star_A(s, i, stop);
+
+assigns \nothing;
+ */
+int lemma_not_star_A(char* s, int i, int n, int stop) {
+  int j = n;
+  /*@
+    loop invariant 0 <= j <= stop;
+    loop invariant !star_A(s, i, j);
+    loop assigns j;
+    loop variant stop-j;
+  */
+  while (j!=stop) {
+    j++;
+  }
+  return 0;
+}
+
+/*@
+requires strlen(s)>=0 && \valid(s+(0..strlen(s)));
+
 requires strlen(s)<=INT_MAX;
 
 ensures match_aapb(s) ==> \result==1;
@@ -23,12 +48,12 @@ int m_aapb(char* s) {
     return 0;
   }
   //@assert strlen(s)>=2;
-  if (s[0]!='A') {
+  int n = 0;
+  if (s[n]!='A') {
     //@assert !match_aapb(s);
     return 0;
   }
-  //@assert s[0]=='A';
-  int n = 0;
+  //@assert s[n]=='A';
   /*@
     loop invariant 0 <= n <= strlen(s)-2;
     loop invariant star_A(s, 1, n);
@@ -43,27 +68,20 @@ int m_aapb(char* s) {
     //@assert s[1+n]!='A';
     //@assert star_A(s, 1, n);
     //@assert !star_A(s, 1, n+1);
-    n++;
-    /*@
-      loop invariant 0 <= n <= strlen(s)-2;
-      loop invariant !star_A(s, 1, n);
-      loop assigns n;
-      loop variant strlen(s)-2-n;
-    */
-    while (n!=strlen(s)-2) {
-      n++;
-    }
+    //@ghost lemma_not_star_A(s, 1, n+1, strlen(s)-2);
     //@assert !star_A(s, 1, strlen(s)-2);
     //@assert !match_aapb(s);
     return 0;
   }
   //@assert star_A(s, 1, strlen(s)-2);
-  if (s[strlen(s)-1]!='B') {
+  n++;
+  if (s[n]!='B') {
     //@assert !match_aapb(s);
     return 0;
   }
-  //@assert s[strlen(s)-1]=='B';
-  //@assert s[strlen(s)]=='\0';
+  //@assert s[n]=='B';
+  n++;
+  //@assert s[n]=='\0';
   //@assert match_aapb(s);
-  return s[strlen(s)]=='\0';
+  return s[n]=='\0';
 }
