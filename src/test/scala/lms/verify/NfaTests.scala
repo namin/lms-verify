@@ -321,6 +321,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
         (matched ==> re_invariants(id, inp, i)) &&
         (matched ==> matching(re0, inp, 0, i)) &&
         (matching(re0, inp, 0, i) ==> re_cover(inp, i)) &&
+        //(!matched ==> !re_cover(inp, i)) &&
         //(!matched ==> re_not_invariants(inp, i)) &&
         //(!matched ==> !matching(re0, inp, 0, i)) &&
         ((!matching(re0, inp, 0, i)) ==> (!matching(re, inp, 0, n))) &&
@@ -330,25 +331,19 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
         cur.length) {
         while (!cur.atEnd && matched) {
           val c = cur.first
-          matched = false
-          r0n.foldLeft(unit(())){(b,r) =>
-            if (!matched && id == r) {
-              _assert((id==r) ==> re_invariant(r, inp, i))
-              _assert(re_invariant(r, inp, i))
-              r0n.foldLeft(unit(())){(b,t) =>
+          matched = r0n.foldLeft(unit(false)){(b,r) =>
+            if (id == r) {
+              r0n.foldLeft(unit(false)){(b,t) =>
                 val chars = dfa.transitions(r)(t)
                 if (chars.nonEmpty && chars.contains(c)) {
-                  _assert(re_invariant(t, inp, i+1))
-                  _assert(matching(re0, inp, 0, i+1))
                   id = t
-                  matched = true
-                  _assert(re_invariant(t, inp, i+1))
-                  _assert((id==t) ==> re_invariant(t, inp, i+1))
+                  true
                 } else b
               }
               //_assert(!matched ==> !matching(re0, inp, 0, i+1))
             } else b
           }
+          //_assert(!matched ==> !re_cover(inp, i+1))
           _assert(matched ==> re_invariants(id, inp, i+1))
           //_assert(!matched ==> !matching(re0, inp, 0, i+1))
           _assert(!re_invariants(id, inp, i+1) ==> !matched)
