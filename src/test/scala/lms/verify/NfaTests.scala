@@ -308,6 +308,8 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
         valid_input(inp.to(i)) &&
         (matched ==> re_invariants(id, inp, i)) &&
         (matched ==> matching(re0, inp, 0, i)) &&
+        //(!matched ==> !matching(re0, inp, 0, i)) &&
+        ((!matching(re0, inp, 0, i)) ==> (!matching(re, inp, 0, n))) &&
         finals_invariants(id, inp, i) &&
         id_invariant(id)),
         List[Any](cur, i, id, matched),
@@ -329,6 +331,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
                   _assert((id==t) ==> re_invariant(t, inp, i+1))
                 } else b
               }
+              //_assert(!matched ==> !matching(re0, inp, 0, i+1))
             } else b
           }
           _assert(matched ==> re_invariants(id, inp, i+1));
