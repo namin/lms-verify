@@ -288,8 +288,8 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
     def re_invariant(r: Int, inp: Rep[Input], i: Rep[Int]): Rep[Boolean] =
       ((bwd(r).map{x => matching(x, inp, 0, i)}.getOrElse(unit(false))) &&
         r0n.foldLeft(unit(true)){(b,t) =>
-          if (t==r) unit(true)
-          else (bwd(t).map{x => !matching(x, inp, 0, i)}.getOrElse(unit(true)))
+          (if (t==r) unit(true)
+          else (bwd(t).map{x => !matching(x, inp, 0, i)}.getOrElse(unit(true)))) && b
         })
     def re_invariants(id: Rep[Int], inp: Rep[Input], i: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(b,r) =>
       ((id == r) ==> (re_invariant(r, inp, i))) && b
@@ -349,6 +349,8 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
           if (!matched) {
             r0n.foreach{t => r0n.foreach{r =>
               if (id==r) {
+                _assert((id == r) ==> re_invariant(r, inp, i))
+                _assert(re_invariant(r, inp, i))
                 dfa.transitions(r)(t).foreach{a =>
                   _assert(!(c == a))
                 }
