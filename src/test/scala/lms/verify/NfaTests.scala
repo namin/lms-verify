@@ -217,9 +217,10 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
       i <= m && m <= j && re2pr(x)(inp,i,m) && re2pr(y)(inp,m,j)}}
     case I => {(inp,i,j) => i==j}
     case Star(x) => {
-      lazy val z: RF = { mkpr("star_"+key(x), { (inp, i, j) => exists{m: Rep[Int] =>
-        ((i < m && m <= j) ==>
-         (re2pr(x)(inp,i,m) && z(inp, m, j))) || (i==j)} }) }
+      lazy val z: RF = { mkpr("star_"+key(x), { (inp, i, j) => (i==j) ||
+        exists{m: Rep[Int] =>
+          ((i < m && m <= j) ==>
+            (re2pr(x)(inp,i,m) && z(inp, m, j)))} }) }
       z
     }
   }
@@ -369,6 +370,9 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
         }}
       val finalId = readVar(id)
       val res = cur.atEnd && matched && r0n.foldLeft(unit(false)){(b: Rep[Boolean],r: Int) => if (dfa.finals(r)) (r==finalId || b) else b}
+      _assert(matching(re0, inp, 0, i) ==> res)
+      _assert((cur.atEnd) ==> (i==n))
+      _assert(matching(re0, inp, 0, n) ==> res)
       res
     })
   }
