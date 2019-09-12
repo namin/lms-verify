@@ -274,6 +274,9 @@ trait NfaStagedLib extends NfaLib with DfaLib with LetrecLib with StagedLib {
 trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
   def staged_dfa_accept(dfa: Dfa) = {
     val r0n = ((0 until dfa.finals.size):Range).toVector
+    def foldThunks[B:Typ](b: =>Rep[B])(f: ((Unit=>Rep[B]),Int) => Rep[B]): Rep[B] = ((r0n.foldLeft[Unit=>Rep[B]]{(_:Unit) => b}{
+      (bt:(Unit=>Rep[B]),r:Int) => (_:Unit) => f(bt,r)
+    })(()))
     val dfa_res = dfa2re(dfa)
     val res = dfa_res.map(re2pr)
     val fwd = r0n.map{r:Int => mkpr("re_"+r, res(r))}
@@ -283,8 +286,8 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
     val re0 = mkpr("re0", re2pr0(dfa_res(0)))
     def matching(re: RF, inp: Rep[Input], i: Rep[Int], j: Rep[Int]): Rep[Boolean] = re(inp, i, j)
     def re_cover(inp: Rep[Input], i: Rep[Int]): Rep[Boolean] =
-      r0n.foldLeft(unit(false)){(b,r) =>
-        (bwd(r).map{x => matching(x, inp, 0, i)}.getOrElse(unit(false))) || b
+      foldThunks{unit(false)}{(b,r) =>
+        (bwd(r).map{x => matching(x, inp, 0, i)}.getOrElse(unit(false))) || b(())
       }
     def re_invariant(r: Int, inp: Rep[Input], i: Rep[Int]): Rep[Boolean] =
       (bwd(r).map{x => matching(x, inp, 0, i)}.getOrElse(unit(false))) /*&&
@@ -292,19 +295,19 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
           (if (t==r) unit(true)
           else (bwd(t).map{x => !matching(x, inp, 0, i)}.getOrElse(unit(true)))) && b
         }*/
-    def re_invariants(id: Rep[Int], inp: Rep[Input], i: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(b,r) =>
-      ((id == r) ==> (re_invariant(r, inp, i))) && b
+    def re_invariants(id: Rep[Int], inp: Rep[Input], i: Rep[Int]): Rep[Boolean] = foldThunks(unit(true)){(b,r) =>
+      ((id == r) ==> (re_invariant(r, inp, i))) && b(())
     }
-    def re_not_invariants(inp: Rep[Input], i: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(b,r) =>
-      !re_invariant(r, inp, i) && b
+    def re_not_invariants(inp: Rep[Input], i: Rep[Int]): Rep[Boolean] = foldThunks(unit(true)){(b,r) =>
+      !re_invariant(r, inp, i) && b(())
     }
     def final_invariant(r: Int, inp: Rep[Input], i: Rep[Int]): Rep[Boolean] =
       (((bwd(r).map{x => matching(x, inp, 0, i)}).getOrElse(unit(false))) ==> matching(re, inp, 0, i))
-    def finals_invariants(id: Rep[Int], inp: Rep[Input], i: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(b,r) =>
-      if (dfa.finals(r)) ((id == r) ==> final_invariant(r, inp, i)) else b
+    def finals_invariants(id: Rep[Int], inp: Rep[Input], i: Rep[Int]): Rep[Boolean] = foldThunks(unit(true)){(b,r) =>
+      if (dfa.finals(r)) ((id == r) ==> final_invariant(r, inp, i)) else b(())
     }
-    def id_invariant(id: Var[Int]): Rep[Boolean] = r0n.foldLeft(unit(false)){(b,r) =>
-      (id == r) || b
+    def id_invariant(id: Var[Int]): Rep[Boolean] = foldThunks(unit(false)){(b,r) =>
+      (id == r) || b(())
     }
     toplevel("dfa", { inp: Rep[Array[Char]] =>
       requires(valid_input(inp))
@@ -334,22 +337,21 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
           _assert(matched ==> re_invariants(id, inp, i))
           _assert(re_invariants(id, inp, i))
           val c = cur.first
-          matched = false
-          r0n.foldLeft(unit(())){(b,r) =>
-            if (!matched && id == r) {
+          matched = foldThunks(unit(false)){(b,r) =>
+            if (id == r) {
               //_assert(re_invariants(id, inp, i))
               //_assert((id == r) ==> re_invariant(r, inp, i))
-              r0n.foldLeft(unit(())){(b,t) =>
+              foldThunks(unit(false)){(b,t) =>
                 val chars = dfa.transitions(r)(t)
                 if (chars.contains(c)) {
                   _assert(re_invariant(t, inp, i+1))
                   id = t
-                  matched = true
                   _assert(re_invariant(t, inp, i+1))
                   _assert((id==t) ==> re_invariant(t, inp, i+1))
-                } else b
+                  unit(true)
+                } else b(())
               }
-            } else b
+            } else b(())
           }
           //_assert(!matched ==> !re_cover(inp, i+1))
           //_assert(!re_cover(inp, i+1) ==> !matching(re0, inp, 0, i+1))
@@ -360,7 +362,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
           _assert(matched ==> re_invariants(id, inp, i));
         }}
       val finalId = readVar(id)
-      val res = cur.atEnd && matched && r0n.foldLeft(unit(false)){(b: Rep[Boolean],r: Int) => if (dfa.finals(r)) (r==finalId || b) else b}
+      val res = cur.atEnd && matched && foldThunks{unit(false)}{(b,r) => if (dfa.finals(r)) (r==finalId || b(())) else b(())}
       //_assert(matching(re0, inp, 0, i) ==> res)
       //_assert((cur.atEnd) ==> (i==n))
       //_assert((matching(re0, inp, 0, n) && r0n.foldLeft(unit(false)){(b: Rep[Boolean],r: Int) => if (dfa.finals(r)) (r==finalId || b) else b}) ==> res)

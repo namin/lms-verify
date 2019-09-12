@@ -113,98 +113,93 @@ int dfa(char  * x234) {
     (((x237==1) ==> re_bwd_1(x234,0,x238)) &&
     ((x237==0) ==> re_bwd_0(x234,0,x238))));*/
     char  *x283 = x239;
-    x236 = 0/*false*/;
-    int x286 = x236;
-    int x291;
+    int x285 = x237;
+    int x286 = x285 == 2;
+    int x361;
     if (x286) {
-      x291 = 0/*false*/;
+      x361 = 0/*false*/;
     } else {
-      int x288 = x237;
-      int x289 = x288 == 0;
-      x291 = x289;
-    }
-    if (x291) {
-      char x284 = x283[0];
-      int x292 = 'A' == x284;
-      if (x292) {
-        /*@assert re_bwd_1(x234,0,(x238+1));*/
-        x237 = 1;
-        x236 = 1/*true*/;
-        /*@assert re_bwd_1(x234,0,(x238+1));*/
-        /*@assert ((x237==1) ==> re_bwd_1(x234,0,(x238+1)));*/
+      int x287 = x285 == 1;
+      int x359;
+      if (x287) {
+        char x284 = x283[0];
+        int x288 = 'B' == x284;
+        int x332;
+        if (x288) {
+          /*@assert re_bwd_2(x234,0,(x238+1));*/
+          x237 = 2;
+          /*@assert re_bwd_2(x234,0,(x238+1));*/
+          /*@assert ((x237==2) ==> re_bwd_2(x234,0,(x238+1)));*/
+          x332 = 1/*true*/;
+        } else {
+          int x309 = 'A' == x284;
+          int x330;
+          if (x309) {
+            /*@assert re_bwd_1(x234,0,(x238+1));*/
+            x237 = 1;
+            /*@assert re_bwd_1(x234,0,(x238+1));*/
+            /*@assert ((x237==1) ==> re_bwd_1(x234,0,(x238+1)));*/
+            x330 = 1/*true*/;
+          } else {
+            x330 = 0/*false*/;
+          }
+          x332 = x330;
+        }
+        x359 = x332;
       } else {
+        int x334 = x285 == 0;
+        int x357;
+        if (x334) {
+          char x284 = x283[0];
+          int x309 = 'A' == x284;
+          int x355;
+          if (x309) {
+            /*@assert re_bwd_1(x234,0,(x238+1));*/
+            x237 = 1;
+            /*@assert re_bwd_1(x234,0,(x238+1));*/
+            /*@assert ((x237==1) ==> re_bwd_1(x234,0,(x238+1)));*/
+            x355 = 1/*true*/;
+          } else {
+            x355 = 0/*false*/;
+          }
+          x357 = x355;
+        } else {
+          x357 = 0/*false*/;
+        }
+        x359 = x357;
       }
-    } else {
+      x361 = x359;
     }
-    int x317 = x236;
-    int x322;
-    if (x317) {
-      x322 = 0/*false*/;
-    } else {
-      int x319 = x237;
-      int x320 = x319 == 1;
-      x322 = x320;
-    }
-    if (x322) {
-      char x284 = x283[0];
-      int x292 = 'A' == x284;
-      if (x292) {
-        /*@assert re_bwd_1(x234,0,(x238+1));*/
-        x237 = 1;
-        x236 = 1/*true*/;
-        /*@assert re_bwd_1(x234,0,(x238+1));*/
-        /*@assert ((x237==1) ==> re_bwd_1(x234,0,(x238+1)));*/
-      } else {
-      }
-      int x345 = 'B' == x284;
-      if (x345) {
-        /*@assert re_bwd_2(x234,0,(x238+1));*/
-        x237 = 2;
-        x236 = 1/*true*/;
-        /*@assert re_bwd_2(x234,0,(x238+1));*/
-        /*@assert ((x237==2) ==> re_bwd_2(x234,0,(x238+1)));*/
-      } else {
-      }
-    } else {
-    }
-    int x370 = x236;
-    int x375;
-    if (x370) {
-      x375 = 0/*false*/;
-    } else {
-      int x372 = x237;
-      int x373 = x372 == 2;
-      x375 = x373;
-    }
+    x236 = x361;
     /*@assert (x236 ==> (((x237==2) ==> re_bwd_2(x234,0,(x238+1))) &&
     (((x237==1) ==> re_bwd_1(x234,0,(x238+1))) &&
     ((x237==0) ==> re_bwd_0(x234,0,(x238+1))))));*/
-    //@ ghost int x396 = x238;
-    //@ ghost int x397 = x396 + 1;
-    //@ ghost x238 = x397;
-    char  *x399 = x283+1;
-    x239 = x399;
+    //@ ghost int x382 = x238;
+    //@ ghost int x383 = x382 + 1;
+    //@ ghost x238 = x383;
+    char  *x385 = x283+1;
+    x239 = x385;
     /*@assert (x236 ==> (((x237==2) ==> re_bwd_2(x234,0,x238)) &&
     (((x237==1) ==> re_bwd_1(x234,0,x238)) &&
     ((x237==0) ==> re_bwd_0(x234,0,x238)))));*/
   }
-  int x499 = x237;
-  char  *x500 = x239;
-  char x501 = x500[0];
-  int x502 = x501 == '\0';
-  int x505;
-  if (x502) {
-    int x503 = x236;
-    x505 = x503;
+  int x485 = x237;
+  char  *x486 = x239;
+  char x487 = x486[0];
+  int x488 = x487 == '\0';
+  int x491;
+  if (x488) {
+    int x489 = x236;
+    x491 = x489;
   } else {
-    x505 = 0/*false*/;
+    x491 = 0/*false*/;
   }
-  int x507;
-  if (x505) {
-    int x506 = 2 == x499;
-    x507 = x506;
+  int x493;
+  if (x491) {
+    int x492 = 2 == x485;
+    x493 = x492;
   } else {
-    x507 = 0/*false*/;
+    x493 = 0/*false*/;
   }
-  return x507;
+  return x493;
 }
