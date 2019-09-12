@@ -357,11 +357,11 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
           // }
           //_assert(!matched ==> !re_cover(inp, i+1))
           //_assert(!re_cover(inp, i+1) ==> !matching(re0, inp, 0, i+1))
-          _assert(matched ==> re_invariants(id, inp, i+1))
-          _assert(!re_invariants(id, inp, i+1) ==> !matched)
+          //+_assert(matched ==> re_invariants(id, inp, i+1))
+          //+_assert(!re_invariants(id, inp, i+1) ==> !matched)
           i = ghost(ghost(i)+1) //TODO: could be inferred
           cur = cur.rest
-          _assert(matched ==> re_invariants(id, inp, i));
+          //+_assert(matched ==> re_invariants(id, inp, i));
         }}
       val finalId = readVar(id)
       val res = cur.atEnd && matched && r0n.foldLeft(unit(false)){(b: Rep[Boolean],r: Int) => if (dfa.finals(r)) (r==finalId || b) else b}
