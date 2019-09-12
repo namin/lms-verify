@@ -282,9 +282,12 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
     val re0 = mkpr("re0", re2pr0(dfa_res(0)))
     def matching(re: RF, inp: Rep[Input], i: Rep[Int], j: Rep[Int]): Rep[Boolean] = re(inp, i, j)
     def re_invariant(r: Int, inp: Rep[Input], i: Rep[Int]): Rep[Boolean] =
-      (bwd(r).map{x => matching(x, inp, 0, i)}.getOrElse(unit(true)))
+      (bwd(r).map{x => matching(x, inp, 0, i)}.getOrElse(unit(false)))
     def re_invariants(id: Rep[Int], inp: Rep[Input], i: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(b,r) =>
       ((id == r) ==> (re_invariant(r, inp, i))) && b
+    }
+    def re_not_invariants(inp: Rep[Input], i: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(b,r) =>
+      !re_invariant(r, inp, i) && b
     }
     def final_invariant(r: Int, inp: Rep[Input], i: Rep[Int]): Rep[Boolean] =
       (((bwd(r).map{x => matching(x, inp, 0, i)}).getOrElse(unit(false))) ==> matching(re, inp, 0, i))
@@ -308,6 +311,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
         valid_input(inp.to(i)) &&
         (matched ==> re_invariants(id, inp, i)) &&
         (matched ==> matching(re0, inp, 0, i)) &&
+        //(!matched ==> re_not_invariants(inp, i)) &&
         //(!matched ==> !matching(re0, inp, 0, i)) &&
         ((!matching(re0, inp, 0, i)) ==> (!matching(re, inp, 0, n))) &&
         finals_invariants(id, inp, i) &&
@@ -325,6 +329,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
                 val chars = dfa.transitions(r)(t)
                 if (chars.nonEmpty && chars.contains(c)) {
                   _assert(re_invariant(t, inp, i+1))
+                  _assert(matching(re0, inp, 0, i+1))
                   id = t
                   matched = true
                   _assert(re_invariant(t, inp, i+1))
@@ -334,7 +339,10 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
               //_assert(!matched ==> !matching(re0, inp, 0, i+1))
             } else b
           }
-          _assert(matched ==> re_invariants(id, inp, i+1));
+          _assert(matched ==> re_invariants(id, inp, i+1))
+          //_assert(!matched ==> !matching(re0, inp, 0, i+1))
+          _assert(!re_invariants(id, inp, i+1) ==> !matched)
+          //_assert(!matched ==> re_not_invariants(inp, i+1))
           i = ghost(ghost(i)+1) //TODO: could be inferred
           cur = cur.rest
           _assert(matched ==> re_invariants(id, inp, i));
