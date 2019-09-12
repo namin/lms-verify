@@ -86,6 +86,10 @@ Verify that the optimized implementation still matches as specified by the spec.
 ([code for NFA to DFA compiler, using first order representation and mapping back to regular expression to prove correctness](src/test/scala/lms/verify/NfaTests.scala))
 ([hand-coded example](src/out/dfa_spec_aab.c))
 
+Status: we can prove a DFA match implies a spec match, but the other
+way is harder because of kleene stars and concatenations using
+existentials in the spec.
+
 #### Bidirectional Combinators and Round-Tripping Properties
 At a high level, we might be able to specify parsing / unparsing (i.e., printing) once using bidirectional combinators,
 and then stage these combinators.
