@@ -321,8 +321,8 @@ trait VerifyOps extends Base with BooleanOps {
 
   def pointer_plus[A:Typ](a: Rep[Array[A]], i: Rep[Int]): Rep[Array[A]]
 
-  def ghost[A:Typ](v: Var[A]): Var[A]
-  def ghostexp[A:Typ](v: Rep[A]): Rep[A]
+  def ghostVar[A:Typ](e: Rep[A]): Var[A]
+  def ghost[A:Typ](e: Rep[A]): Rep[A]
 }
 
 trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBoolean with ListOpsExp with BooleanOpsExpOpt {
@@ -551,11 +551,12 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
   def pointer_plus[A:Typ](a: Exp[Array[A]], i: Exp[Int]): Exp[Array[A]] = PointerPlus(a, i)
 
   var ghostSyms: Set[Rep[Any]] = Set.empty
-  def ghost[A:Typ](v: Var[A]): Var[A] = {
+  def ghostVar[A:Typ](e: Rep[A]): Var[A] = {
+    val v: Var[A] = var_new(e)
     ghostSyms += v.e
     v
   }
-  def ghostexp[A:Typ](e: Rep[A]): Rep[A] = {
+  def ghost[A:Typ](e: Rep[A]): Rep[A] = {
     ghostSyms += e
     e
   }

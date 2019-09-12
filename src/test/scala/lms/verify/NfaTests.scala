@@ -281,7 +281,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
       ensures{(res: Rep[Boolean]) => res ==> matching(re, inp, 0, inp.length)}
       var matched = true
       var id = 0
-      val i = ghost(__newVar(0))
+      val i = ghostVar(0)
       var cur = inp
       val n = inp.length
       loop((valid_input(inp) &&
@@ -313,7 +313,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
             } else b
           }
           _assert(matched ==> re_invariants(id, inp, i+1));
-          i = ghostexp(ghostexp(i)+1) //TODO: could be inferred
+          i = ghost(ghost(i)+1) //TODO: could be inferred
           cur = cur.rest
           _assert(matched ==> re_invariants(id, inp, i));
         }}
