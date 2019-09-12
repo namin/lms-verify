@@ -631,7 +631,8 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
     val r = super.remapWithRef[A](m)
     // the remapping in core LMS seems very convoluted...
     if (inAxiom && r.startsWith("int")) {
-      if (r.contains("*")) r.replace("integer ", "int ") else r.replace("int ", "integer ")
+      if (r.contains("*")) r.replace("integer ", "int ")
+      else r.replace("int ", "integer ")
     } else r
   }
   override def isPrimitiveType(tpe: String): Boolean = {
@@ -955,8 +956,12 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
       val t = rec(k)
       t match {
         case (x:TopLevel[_]) if (!x.spec) =>
-          if (x.code)
+          if (x.code) {
+            val saved = inAxiom
+            inAxiom = x.spec && !x.code
             emitHeader(x.name, out)(x.mAs, mtype(x.mB))
+            inAxiom = saved
+          }
         case (x:TopLevel[_]) if (x.spec && !alreadyEmitted.contains(x.name)) =>
           alreadyEmitted += x.name
           emitVerify(x.f, x.name, x.spec, x.code, axiom=false, out)(x.mAs, mtype(x.mB))

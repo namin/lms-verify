@@ -192,12 +192,24 @@ trait Re2Ast extends Regexp {
 
 trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
   type RF = (Rep[Input], Rep[Int], Rep[Int]) => Rep[Boolean]
+  type RL = (Rep[Input], Rep[Int], Rep[Int], Rep[Int]) => Rep[Unit]
   def mkpr(name: String, f: RF): RF = rec.get(name) match {
     case Some(_) => {
       val r: RF = {(inp,i,j) => toplevelApply[Boolean](name, list(inp,i,j))}
       r
     }
-    case None => unwrap3(toplevel(name, wrap3(f), spec=true, code=false))
+    case None =>
+      val r: RF = unwrap3(toplevel(name, wrap3(f), spec=true, code=false))
+      val c: RL = unwrap4(toplevel("lemma_not_"+name, wrap4({(inp,i,n,stop) =>
+          requires(valid_input(inp))
+          requires(0 <= i)
+          requires(inp.length-i>=stop)
+          requires(0 <= n && n <= stop)
+          requires(!r(inp, i, n))
+          ensures{res: Rep[Unit] => !r(inp, i, stop)}
+          unit(())
+        }), spec=false, code=true))
+      r
   }
   def key(r:RE): String = r match {
     case C(c) => c.toString
