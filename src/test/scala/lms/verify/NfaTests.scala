@@ -308,7 +308,10 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
     toplevel("dfa", { inp: Rep[Array[Char]] =>
       requires(valid_input(inp))
       requires(inp.length<=Int.MaxValue) // to avoid overflow error in SPEC!
-      ensures{(res: Rep[Boolean]) => res ==> matching(re, inp, 0, inp.length)}
+      ensures{(res: Rep[Boolean]) =>
+        (res ==> matching(re, inp, 0, inp.length)) &&
+        (matching(re, inp, 0, inp.length) ==> res)
+      }
       var matched = true
       var id = 0
       val i = ghostVar(0)
@@ -321,7 +324,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
         (matched ==> re_invariants(id, inp, i)) &&
         (matched ==> matching(re0, inp, 0, i)) &&
         (matching(re0, inp, 0, i) ==> re_cover(inp, i)) &&
-        //(!matched ==> !re_cover(inp, i)) &&
+        (!matched ==> !re_cover(inp, i)) &&
         //(!matched ==> re_not_invariants(inp, i)) &&
         //(!matched ==> !matching(re0, inp, 0, i)) &&
         ((!matching(re0, inp, 0, i)) ==> (!matching(re, inp, 0, n))) &&
@@ -343,7 +346,19 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
               //_assert(!matched ==> !matching(re0, inp, 0, i+1))
             } else b
           }
-          //_assert(!matched ==> !re_cover(inp, i+1))
+          if (!matched) {
+            r0n.foreach{t => r0n.foreach{r =>
+              if (id==r) {
+                dfa.transitions(r)(t).foreach{a =>
+                  _assert(!(c == a))
+                }
+                _assert(!bwd(t).map{x => matching(x, inp, 0, i+1)}.getOrElse(unit(false)))
+              }
+            }}
+            _assert(!re_cover(inp, i+1))
+          }
+          _assert(!matched ==> !re_cover(inp, i+1))
+          _assert(!re_cover(inp, i+1) ==> !matching(re0, inp, 0, i+1))
           _assert(matched ==> re_invariants(id, inp, i+1))
           //_assert(!matched ==> !matching(re0, inp, 0, i+1))
           _assert(!re_invariants(id, inp, i+1) ==> !matched)
