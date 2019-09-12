@@ -286,11 +286,11 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
         (bwd(r).map{x => matching(x, inp, 0, i)}.getOrElse(unit(false))) || b
       }
     def re_invariant(r: Int, inp: Rep[Input], i: Rep[Int]): Rep[Boolean] =
-      (bwd(r).map{x => matching(x, inp, 0, i)}.getOrElse(unit(false)))/* &&
+      (bwd(r).map{x => matching(x, inp, 0, i)}.getOrElse(unit(false))) &&
         r0n.foldLeft(unit(true)){(b,t) =>
           (if (t==r) unit(true)
           else (bwd(t).map{x => !matching(x, inp, 0, i)}.getOrElse(unit(true)))) && b
-        })*/
+        }
     def re_invariants(id: Rep[Int], inp: Rep[Input], i: Rep[Int]): Rep[Boolean] = r0n.foldLeft(unit(true)){(b,r) =>
       ((id == r) ==> (re_invariant(r, inp, i))) && b
     }
@@ -309,8 +309,8 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
       requires(valid_input(inp))
       requires(inp.length<=Int.MaxValue) // to avoid overflow error in SPEC!
       ensures{(res: Rep[Boolean]) =>
-        (res ==> matching(re, inp, 0, inp.length)) /*&&
-        (matching(re, inp, 0, inp.length) ==> res)*/
+        (res ==> matching(re, inp, 0, inp.length)) &&
+        (matching(re, inp, 0, inp.length) ==> res)
       }
       var matched = true
       var id = 0
@@ -322,41 +322,46 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
         (cur==inp.to(i)) &&
         valid_input(inp.to(i)) &&
         (matched ==> re_invariants(id, inp, i)) &&
-        //(matched ==> matching(re0, inp, 0, i)) &&
-        //(matching(re0, inp, 0, i) ==> re_cover(inp, i)) &&
-        //(!matched ==> !re_cover(inp, i)) &&
+        (matched ==> matching(re0, inp, 0, i)) &&
+        (matching(re0, inp, 0, i) ==> re_cover(inp, i)) &&
+        (!matched ==> !re_cover(inp, i)) &&
         finals_invariants(id, inp, i) &&
         id_invariant(id)),
         List[Any](cur, i, id, matched),
         cur.length) {
         while (!cur.atEnd && matched) {
+          _assert(matched ==> re_invariants(id, inp, i))
+          _assert(re_invariants(id, inp, i))
           val c = cur.first
-          matched = r0n.foldLeft(unit(false)){(b,r) =>
-            if (id == r) {
-              r0n.foldLeft(unit(false)){(b,t) =>
+          matched = false
+          r0n.foldLeft(unit(())){(b,r) =>
+            if (!matched && id == r) {
+              _assert(re_invariants(id, inp, i))
+              _assert((id == r) ==> re_invariant(r, inp, i))
+              r0n.foldLeft(unit(())){(b,t) =>
                 val chars = dfa.transitions(r)(t)
                 if (chars.contains(c)) {
                   id = t
-                  true
+                  matched = true
                 } else b
               }
             } else b
           }
-          // if (!matched) {
-          //   r0n.foreach{t => r0n.foreach{r =>
-          //     if (id==r) {
-          //       _assert((id == r) ==> re_invariant(r, inp, i))
-          //       _assert(re_invariant(r, inp, i))
-          //       dfa.transitions(r)(t).foreach{a =>
-          //         _assert(!(c == a))
-          //       }
-          //       _assert(!bwd(t).map{x => matching(x, inp, 0, i+1)}.getOrElse(unit(false)))
-          //     }
-          //   }}
-          //   _assert(!re_cover(inp, i+1))
-          // }
-          //_assert(!matched ==> !re_cover(inp, i+1))
-          //_assert(!re_cover(inp, i+1) ==> !matching(re0, inp, 0, i+1))
+          if (!matched) {
+            r0n.foreach{t => r0n.foreach{r =>
+              if (id==r) {
+                _assert((id == r) ==> re_invariant(r, inp, i))
+                _assert(re_invariant(r, inp, i))
+                dfa.transitions(r)(t).foreach{a =>
+                  _assert(!(c == a))
+                }
+                _assert(!bwd(t).map{x => matching(x, inp, 0, i+1)}.getOrElse(unit(false)))
+              }
+            }}
+            _assert(!re_cover(inp, i+1))
+          }
+          _assert(!matched ==> !re_cover(inp, i+1))
+          _assert(!re_cover(inp, i+1) ==> !matching(re0, inp, 0, i+1))
           _assert(matched ==> re_invariants(id, inp, i+1));
           i = ghost(ghost(i)+1) //TODO: could be inferred
           cur = cur.rest
