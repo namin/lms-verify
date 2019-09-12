@@ -760,6 +760,7 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
     case Const(_) => quotee(e)
     case s@Sym(n) => s match {
       case Def(d) if !saidEmitted(s) || specSyms(s) => exprOfDef(d, m)
+      case Def(d:ReadVar[_]) => exprOfDef(d, m)
       case Def(d:ArrayApply[_]) => exprOfDef(d, m)
       case Def(d:Reflect[_]) => exprOfDef(d, m)
       case _ => m.get(s) match {
