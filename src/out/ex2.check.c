@@ -24,5 +24,6 @@ assigns \nothing;
 ensures (\result==x15[0]);
 */
 int pick_first(int  * x15) {
+  int x17 = x15[0];
   return x17;
 }

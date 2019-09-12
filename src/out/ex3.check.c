@@ -4,6 +4,7 @@ assigns \nothing;
 ensures (\result==(x0*x0));
 */
 int square(int  x0) {
+  int x2 = x0 * x0;
   return x2;
 }
 /*@

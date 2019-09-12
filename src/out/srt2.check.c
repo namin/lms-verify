@@ -58,6 +58,7 @@ assigns x143[(0..x144-1)];
 void insort(int  * x143, int  x144) {
   /*@assert (\forall int x147; (0<=x147<x144) ==> (\forall int x149; (0<=x149<x144) ==> (\forall int x151; (0<=x151<x144) ==> (((x143[x147]>=x143[x149]) &&
   (x143[x149]>=x143[x151])) ==> (x143[x147]>=x143[x151])))));*/
+  int x264 = x144 - 1;
   /*@
   loop invariant (x266==0 && x264==-1) || (0<=x266<=x264);
   loop invariant (\forall int  x270; (((0<=x270) &&
@@ -72,6 +73,7 @@ void insort(int  * x143, int  x144) {
   */
   for(int x266=0; x266 < x264; x266++) {
     int x310 = x266;
+    int x311 = x266 + 1;
     /*@
     loop invariant 0<=x313<=x144;
     loop invariant (\forall int  x314; (((x266<=x314) &&
@@ -92,17 +94,17 @@ void insort(int  * x143, int  x144) {
         /*@assert (x143[x310]>=x143[x313]);*/
       }
     }
-    /*@assert (x143[x310]>=x143[(x266+1)]);*/
+    /*@assert (x143[x310]>=x143[x311]);*/
     int x352 = x310;
     inswap_Int(x143,x144,x266,x352);
     /*@assert (\forall int  x354; (((0<=x354) &&
     (x354<(x266-1))) ==> (x143[x354]>=x143[(x354+1)])));*/
     /*@assert (\forall int  x366; (((0<=x366) &&
     (x366<x266)) ==> (x143[x366]>=x143[(x366+1)])));*/
-    /*@assert (x143[x266]>=x143[(x266+1)]);*/
+    /*@assert (x143[x266]>=x143[x311]);*/
     /*@assert (\forall int  x383; (((0<=x383) &&
-    (x383<(x266+1))) ==> (x143[x383]>=x143[(x383+1)])));*/
-    /*@assert (\forall int  x395; ((((x266+1)<=x395) &&
+    (x383<x311)) ==> (x143[x383]>=x143[(x383+1)])));*/
+    /*@assert (\forall int  x395; (((x311<=x395) &&
     (x395<x144)) ==> (x143[x266]>=x143[x395])));*/
   }
 }

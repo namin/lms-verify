@@ -81,6 +81,7 @@ void encode(int  * x22, int  * x23, int  * x24, int  x25) {
   loop variant x25-x28;
   */
   for(int x28=0; x28 < x25; x28++) {
+    int x71 = x22[x28];
     int x72 = cypher(x71);
     x23[x28] = x72;
     /*@assert (x23[x28]==x72);*/
@@ -127,6 +128,7 @@ void decode(int  * x169, int  * x170, int  * x171, int  x172) {
   loop variant x172-x175;
   */
   for(int x175=0; x175 < x172; x175++) {
+    int x218 = x169[x175];
     int x219 = decypher(x218);
     x170[x175] = x219;
     /*@assert (x170[x175]==x219);*/

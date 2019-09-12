@@ -96,6 +96,7 @@ assigns x214[(0..x216-1)], x215[(0..x216-1)];
 void insort_pairs(int  * x214, int  * x215, int  x216) {
   /*@assert (\forall int x219; (0<=x219<x216) ==> (\forall int x221; (0<=x221<x216) ==> (\forall int x223; (0<=x223<x216) ==> (((x214[x219]<=x214[x221]) &&
   (x214[x221]<=x214[x223])) ==> (x214[x219]<=x214[x223])))));*/
+  int x368 = x216 - 1;
   /*@
   loop invariant (x370==0 && x368==-1) || (0<=x370<=x368);
   loop invariant (\forall int  x375; (((0<=x375) &&
@@ -115,6 +116,7 @@ void insort_pairs(int  * x214, int  * x215, int  x216) {
   */
   for(int x370=0; x370 < x368; x370++) {
     int x437 = x370;
+    int x438 = x370 + 1;
     /*@
     loop invariant 0<=x440<=x216;
     loop invariant (\forall int  x441; (((x370<=x441) &&
@@ -137,17 +139,17 @@ void insort_pairs(int  * x214, int  * x215, int  x216) {
         /*@assert (x214[x437]<=x214[x440]);*/
       }
     }
-    /*@assert (x214[x437]<=x214[(x370+1)]);*/
+    /*@assert (x214[x437]<=x214[x438]);*/
     int x487 = x437;
     inswap___Int_Int__(x214,x215,x216,x370,x487);
     /*@assert (\forall int  x489; (((0<=x489) &&
     (x489<(x370-1))) ==> (x214[x489]<=x214[(x489+1)])));*/
     /*@assert (\forall int  x503; (((0<=x503) &&
     (x503<x370)) ==> (x214[x503]<=x214[(x503+1)])));*/
-    /*@assert (x214[x370]<=x214[(x370+1)]);*/
+    /*@assert (x214[x370]<=x214[x438]);*/
     /*@assert (\forall int  x524; (((0<=x524) &&
-    (x524<(x370+1))) ==> (x214[x524]<=x214[(x524+1)])));*/
-    /*@assert (\forall int  x538; ((((x370+1)<=x538) &&
+    (x524<x438)) ==> (x214[x524]<=x214[(x524+1)])));*/
+    /*@assert (\forall int  x538; (((x438<=x538) &&
     (x538<x216)) ==> (x214[x370]<=x214[x538])));*/
   }
 }

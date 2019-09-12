@@ -62,6 +62,7 @@ assigns \nothing;
 ensures \result <==> match_any_w(x23);
 */
 int match_any_w(char  * x23) {
+  int x25 = strlen(x23);
   int x33 = 0;
   /*@ loop invariant (0 <= x28 <= strlen(x23));
   loop invariant !(\exists int x27; (0 <= x27 < x28) && match_w((x23+x27)));

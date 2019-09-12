@@ -7,11 +7,12 @@ requires ((strlen(x0)>=0) &&
 int matcher(char  * x0) {
   int x2 = -1;
   int x3 = 0/*false*/;
+  int x7 = strlen(x0);
   /*@
   loop invariant ((-1<=x2) &&
-  (x2<=strlen(x0)));
+  (x2<=x7));
   loop assigns x2, x3;
-  loop variant (strlen(x0)-x2);
+  loop variant (x7-x2);
   */
   for (;;) {
     int x4 = x3;

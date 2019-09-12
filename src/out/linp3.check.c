@@ -48,11 +48,12 @@ inv_matrix_Boolean(x69,x70,x71)) &&
 void add(int  * x63, int  x64, int  x65, int  * x66, int  x67, int  x68, int  * x69, int  x70, int  x71) {
   /*@assert \separated(x69+0,x63+0);*/
   /*@assert \separated(x69+0,x66+0);*/
+  int x73 = x70 * x71;
   /*@
   loop invariant 0<=x81<=x73;
   loop invariant (\forall int  x82; (((0<=x82) &&
   (x82<x81)) ==> (x69[x82]==(x63[x82] || x66[x82]))));
-  loop assigns x81, x69[(0..(x70*x71)-1)];
+  loop assigns x81, x69[(0..x73-1)];
   loop variant x73-x81;
   */
   for(int x81=0; x81 < x73; x81++) {
@@ -82,12 +83,13 @@ x172[x233]))))) &&
 */
 void scalar_mult(int  x171, int  * x172, int  x173, int  x174, int  * x175, int  x176, int  x177) {
   /*@assert \separated(x175+0,x172+0);*/
+  int x179 = x176 * x177;
   /*@
   loop invariant 0<=x184<=x179;
   loop invariant (\forall int  x185; (((0<=x185) &&
   (x185<x184)) ==> (x175[x185]==(x171 &&
   x172[x185]))));
-  loop assigns x184, x175[(0..(x176*x177)-1)];
+  loop assigns x184, x175[(0..x179-1)];
   loop variant x179-x184;
   */
   for(int x184=0; x184 < x179; x184++) {

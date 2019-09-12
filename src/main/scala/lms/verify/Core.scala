@@ -342,8 +342,9 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
 
   var specSyms: Set[Rep[Any]] = Set.empty
   override protected implicit def toAtom[T:Typ](d: Def[T])(implicit pos: SourceContext): Exp[T] = {
+    val save_nVars = nVars
     val a = super.toAtom[T](d)(implicitly[Typ[T]], pos)
-    if (reifyingSpec)
+    if (reifyingSpec && save_nVars < nVars)
       specSyms += a
     a
   }

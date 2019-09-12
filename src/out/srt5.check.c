@@ -114,6 +114,7 @@ assigns x245[(0..x247-1)], x246[(0..x247-1)];
 void insort_vecs(int  * * x245, int  * x246, int  x247) {
   /*@assert (\forall int x250; (0<=x250<x247) ==> (\forall int x252; (0<=x252<x247) ==> (\forall int x254; (0<=x254<x247) ==> (((x246[x250]<=x246[x252]) &&
   (x246[x252]<=x246[x254])) ==> (x246[x250]<=x246[x254])))));*/
+  int x399 = x247 - 1;
   /*@
   loop invariant (x401==0 && x399==-1) || (0<=x401<=x399);
   loop invariant (\forall int  x406; (((0<=x406) &&
@@ -134,6 +135,7 @@ void insort_vecs(int  * * x245, int  * x246, int  x247) {
   */
   for(int x401=0; x401 < x399; x401++) {
     int x472 = x401;
+    int x473 = x401 + 1;
     /*@
     loop invariant 0<=x475<=x247;
     loop invariant (\forall int  x476; (((x401<=x476) &&
@@ -156,17 +158,17 @@ void insort_vecs(int  * * x245, int  * x246, int  x247) {
         /*@assert (x246[x472]<=x246[x475]);*/
       }
     }
-    /*@assert (x246[x472]<=x246[(x401+1)]);*/
+    /*@assert (x246[x472]<=x246[x473]);*/
     int x522 = x472;
     inswap_vec_Int(x245,x246,x247,x401,x522);
     /*@assert (\forall int  x524; (((0<=x524) &&
     (x524<(x401-1))) ==> (x246[x524]<=x246[(x524+1)])));*/
     /*@assert (\forall int  x538; (((0<=x538) &&
     (x538<x401)) ==> (x246[x538]<=x246[(x538+1)])));*/
-    /*@assert (x246[x401]<=x246[(x401+1)]);*/
+    /*@assert (x246[x401]<=x246[x473]);*/
     /*@assert (\forall int  x559; (((0<=x559) &&
-    (x559<(x401+1))) ==> (x246[x559]<=x246[(x559+1)])));*/
-    /*@assert (\forall int  x573; ((((x401+1)<=x573) &&
+    (x559<x473)) ==> (x246[x559]<=x246[(x559+1)])));*/
+    /*@assert (\forall int  x573; (((x473<=x573) &&
     (x573<x247)) ==> (x246[x401]<=x246[x573])));*/
   }
 }
