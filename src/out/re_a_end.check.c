@@ -2,12 +2,11 @@
 #include <string.h>
 /*@
 requires ((strlen(x0)>=0) &&
-\valid(x0+(0..(strlen(x0)+1)-1)));
+\valid(x0+(0..strlen(x0))));
 */
 int matcher(char  * x0) {
   int x2 = -1;
   int x3 = 0/*false*/;
-  int x7 = strlen(x0);
   /*@
   loop invariant ((-1<=x2) &&
   (x2<=strlen(x0)));
@@ -46,6 +45,6 @@ int matcher(char  * x0) {
     }
     x3 = x20;
   }
-  int x40 = x3;
-  return x40;
+  int x36 = x3;
+  return x36;
 }

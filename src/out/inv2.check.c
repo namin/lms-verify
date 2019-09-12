@@ -2,23 +2,23 @@
 /*@ predicate inv_vec_Int(int  * x0, integer  x1) = ((x1==0) || ((x1>0) &&
 \valid(x0+(0..x1-1))));*/
 /*@
-requires inv_vec_Int(x16,x17);
+requires inv_vec_Int(x15,x16);
 assigns \nothing;
-ensures inv_vec_Int(x16,x17);
+ensures inv_vec_Int(x15,x16);
 */
-int sum(int  * x16, int  x17) {
-  int x19 = 0;
+int sum(int  * x15, int  x16) {
+  int x18 = 0;
   /*@
-  loop invariant 0<=x21<=x17;
-  loop assigns x21, x19;
-  loop variant x17-x21;
+  loop invariant 0<=x20<=x16;
+  loop assigns x20, x18;
+  loop variant x16-x20;
   */
-  for(int x21=0; x21 < x17; x21++) {
-    int x23 = x19;
-    int x22 = x16[x21];
-    int x24 = x23 + x22;
-    x19 = x24;
+  for(int x20=0; x20 < x16; x20++) {
+    int x22 = x18;
+    int x21 = x15[x20];
+    int x23 = x22 + x21;
+    x18 = x23;
   }
-  int x28 = x19;
-  return x28;
+  int x27 = x18;
+  return x27;
 }

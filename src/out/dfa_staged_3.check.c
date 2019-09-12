@@ -1,455 +1,455 @@
 #include <limits.h>
 #include <string.h>
-/*@ predicate star_A(char  * x121, integer  x122, integer  x123) = (\exists integer  x125; ((((x122<x125) &&
-(x125<=x123)) ==> ((('A'==x121[x122]) &&
-(x125==(x122+1))) &&
-star_A(x121,x125,x123))) || (x122==x123)));*/
-/*@ predicate star_D(char  * x144, integer  x145, integer  x146) = (\exists integer  x148; ((((x145<x148) &&
-(x148<=x146)) ==> ((('D'==x144[x145]) &&
-(x148==(x145+1))) &&
-star_D(x144,x148,x146))) || (x145==x146)));*/
-/*@ predicate star_C(char  * x167, integer  x168, integer  x169) = (\exists integer  x171; ((((x168<x171) &&
-(x171<=x169)) ==> ((('C'==x167[x168]) &&
-(x171==(x168+1))) &&
-star_C(x167,x171,x169))) || (x168==x169)));*/
-/*@ predicate star__orB_or_C_sCs_Bor_(char  * x190, integer  x191, integer  x192) = (\exists integer  x194; ((((x191<x194) &&
-(x194<=x192)) ==> (((('B'==x190[x191]) &&
-(x194==(x191+1))) || (\exists integer  x205; ((((x191<=x205) &&
-(x205<=x194)) &&
-(('C'==x190[x191]) &&
-(x205==(x191+1)))) &&
-(\exists integer  x218; ((((x205<=x218) &&
-(x218<=x194)) &&
-star_C(x190,x205,x218)) &&
-(('B'==x190[x218]) &&
-(x194==(x218+1)))))))) &&
-star__orB_or_C_sCs_Bor_(x190,x194,x192))) || (x191==x192)));*/
+/*@ predicate star_A(char  * x93, integer  x94, integer  x95) = (\exists integer  x97; ((((x94<x97) &&
+(x97<=x95)) ==> ((('A'==x93[x94]) &&
+(x97==(x94+1))) &&
+star_A(x93,x97,x95))) || (x94==x95)));*/
+/*@ predicate star_D(char  * x114, integer  x115, integer  x116) = (\exists integer  x118; ((((x115<x118) &&
+(x118<=x116)) ==> ((('D'==x114[x115]) &&
+(x118==(x115+1))) &&
+star_D(x114,x118,x116))) || (x115==x116)));*/
+/*@ predicate star_C(char  * x135, integer  x136, integer  x137) = (\exists integer  x139; ((((x136<x139) &&
+(x139<=x137)) ==> ((('C'==x135[x136]) &&
+(x139==(x136+1))) &&
+star_C(x135,x139,x137))) || (x136==x137)));*/
+/*@ predicate star__orB_or_C_sCs_Bor_(char  * x156, integer  x157, integer  x158) = (\exists integer  x160; ((((x157<x160) &&
+(x160<=x158)) ==> (((('B'==x156[x157]) &&
+(x160==(x157+1))) || (\exists integer  x169; ((((x157<=x169) &&
+(x169<=x160)) &&
+(('C'==x156[x157]) &&
+(x169==(x157+1)))) &&
+(\exists integer  x177; ((((x169<=x177) &&
+(x177<=x160)) &&
+star_C(x156,x169,x177)) &&
+(('B'==x156[x177]) &&
+(x160==(x177+1)))))))) &&
+star__orB_or_C_sCs_Bor_(x156,x160,x158))) || (x157==x158)));*/
 /*@ predicate re_0(char  * x0, integer  x1, integer  x2) = (\exists integer  x4; ((((x1<=x4) &&
 (x4<=x2)) &&
 (('A'==x0[x1]) &&
 (x4==(x1+1)))) &&
-(\exists integer  x17; ((((x4<=x17) &&
-(x17<=x2)) &&
-star_A(x0,x4,x17)) &&
-(\exists integer  x25; ((((x17<=x25) &&
-(x25<=x2)) &&
-(('B'==x0[x17]) &&
-(x25==(x17+1)))) &&
-(\exists integer  x38; ((((x25<=x38) &&
+(\exists integer  x14; ((((x4<=x14) &&
+(x14<=x2)) &&
+star_A(x0,x4,x14)) &&
+(\exists integer  x21; ((((x14<=x21) &&
+(x21<=x2)) &&
+(('B'==x0[x14]) &&
+(x21==(x14+1)))) &&
+(\exists integer  x31; ((((x21<=x31) &&
+(x31<=x2)) &&
+star__orB_or_C_sCs_Bor_(x0,x21,x31)) &&
+(\exists integer  x38; ((((x31<=x38) &&
 (x38<=x2)) &&
-star__orB_or_C_sCs_Bor_(x0,x25,x38)) &&
-(\exists integer  x46; ((((x38<=x46) &&
-(x46<=x2)) &&
-(('C'==x0[x38]) &&
-(x46==(x38+1)))) &&
-(\exists integer  x59; ((((x46<=x59) &&
-(x59<=x2)) &&
-star_C(x0,x46,x59)) &&
-(\exists integer  x67; ((((x59<=x67) &&
-(x67<=x2)) &&
-(('D'==x0[x59]) &&
-(x67==(x59+1)))) &&
-(\exists integer  x80; ((((x67<=x80) &&
-(x80<=x2)) &&
-star_D(x0,x67,x80)) &&
-(x80==x2)))))))))))))))));*/
-/*@ predicate re_1(char  * x248, integer  x249, integer  x250) = (\exists integer  x252; ((((x249<=x252) &&
-(x252<=x250)) &&
-star_A(x248,x249,x252)) &&
-(\exists integer  x259; ((((x252<=x259) &&
-(x259<=x250)) &&
-(('B'==x248[x252]) &&
-(x259==(x252+1)))) &&
-(\exists integer  x272; ((((x259<=x272) &&
-(x272<=x250)) &&
-star__orB_or_C_sCs_Bor_(x248,x259,x272)) &&
-(\exists integer  x279; ((((x272<=x279) &&
-(x279<=x250)) &&
-(('C'==x248[x272]) &&
-(x279==(x272+1)))) &&
-(\exists integer  x292; ((((x279<=x292) &&
-(x292<=x250)) &&
-star_C(x248,x279,x292)) &&
-(\exists integer  x299; ((((x292<=x299) &&
-(x299<=x250)) &&
-(('D'==x248[x292]) &&
-(x299==(x292+1)))) &&
-(\exists integer  x312; ((((x299<=x312) &&
-(x312<=x250)) &&
-star_D(x248,x299,x312)) &&
-(x312==x250)))))))))))))));*/
-/*@ predicate re_2(char  * x348, integer  x349, integer  x350) = (\exists integer  x352; ((((x349<=x352) &&
-(x352<=x350)) &&
-star__orB_or_C_sCs_Bor_(x348,x349,x352)) &&
-(\exists integer  x359; ((((x352<=x359) &&
-(x359<=x350)) &&
-(('C'==x348[x352]) &&
-(x359==(x352+1)))) &&
-(\exists integer  x372; ((((x359<=x372) &&
-(x372<=x350)) &&
-star_C(x348,x359,x372)) &&
-(\exists integer  x379; ((((x372<=x379) &&
-(x379<=x350)) &&
-(('D'==x348[x372]) &&
-(x379==(x372+1)))) &&
-(\exists integer  x392; ((((x379<=x392) &&
-(x392<=x350)) &&
-star_D(x348,x379,x392)) &&
-(x392==x350)))))))))));*/
-/*@ predicate re_3(char  * x420, integer  x421, integer  x422) = (\exists integer  x424; ((((x421<=x424) &&
-(x424<=x422)) &&
-star_C(x420,x421,x424)) &&
-(\exists integer  x431; ((((x424<=x431) &&
-(x431<=x422)) &&
-(('D'==x420[x424]) &&
-(x431==(x424+1)))) &&
-(\exists integer  x444; ((((x431<=x444) &&
-(x444<=x422)) &&
-star_D(x420,x431,x444)) &&
-(x444==x422)))))));*/
-/*@ predicate re_4(char  * x464, integer  x465, integer  x466) = (\exists integer  x468; ((((x465<=x468) &&
-(x468<=x466)) &&
-star_D(x464,x465,x468)) &&
-(x468==x466)));*/
-/*@ predicate re_bwd_0(char  * x480, integer  x481, integer  x482) = (x481==x482);*/
-/*@ predicate re_bwd_1(char  * x485, integer  x486, integer  x487) = (\exists integer  x489; ((((x486<=x489) &&
-(x489<=x487)) &&
-(('A'==x485[x486]) &&
-(x489==(x486+1)))) &&
-(\exists integer  x502; ((((x489<=x502) &&
-(x502<=x487)) &&
-star_A(x485,x489,x502)) &&
-(x502==x487)))));*/
-/*@ predicate re_bwd_2(char  * x518, integer  x519, integer  x520) = (\exists integer  x522; ((((x519<=x522) &&
-(x522<=x520)) &&
-(('A'==x518[x519]) &&
-(x522==(x519+1)))) &&
-(\exists integer  x535; ((((x522<=x535) &&
-(x535<=x520)) &&
-star_A(x518,x522,x535)) &&
-(\exists integer  x542; ((((x535<=x542) &&
-(x542<=x520)) &&
-(('B'==x518[x535]) &&
-(x542==(x535+1)))) &&
-(\exists integer  x555; ((((x542<=x555) &&
-(x555<=x520)) &&
-star__orB_or_C_sCs_Bor_(x518,x542,x555)) &&
-(x555==x520)))))))));*/
-/*@ predicate re_bwd_3(char  * x579, integer  x580, integer  x581) = (\exists integer  x583; ((((x580<=x583) &&
-(x583<=x581)) &&
-(('A'==x579[x580]) &&
-(x583==(x580+1)))) &&
-(\exists integer  x596; ((((x583<=x596) &&
-(x596<=x581)) &&
-star_A(x579,x583,x596)) &&
-(\exists integer  x603; ((((x596<=x603) &&
-(x603<=x581)) &&
-(('B'==x579[x596]) &&
-(x603==(x596+1)))) &&
-(\exists integer  x616; ((((x603<=x616) &&
-(x616<=x581)) &&
-star__orB_or_C_sCs_Bor_(x579,x603,x616)) &&
-(\exists integer  x623; ((((x616<=x623) &&
-(x623<=x581)) &&
-(('C'==x579[x616]) &&
-(x623==(x616+1)))) &&
-(\exists integer  x636; ((((x623<=x636) &&
-(x636<=x581)) &&
-star_C(x579,x623,x636)) &&
-(x636==x581)))))))))))));*/
-/*@ predicate re_bwd_4(char  * x668, integer  x669, integer  x670) = (\exists integer  x672; ((((x669<=x672) &&
-(x672<=x670)) &&
-(('A'==x668[x669]) &&
-(x672==(x669+1)))) &&
-(\exists integer  x685; ((((x672<=x685) &&
-(x685<=x670)) &&
-star_A(x668,x672,x685)) &&
-(\exists integer  x692; ((((x685<=x692) &&
-(x692<=x670)) &&
-(('B'==x668[x685]) &&
-(x692==(x685+1)))) &&
-(\exists integer  x705; ((((x692<=x705) &&
-(x705<=x670)) &&
-star__orB_or_C_sCs_Bor_(x668,x692,x705)) &&
-(\exists integer  x712; ((((x705<=x712) &&
-(x712<=x670)) &&
-(('C'==x668[x705]) &&
-(x712==(x705+1)))) &&
-(\exists integer  x725; ((((x712<=x725) &&
-(x725<=x670)) &&
-star_C(x668,x712,x725)) &&
-(\exists integer  x732; ((((x725<=x732) &&
-(x732<=x670)) &&
-(('D'==x668[x725]) &&
-(x732==(x725+1)))) &&
-(\exists integer  x745; ((((x732<=x745) &&
-(x745<=x670)) &&
-star_D(x668,x732,x745)) &&
-(x745==x670)))))))))))))))));*/
-/*@ predicate star_starting_D(char  * x945, integer  x946, integer  x947) = ((((x946==x947) || (('D'==x945[x946]) &&
-(x947>=(x946+1)))) || (\exists integer  x956; (((x946<x956) &&
-(x956<=x947)) ==> ((('D'==x945[x946]) &&
-(x956==(x946+1))) &&
-star_starting_D(x945,x956,x947))))) || (x947>=x946));*/
-/*@ predicate star_starting_A(char  * x976, integer  x977, integer  x978) = ((((x977==x978) || (('A'==x976[x977]) &&
-(x978>=(x977+1)))) || (\exists integer  x987; (((x977<x987) &&
-(x987<=x978)) ==> ((('A'==x976[x977]) &&
-(x987==(x977+1))) &&
-star_starting_A(x976,x987,x978))))) || (x978>=x977));*/
-/*@ predicate star_starting_C(char  * x1007, integer  x1008, integer  x1009) = ((((x1008==x1009) || (('C'==x1007[x1008]) &&
-(x1009>=(x1008+1)))) || (\exists integer  x1018; (((x1008<x1018) &&
-(x1018<=x1009)) ==> ((('C'==x1007[x1008]) &&
-(x1018==(x1008+1))) &&
-star_starting_C(x1007,x1018,x1009))))) || (x1009>=x1008));*/
-/*@ predicate star_starting__orB_or_C_sCs_Bor_(char  * x1038, integer  x1039, integer  x1040) = (((((x1039==x1040) || (('B'==x1038[x1039]) &&
-(x1040>=(x1039+1)))) || (((x1039==x1040) || (('C'==x1038[x1039]) &&
-(x1040>=(x1039+1)))) || (\exists integer  x1052; ((((x1039<=x1052) &&
-(x1052<=x1040)) &&
-(('C'==x1038[x1039]) &&
-(x1052==(x1039+1)))) &&
-(star_starting_C(x1038,x1052,x1040) || (\exists integer  x1066; ((((x1052<=x1066) &&
-(x1066<=x1040)) &&
-star_C(x1038,x1052,x1066)) &&
-((x1066==x1040) || (('B'==x1038[x1066]) &&
-(x1040>=(x1066+1))))))))))) || (\exists integer  x1092; (((x1039<x1092) &&
-(x1092<=x1040)) ==> (((('B'==x1038[x1039]) &&
-(x1092==(x1039+1))) || (\exists integer  x1103; ((((x1039<=x1103) &&
-(x1103<=x1092)) &&
-(('C'==x1038[x1039]) &&
-(x1103==(x1039+1)))) &&
-(\exists integer  x1116; ((((x1103<=x1116) &&
-(x1116<=x1092)) &&
-star_C(x1038,x1103,x1116)) &&
-(('B'==x1038[x1116]) &&
-(x1092==(x1116+1)))))))) &&
-star_starting__orB_or_C_sCs_Bor_(x1038,x1092,x1040))))) || (x1040>=x1039));*/
-/*@ predicate re0(char  * x785, integer  x786, integer  x787) = (((x786==x787) || (('A'==x785[x786]) &&
-(x787>=(x786+1)))) || (\exists integer  x796; ((((x786<=x796) &&
-(x796<=x787)) &&
-(('A'==x785[x786]) &&
-(x796==(x786+1)))) &&
-(star_starting_A(x785,x796,x787) || (\exists integer  x810; ((((x796<=x810) &&
-(x810<=x787)) &&
-star_A(x785,x796,x810)) &&
-(((x810==x787) || (('B'==x785[x810]) &&
-(x787>=(x810+1)))) || (\exists integer  x825; ((((x810<=x825) &&
-(x825<=x787)) &&
-(('B'==x785[x810]) &&
-(x825==(x810+1)))) &&
-(star_starting__orB_or_C_sCs_Bor_(x785,x825,x787) || (\exists integer  x839; ((((x825<=x839) &&
-(x839<=x787)) &&
-star__orB_or_C_sCs_Bor_(x785,x825,x839)) &&
-(((x839==x787) || (('C'==x785[x839]) &&
-(x787>=(x839+1)))) || (\exists integer  x854; ((((x839<=x854) &&
-(x854<=x787)) &&
-(('C'==x785[x839]) &&
-(x854==(x839+1)))) &&
-(star_starting_C(x785,x854,x787) || (\exists integer  x868; ((((x854<=x868) &&
-(x868<=x787)) &&
-star_C(x785,x854,x868)) &&
-(((x868==x787) || (('D'==x785[x868]) &&
-(x787>=(x868+1)))) || (\exists integer  x883; ((((x868<=x883) &&
-(x883<=x787)) &&
-(('D'==x785[x868]) &&
-(x883==(x868+1)))) &&
-(star_starting_D(x785,x883,x787) || (\exists integer  x897; ((((x883<=x897) &&
-(x897<=x787)) &&
-star_D(x785,x883,x897)) &&
-(x787>=x897)))))))))))))))))))))))));*/
+(('C'==x0[x31]) &&
+(x38==(x31+1)))) &&
+(\exists integer  x48; ((((x38<=x48) &&
+(x48<=x2)) &&
+star_C(x0,x38,x48)) &&
+(\exists integer  x55; ((((x48<=x55) &&
+(x55<=x2)) &&
+(('D'==x0[x48]) &&
+(x55==(x48+1)))) &&
+(\exists integer  x65; ((((x55<=x65) &&
+(x65<=x2)) &&
+star_D(x0,x55,x65)) &&
+(x65==x2)))))))))))))))));*/
+/*@ predicate re_1(char  * x201, integer  x202, integer  x203) = (\exists integer  x205; ((((x202<=x205) &&
+(x205<=x203)) &&
+star_A(x201,x202,x205)) &&
+(\exists integer  x211; ((((x205<=x211) &&
+(x211<=x203)) &&
+(('B'==x201[x205]) &&
+(x211==(x205+1)))) &&
+(\exists integer  x221; ((((x211<=x221) &&
+(x221<=x203)) &&
+star__orB_or_C_sCs_Bor_(x201,x211,x221)) &&
+(\exists integer  x227; ((((x221<=x227) &&
+(x227<=x203)) &&
+(('C'==x201[x221]) &&
+(x227==(x221+1)))) &&
+(\exists integer  x237; ((((x227<=x237) &&
+(x237<=x203)) &&
+star_C(x201,x227,x237)) &&
+(\exists integer  x243; ((((x237<=x243) &&
+(x243<=x203)) &&
+(('D'==x201[x237]) &&
+(x243==(x237+1)))) &&
+(\exists integer  x253; ((((x243<=x253) &&
+(x253<=x203)) &&
+star_D(x201,x243,x253)) &&
+(x253==x203)))))))))))))));*/
+/*@ predicate re_2(char  * x274, integer  x275, integer  x276) = (\exists integer  x278; ((((x275<=x278) &&
+(x278<=x276)) &&
+star__orB_or_C_sCs_Bor_(x274,x275,x278)) &&
+(\exists integer  x284; ((((x278<=x284) &&
+(x284<=x276)) &&
+(('C'==x274[x278]) &&
+(x284==(x278+1)))) &&
+(\exists integer  x294; ((((x284<=x294) &&
+(x294<=x276)) &&
+star_C(x274,x284,x294)) &&
+(\exists integer  x300; ((((x294<=x300) &&
+(x300<=x276)) &&
+(('D'==x274[x294]) &&
+(x300==(x294+1)))) &&
+(\exists integer  x310; ((((x300<=x310) &&
+(x310<=x276)) &&
+star_D(x274,x300,x310)) &&
+(x310==x276)))))))))));*/
+/*@ predicate re_3(char  * x327, integer  x328, integer  x329) = (\exists integer  x331; ((((x328<=x331) &&
+(x331<=x329)) &&
+star_C(x327,x328,x331)) &&
+(\exists integer  x337; ((((x331<=x337) &&
+(x337<=x329)) &&
+(('D'==x327[x331]) &&
+(x337==(x331+1)))) &&
+(\exists integer  x347; ((((x337<=x347) &&
+(x347<=x329)) &&
+star_D(x327,x337,x347)) &&
+(x347==x329)))))));*/
+/*@ predicate re_4(char  * x360, integer  x361, integer  x362) = (\exists integer  x364; ((((x361<=x364) &&
+(x364<=x362)) &&
+star_D(x360,x361,x364)) &&
+(x364==x362)));*/
+/*@ predicate re_bwd_0(char  * x373, integer  x374, integer  x375) = (x374==x375);*/
+/*@ predicate re_bwd_1(char  * x378, integer  x379, integer  x380) = (\exists integer  x382; ((((x379<=x382) &&
+(x382<=x380)) &&
+(('A'==x378[x379]) &&
+(x382==(x379+1)))) &&
+(\exists integer  x392; ((((x382<=x392) &&
+(x392<=x380)) &&
+star_A(x378,x382,x392)) &&
+(x392==x380)))));*/
+/*@ predicate re_bwd_2(char  * x403, integer  x404, integer  x405) = (\exists integer  x407; ((((x404<=x407) &&
+(x407<=x405)) &&
+(('A'==x403[x404]) &&
+(x407==(x404+1)))) &&
+(\exists integer  x417; ((((x407<=x417) &&
+(x417<=x405)) &&
+star_A(x403,x407,x417)) &&
+(\exists integer  x423; ((((x417<=x423) &&
+(x423<=x405)) &&
+(('B'==x403[x417]) &&
+(x423==(x417+1)))) &&
+(\exists integer  x433; ((((x423<=x433) &&
+(x433<=x405)) &&
+star__orB_or_C_sCs_Bor_(x403,x423,x433)) &&
+(x433==x405)))))))));*/
+/*@ predicate re_bwd_3(char  * x448, integer  x449, integer  x450) = (\exists integer  x452; ((((x449<=x452) &&
+(x452<=x450)) &&
+(('A'==x448[x449]) &&
+(x452==(x449+1)))) &&
+(\exists integer  x462; ((((x452<=x462) &&
+(x462<=x450)) &&
+star_A(x448,x452,x462)) &&
+(\exists integer  x468; ((((x462<=x468) &&
+(x468<=x450)) &&
+(('B'==x448[x462]) &&
+(x468==(x462+1)))) &&
+(\exists integer  x478; ((((x468<=x478) &&
+(x478<=x450)) &&
+star__orB_or_C_sCs_Bor_(x448,x468,x478)) &&
+(\exists integer  x484; ((((x478<=x484) &&
+(x484<=x450)) &&
+(('C'==x448[x478]) &&
+(x484==(x478+1)))) &&
+(\exists integer  x494; ((((x484<=x494) &&
+(x494<=x450)) &&
+star_C(x448,x484,x494)) &&
+(x494==x450)))))))))))));*/
+/*@ predicate re_bwd_4(char  * x513, integer  x514, integer  x515) = (\exists integer  x517; ((((x514<=x517) &&
+(x517<=x515)) &&
+(('A'==x513[x514]) &&
+(x517==(x514+1)))) &&
+(\exists integer  x527; ((((x517<=x527) &&
+(x527<=x515)) &&
+star_A(x513,x517,x527)) &&
+(\exists integer  x533; ((((x527<=x533) &&
+(x533<=x515)) &&
+(('B'==x513[x527]) &&
+(x533==(x527+1)))) &&
+(\exists integer  x543; ((((x533<=x543) &&
+(x543<=x515)) &&
+star__orB_or_C_sCs_Bor_(x513,x533,x543)) &&
+(\exists integer  x549; ((((x543<=x549) &&
+(x549<=x515)) &&
+(('C'==x513[x543]) &&
+(x549==(x543+1)))) &&
+(\exists integer  x559; ((((x549<=x559) &&
+(x559<=x515)) &&
+star_C(x513,x549,x559)) &&
+(\exists integer  x565; ((((x559<=x565) &&
+(x565<=x515)) &&
+(('D'==x513[x559]) &&
+(x565==(x559+1)))) &&
+(\exists integer  x575; ((((x565<=x575) &&
+(x575<=x515)) &&
+star_D(x513,x565,x575)) &&
+(x575==x515)))))))))))))))));*/
+/*@ predicate star_starting_D(char  * x719, integer  x720, integer  x721) = ((((x720==x721) || (('D'==x719[x720]) &&
+(x721>=(x720+1)))) || (\exists integer  x730; (((x720<x730) &&
+(x730<=x721)) ==> ((('D'==x719[x720]) &&
+(x730==(x720+1))) &&
+star_starting_D(x719,x730,x721))))) || (x721>=x720));*/
+/*@ predicate star_starting_A(char  * x745, integer  x746, integer  x747) = ((((x746==x747) || (('A'==x745[x746]) &&
+(x747>=(x746+1)))) || (\exists integer  x756; (((x746<x756) &&
+(x756<=x747)) ==> ((('A'==x745[x746]) &&
+(x756==(x746+1))) &&
+star_starting_A(x745,x756,x747))))) || (x747>=x746));*/
+/*@ predicate star_starting_C(char  * x771, integer  x772, integer  x773) = ((((x772==x773) || (('C'==x771[x772]) &&
+(x773>=(x772+1)))) || (\exists integer  x782; (((x772<x782) &&
+(x782<=x773)) ==> ((('C'==x771[x772]) &&
+(x782==(x772+1))) &&
+star_starting_C(x771,x782,x773))))) || (x773>=x772));*/
+/*@ predicate star_starting__orB_or_C_sCs_Bor_(char  * x797, integer  x798, integer  x799) = (((((x798==x799) || (('B'==x797[x798]) &&
+(x799>=(x798+1)))) || (((x798==x799) || (('C'==x797[x798]) &&
+(x799>=(x798+1)))) || (\exists integer  x811; ((((x798<=x811) &&
+(x811<=x799)) &&
+(('C'==x797[x798]) &&
+(x811==(x798+1)))) &&
+(star_starting_C(x797,x811,x799) || (\exists integer  x819; ((((x811<=x819) &&
+(x819<=x799)) &&
+star_C(x797,x811,x819)) &&
+((x819==x799) || (('B'==x797[x819]) &&
+(x799>=(x819+1))))))))))) || (\exists integer  x839; (((x798<x839) &&
+(x839<=x799)) ==> (((('B'==x797[x798]) &&
+(x839==(x798+1))) || (\exists integer  x845; ((((x798<=x845) &&
+(x845<=x839)) &&
+(('C'==x797[x798]) &&
+(x845==(x798+1)))) &&
+(\exists integer  x852; ((((x845<=x852) &&
+(x852<=x839)) &&
+star_C(x797,x845,x852)) &&
+(('B'==x797[x852]) &&
+(x839==(x852+1)))))))) &&
+star_starting__orB_or_C_sCs_Bor_(x797,x839,x799))))) || (x799>=x798));*/
+/*@ predicate re0(char  * x598, integer  x599, integer  x600) = (((x599==x600) || (('A'==x598[x599]) &&
+(x600>=(x599+1)))) || (\exists integer  x609; ((((x599<=x609) &&
+(x609<=x600)) &&
+(('A'==x598[x599]) &&
+(x609==(x599+1)))) &&
+(star_starting_A(x598,x609,x600) || (\exists integer  x617; ((((x609<=x617) &&
+(x617<=x600)) &&
+star_A(x598,x609,x617)) &&
+(((x617==x600) || (('B'==x598[x617]) &&
+(x600>=(x617+1)))) || (\exists integer  x630; ((((x617<=x630) &&
+(x630<=x600)) &&
+(('B'==x598[x617]) &&
+(x630==(x617+1)))) &&
+(star_starting__orB_or_C_sCs_Bor_(x598,x630,x600) || (\exists integer  x638; ((((x630<=x638) &&
+(x638<=x600)) &&
+star__orB_or_C_sCs_Bor_(x598,x630,x638)) &&
+(((x638==x600) || (('C'==x598[x638]) &&
+(x600>=(x638+1)))) || (\exists integer  x651; ((((x638<=x651) &&
+(x651<=x600)) &&
+(('C'==x598[x638]) &&
+(x651==(x638+1)))) &&
+(star_starting_C(x598,x651,x600) || (\exists integer  x659; ((((x651<=x659) &&
+(x659<=x600)) &&
+star_C(x598,x651,x659)) &&
+(((x659==x600) || (('D'==x598[x659]) &&
+(x600>=(x659+1)))) || (\exists integer  x672; ((((x659<=x672) &&
+(x672<=x600)) &&
+(('D'==x598[x659]) &&
+(x672==(x659+1)))) &&
+(star_starting_D(x598,x672,x600) || (\exists integer  x680; ((((x672<=x680) &&
+(x680<=x600)) &&
+star_D(x598,x672,x680)) &&
+(x600>=x680)))))))))))))))))))))))));*/
 /*@
-requires (((strlen(x1147)>=0) &&
-\valid(x1147+(0..(strlen(x1147)+1)-1))) &&
-(strlen(x1147)<=INT_MAX));
+requires (((strlen(x877)>=0) &&
+\valid(x877+(0..strlen(x877)))) &&
+(strlen(x877)<=INT_MAX));
 assigns \nothing;
-ensures (\result ==> re_0(x1147,0,strlen(x1147)));
+ensures (\result ==> re_0(x877,0,strlen(x877)));
 */
-int dfa(char  * x1147) {
-  int x1149 = 1/*true*/;
-  int x1150 = 0;
-  //@ ghost int x1151 = 0;
-  char  *x1152 = x1147;
+int dfa(char  * x877) {
+  int x879 = 1/*true*/;
+  int x880 = 0;
+  //@ ghost int x881 = 0;
+  char  *x882 = x877;
   /*@
-  loop invariant ((((((((strlen(x1147)>=0) &&
-  \valid(x1147+(0..(strlen(x1147)+1)-1))) &&
-  ((0<=x1151) &&
-  (x1151<=strlen(x1147)))) &&
-  (x1152==(x1147+x1151))) &&
-  ((strlen((x1147+x1151))>=0) &&
-  \valid((x1147+x1151)+(0..(strlen((x1147+x1151))+1)-1)))) &&
-  (x1149 ==> (((x1150==4) ==> re_bwd_4(x1147,0,x1151)) &&
-  (((x1150==3) ==> re_bwd_3(x1147,0,x1151)) &&
-  (((x1150==2) ==> re_bwd_2(x1147,0,x1151)) &&
-  (((x1150==1) ==> re_bwd_1(x1147,0,x1151)) &&
-  ((x1150==0) ==> re_bwd_0(x1147,0,x1151)))))))) &&
-  ((x1150==4) ==> (re_bwd_4(x1147,0,x1151) ==> re_0(x1147,0,x1151)))) &&
-  ((x1150==4) || ((x1150==3) || ((x1150==2) || ((x1150==1) || (x1150==0))))));
-  loop assigns x1152, x1151, x1150, x1149;
-  loop variant strlen(x1152);
+  loop invariant ((((((((strlen(x877)>=0) &&
+  \valid(x877+(0..strlen(x877)))) &&
+  ((0<=x881) &&
+  (x881<=strlen(x877)))) &&
+  (x882==(x877+x881))) &&
+  ((strlen((x877+x881))>=0) &&
+  \valid((x877+x881)+(0..strlen((x877+x881)))))) &&
+  (x879 ==> (((x880==4) ==> re_bwd_4(x877,0,x881)) &&
+  (((x880==3) ==> re_bwd_3(x877,0,x881)) &&
+  (((x880==2) ==> re_bwd_2(x877,0,x881)) &&
+  (((x880==1) ==> re_bwd_1(x877,0,x881)) &&
+  ((x880==0) ==> re_bwd_0(x877,0,x881)))))))) &&
+  ((x880==4) ==> (re_bwd_4(x877,0,x881) ==> re_0(x877,0,x881)))) &&
+  ((x880==4) || ((x880==3) || ((x880==2) || ((x880==1) || (x880==0))))));
+  loop assigns x882, x881, x880, x879;
+  loop variant strlen(x882);
   */
   for (;;) {
-    char  *x1154 = x1152;
-    char x1155 = x1154[0];
-    int x1156 = x1155 == '\0';
-    int x1160;
-    if (x1156) {
-      x1160 = 0/*false*/;
+    char  *x884 = x882;
+    char x885 = x884[0];
+    int x886 = x885 == '\0';
+    int x890;
+    if (x886) {
+      x890 = 0/*false*/;
     } else {
-      int x1158 = x1149;
-      x1160 = x1158;
+      int x888 = x879;
+      x890 = x888;
     }
-    if (!x1160) break;
-    char  *x1162 = x1152;
-    int x1164 = x1150;
-    int x1165 = x1164 == 0;
-    int x1171;
-    if (x1165) {
-      char x1163 = x1162[0];
-      int x1166 = 'A' == x1163;
-      int x1169;
-      if (x1166) {
-        x1150 = 1;
-        x1169 = 1/*true*/;
+    if (!x890) break;
+    char  *x892 = x882;
+    int x894 = x880;
+    int x895 = x894 == 0;
+    int x901;
+    if (x895) {
+      char x893 = x892[0];
+      int x896 = 'A' == x893;
+      int x899;
+      if (x896) {
+        x880 = 1;
+        x899 = 1/*true*/;
       } else {
-        x1169 = 0/*false*/;
+        x899 = 0/*false*/;
       }
-      x1171 = x1169;
+      x901 = x899;
     } else {
-      x1171 = 0/*false*/;
+      x901 = 0/*false*/;
     }
-    int x1172 = x1150;
-    int x1173 = x1172 == 1;
-    int x1182;
-    if (x1173) {
-      char x1163 = x1162[0];
-      int x1166 = 'A' == x1163;
-      int x1176;
-      if (x1166) {
-        x1150 = 1;
-        x1176 = 1/*true*/;
+    int x902 = x880;
+    int x903 = x902 == 1;
+    int x912;
+    if (x903) {
+      char x893 = x892[0];
+      int x896 = 'A' == x893;
+      int x906;
+      if (x896) {
+        x880 = 1;
+        x906 = 1/*true*/;
       } else {
-        x1176 = 0/*false*/;
+        x906 = 0/*false*/;
       }
-      int x1177 = 'B' == x1163;
-      int x1180;
-      if (x1177) {
-        x1150 = 2;
-        x1180 = 1/*true*/;
+      int x907 = 'B' == x893;
+      int x910;
+      if (x907) {
+        x880 = 2;
+        x910 = 1/*true*/;
       } else {
-        x1180 = x1176;
+        x910 = x906;
       }
-      x1182 = x1180;
+      x912 = x910;
     } else {
-      x1182 = x1171;
+      x912 = x901;
     }
-    int x1183 = x1150;
-    int x1184 = x1183 == 2;
-    int x1193;
-    if (x1184) {
-      char x1163 = x1162[0];
-      int x1177 = 'B' == x1163;
-      int x1187;
-      if (x1177) {
-        x1150 = 2;
-        x1187 = 1/*true*/;
+    int x913 = x880;
+    int x914 = x913 == 2;
+    int x923;
+    if (x914) {
+      char x893 = x892[0];
+      int x907 = 'B' == x893;
+      int x917;
+      if (x907) {
+        x880 = 2;
+        x917 = 1/*true*/;
       } else {
-        x1187 = 0/*false*/;
+        x917 = 0/*false*/;
       }
-      int x1188 = 'C' == x1163;
-      int x1191;
-      if (x1188) {
-        x1150 = 3;
-        x1191 = 1/*true*/;
+      int x918 = 'C' == x893;
+      int x921;
+      if (x918) {
+        x880 = 3;
+        x921 = 1/*true*/;
       } else {
-        x1191 = x1187;
+        x921 = x917;
       }
-      x1193 = x1191;
+      x923 = x921;
     } else {
-      x1193 = x1182;
+      x923 = x912;
     }
-    int x1194 = x1150;
-    int x1195 = x1194 == 3;
-    int x1207;
-    if (x1195) {
-      char x1163 = x1162[0];
-      int x1177 = 'B' == x1163;
-      int x1198;
-      if (x1177) {
-        x1150 = 2;
-        x1198 = 1/*true*/;
+    int x924 = x880;
+    int x925 = x924 == 3;
+    int x937;
+    if (x925) {
+      char x893 = x892[0];
+      int x907 = 'B' == x893;
+      int x928;
+      if (x907) {
+        x880 = 2;
+        x928 = 1/*true*/;
       } else {
-        x1198 = 0/*false*/;
+        x928 = 0/*false*/;
       }
-      int x1188 = 'C' == x1163;
-      int x1201;
-      if (x1188) {
-        x1150 = 3;
-        x1201 = 1/*true*/;
+      int x918 = 'C' == x893;
+      int x931;
+      if (x918) {
+        x880 = 3;
+        x931 = 1/*true*/;
       } else {
-        x1201 = x1198;
+        x931 = x928;
       }
-      int x1202 = 'D' == x1163;
-      int x1205;
-      if (x1202) {
-        x1150 = 4;
-        x1205 = 1/*true*/;
+      int x932 = 'D' == x893;
+      int x935;
+      if (x932) {
+        x880 = 4;
+        x935 = 1/*true*/;
       } else {
-        x1205 = x1201;
+        x935 = x931;
       }
-      x1207 = x1205;
+      x937 = x935;
     } else {
-      x1207 = x1193;
+      x937 = x923;
     }
-    int x1208 = x1150;
-    int x1209 = x1208 == 4;
-    int x1214;
-    if (x1209) {
-      char x1163 = x1162[0];
-      int x1202 = 'D' == x1163;
-      int x1212;
-      if (x1202) {
-        x1150 = 4;
-        x1212 = 1/*true*/;
+    int x938 = x880;
+    int x939 = x938 == 4;
+    int x944;
+    if (x939) {
+      char x893 = x892[0];
+      int x932 = 'D' == x893;
+      int x942;
+      if (x932) {
+        x880 = 4;
+        x942 = 1/*true*/;
       } else {
-        x1212 = 0/*false*/;
+        x942 = 0/*false*/;
       }
-      x1214 = x1212;
+      x944 = x942;
     } else {
-      x1214 = x1207;
+      x944 = x937;
     }
-    x1149 = x1214;
-    /*@assert (x1149 ==> (((x1150==4) ==> re_bwd_4(x1147,0,(x1151+1))) &&
-    (((x1150==3) ==> re_bwd_3(x1147,0,(x1151+1))) &&
-    (((x1150==2) ==> re_bwd_2(x1147,0,(x1151+1))) &&
-    (((x1150==1) ==> re_bwd_1(x1147,0,(x1151+1))) &&
-    ((x1150==0) ==> re_bwd_0(x1147,0,(x1151+1))))))));*/
-    //@ ghost int x1243 = x1151;
-    //@ ghost int x1244 = x1243 + 1;
-    //@ ghost x1151 = x1244;
-    char  *x1246 = x1162+1;
-    x1152 = x1246;
-    /*@assert (x1149 ==> (((x1150==4) ==> re_bwd_4(x1147,0,x1151)) &&
-    (((x1150==3) ==> re_bwd_3(x1147,0,x1151)) &&
-    (((x1150==2) ==> re_bwd_2(x1147,0,x1151)) &&
-    (((x1150==1) ==> re_bwd_1(x1147,0,x1151)) &&
-    ((x1150==0) ==> re_bwd_0(x1147,0,x1151)))))));*/
+    x879 = x944;
+    /*@assert (x879 ==> (((x880==4) ==> re_bwd_4(x877,0,(x881+1))) &&
+    (((x880==3) ==> re_bwd_3(x877,0,(x881+1))) &&
+    (((x880==2) ==> re_bwd_2(x877,0,(x881+1))) &&
+    (((x880==1) ==> re_bwd_1(x877,0,(x881+1))) &&
+    ((x880==0) ==> re_bwd_0(x877,0,(x881+1))))))));*/
+    //@ ghost int x973 = x881;
+    //@ ghost int x974 = x973 + 1;
+    //@ ghost x881 = x974;
+    char  *x976 = x892+1;
+    x882 = x976;
+    /*@assert (x879 ==> (((x880==4) ==> re_bwd_4(x877,0,x881)) &&
+    (((x880==3) ==> re_bwd_3(x877,0,x881)) &&
+    (((x880==2) ==> re_bwd_2(x877,0,x881)) &&
+    (((x880==1) ==> re_bwd_1(x877,0,x881)) &&
+    ((x880==0) ==> re_bwd_0(x877,0,x881)))))));*/
   }
-  int x1371 = x1150;
-  char  *x1372 = x1152;
-  char x1373 = x1372[0];
-  int x1374 = x1373 == '\0';
-  int x1377;
-  if (x1374) {
-    int x1375 = x1149;
-    x1377 = x1375;
+  int x1090 = x880;
+  char  *x1091 = x882;
+  char x1092 = x1091[0];
+  int x1093 = x1092 == '\0';
+  int x1096;
+  if (x1093) {
+    int x1094 = x879;
+    x1096 = x1094;
   } else {
-    x1377 = 0/*false*/;
+    x1096 = 0/*false*/;
   }
-  int x1379;
-  if (x1377) {
-    int x1378 = 4 == x1371;
-    x1379 = x1378;
+  int x1098;
+  if (x1096) {
+    int x1097 = 4 == x1090;
+    x1098 = x1097;
   } else {
-    x1379 = 0/*false*/;
+    x1098 = 0/*false*/;
   }
-  return x1379;
+  return x1098;
 }

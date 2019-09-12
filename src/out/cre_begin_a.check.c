@@ -2,7 +2,7 @@
 #include <string.h>
 /*@
 requires ((strlen(x0)>=0) &&
-\valid(x0+(0..(strlen(x0)+1)-1)));
+\valid(x0+(0..strlen(x0))));
 */
 int matcher_begin_a(char  * x0) {
   char x2 = x0[0];

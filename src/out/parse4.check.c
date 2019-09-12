@@ -2,7 +2,7 @@
 #include <string.h>
 /*@
 requires ((strlen(x0)>=0) &&
-\valid(x0+(0..(strlen(x0)+1)-1)));
+\valid(x0+(0..strlen(x0))));
 assigns \nothing;
 */
 int p(char  * x0) {
@@ -15,7 +15,7 @@ int p(char  * x0) {
   int x167 = x166 - 16;
   /*@
   loop invariant (((strlen(x3)>=0) &&
-  \valid(x3+(0..(strlen(x3)+1)-1))) &&
+  \valid(x3+(0..strlen(x3)))) &&
   ((x5==-1) || (0<=x5)));
   loop assigns x3, x4, x5;
   */
@@ -128,7 +128,7 @@ int p(char  * x0) {
       int x99 = x95;
       /*@
       loop invariant (((strlen(x97)>=0) &&
-      \valid(x97+(0..(strlen(x97)+1)-1))) &&
+      \valid(x97+(0..strlen(x97)))) &&
       ((x99==-1) || (0<=x99)));
       loop assigns x97, x98, x99;
       */
@@ -253,157 +253,157 @@ int p(char  * x0) {
           x97 = x179;
         }
       }
-      int x214 = x99;
-      char  *x215 = x97;
+      int x212 = x99;
+      char  *x213 = x97;
       x18 = 0/*false*/;
-      x19 = x214;
-      x20 = x215;
+      x19 = x212;
+      x20 = x213;
     }
-    int x221 = x18;
-    if (x221) {
-      char  *x222 = x20;
-      x17 = x222;
+    int x219 = x18;
+    if (x219) {
+      char  *x220 = x20;
+      x17 = x220;
     } else {
-      int x225 = x19;
-      char  *x226 = x20;
-      int x231 = 1/*true*/;
-      char x232 = '\0';
-      char  *x233 = 0/*null*/;
-      char x227 = x226[0];
-      int x228 = x227 == '\0';
-      if (x228) {
-        x233 = x226;
+      int x223 = x19;
+      char  *x224 = x20;
+      int x229 = 1/*true*/;
+      char x230 = '\0';
+      char  *x231 = 0/*null*/;
+      char x225 = x224[0];
+      int x226 = x225 == '\0';
+      if (x226) {
+        x231 = x224;
       } else {
-        int x229 = x227 == '\r';
-        if (x229) {
-          x231 = 0/*false*/;
-          x232 = x227;
-          char  *x230 = x226+1;
-          x233 = x230;
+        int x227 = x225 == '\r';
+        if (x227) {
+          x229 = 0/*false*/;
+          x230 = x225;
+          char  *x228 = x224+1;
+          x231 = x228;
         } else {
-          x233 = x226;
+          x231 = x224;
         }
       }
-      int x245 = x231;
-      if (x245) {
-        char  *x246 = x233;
-        x17 = x246;
+      int x243 = x229;
+      if (x243) {
+        char  *x244 = x231;
+        x17 = x244;
       } else {
-        char x249 = x232;
-        char  *x250 = x233;
-        int x255 = 1/*true*/;
-        char x256 = '\0';
-        char  *x257 = 0/*null*/;
-        char x251 = x250[0];
-        int x252 = x251 == '\0';
-        if (x252) {
-          x257 = x250;
+        char x247 = x230;
+        char  *x248 = x231;
+        int x253 = 1/*true*/;
+        char x254 = '\0';
+        char  *x255 = 0/*null*/;
+        char x249 = x248[0];
+        int x250 = x249 == '\0';
+        if (x250) {
+          x255 = x248;
         } else {
-          int x253 = x251 == '\n';
-          if (x253) {
-            x255 = 0/*false*/;
-            x256 = x251;
-            char  *x254 = x250+1;
-            x257 = x254;
+          int x251 = x249 == '\n';
+          if (x251) {
+            x253 = 0/*false*/;
+            x254 = x249;
+            char  *x252 = x248+1;
+            x255 = x252;
           } else {
-            x257 = x250;
+            x255 = x248;
           }
         }
-        int x269 = x255;
-        if (x269) {
-          char  *x270 = x257;
-          x17 = x270;
+        int x267 = x253;
+        if (x267) {
+          char  *x268 = x255;
+          x17 = x268;
         } else {
-          char x273 = x256;
-          char  *x274 = x257;
+          char x271 = x254;
+          char  *x272 = x255;
           x15 = 0/*false*/;
-          x16 = x225;
-          x17 = x274;
+          x16 = x223;
+          x17 = x272;
         }
       }
     }
-    int x284 = x15;
-    if (x284) {
-      char  *x285 = x17;
+    int x282 = x15;
+    if (x282) {
+      char  *x283 = x17;
       x4 = 0/*false*/;
     } else {
-      int x288 = x16;
-      char  *x289 = x17;
-      int x291 = 1/*true*/;
-      char  *x292 = x289;
+      int x286 = x16;
+      char  *x287 = x17;
+      int x289 = 1/*true*/;
+      char  *x290 = x287;
       /*@
-      loop invariant ((0<=x294) &&
-      ((strlen(x292)>=0) &&
-      \valid(x292+(0..(strlen(x292)+1)-1))));
-      loop assigns x294, x291, x292;
-      loop variant (x288-x294);
+      loop invariant ((0<=x292) &&
+      ((strlen(x290)>=0) &&
+      \valid(x290+(0..strlen(x290)))));
+      loop assigns x292, x289, x290;
+      loop variant (x286-x292);
       */
-      for(int x294=0; x294 < x288; x294++) {
-        int x295 = x291;
-        if (x295) {
-          char  *x296 = x292;
-          char x297 = x296[0];
-          int x298 = x297 == '\0';
-          if (x298) {
-            x291 = 0/*false*/;
+      for(int x292=0; x292 < x286; x292++) {
+        int x293 = x289;
+        if (x293) {
+          char  *x294 = x290;
+          char x295 = x294[0];
+          int x296 = x295 == '\0';
+          if (x296) {
+            x289 = 0/*false*/;
           } else {
-            char  *x299 = x296+1;
-            x292 = x299;
+            char  *x297 = x294+1;
+            x290 = x297;
           }
         } else {
         }
       }
-      int x328 = x291;
-      char  *x329 = x292;
-      int x290 = x288 < 0;
-      if (x290) {
+      int x323 = x289;
+      char  *x324 = x290;
+      int x288 = x286 < 0;
+      if (x288) {
         x4 = 0/*false*/;
       } else {
-        int x332 = 1/*true*/;
-        char  *x334 = 0/*null*/;
-        if (x328) {
-          x332 = 0/*false*/;
-          x334 = x329;
+        int x327 = 1/*true*/;
+        char  *x329 = 0/*null*/;
+        if (x323) {
+          x327 = 0/*false*/;
+          x329 = x324;
         } else {
-          x334 = x289;
+          x329 = x287;
         }
-        int x342 = x332;
-        if (x342) {
-          char  *x343 = x334;
+        int x337 = x327;
+        if (x337) {
+          char  *x338 = x329;
           x4 = 0/*false*/;
         } else {
-          char  *x347 = x334;
-          int x348 = x5;
-          int x349 = x348 < 0;
-          int x354;
-          if (x349) {
-            x354 = x348;
+          char  *x342 = x329;
+          int x343 = x5;
+          int x344 = x343 < 0;
+          int x349;
+          if (x344) {
+            x349 = x343;
           } else {
-            int x350 = x165 - x288;
-            int x351 = x348 > x350;
-            int x353;
-            if (x351) {
-              x353 = -1;
+            int x345 = x165 - x286;
+            int x346 = x343 > x345;
+            int x348;
+            if (x346) {
+              x348 = -1;
             } else {
-              int x352 = x348 + x288;
-              x353 = x352;
+              int x347 = x343 + x286;
+              x348 = x347;
             }
-            x354 = x353;
+            x349 = x348;
           }
-          x5 = x354;
-          x3 = x347;
+          x5 = x349;
+          x3 = x342;
         }
       }
     }
   }
-  int x386 = x5;
-  char  *x387 = x3;
-  char x388 = x387[0];
-  int x389 = x388 == '\0';
-  if (x389) {
-    x2 = x386;
+  int x379 = x5;
+  char  *x380 = x3;
+  char x381 = x380[0];
+  int x382 = x381 == '\0';
+  if (x382) {
+    x2 = x379;
   } else {
   }
-  int x393 = x2;
-  return x393;
+  int x386 = x2;
+  return x386;
 }

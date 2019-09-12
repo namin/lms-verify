@@ -2,7 +2,7 @@
 #include <string.h>
 /*@
 requires ((strlen(x0)>=0) &&
-\valid(x0+(0..(strlen(x0)+1)-1)));
+\valid(x0+(0..strlen(x0))));
 assigns \nothing;
 ensures ((\result==-1) || ((0<=\result) &&
 (\result<=9)));

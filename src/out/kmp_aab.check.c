@@ -5,7 +5,7 @@
 (x0[2]=='b')));*/
 /*@
 requires ((strlen(x0)>=0) &&
-\valid(x0+(0..(strlen(x0)+1)-1)));
+\valid(x0+(0..strlen(x0))));
 assigns \nothing;
 ensures \result <==> match_w(x0);
 */
@@ -36,118 +36,117 @@ int match_w(char  * x0) {
   }
   return x10;
 }
-/*@ predicate match_any_w(char  * x20) = (\exists int x24; (0<=x24<strlen(x20)) && match_w((x20+x24)));*/
+/*@ predicate match_any_w(char  * x17) = (\exists int x21; (0<=x21<strlen(x17)) && match_w((x17+x21)));*/
 /*@
-requires ((strlen(x20)>=0) &&
-\valid(x20+(0..(strlen(x20)+1)-1)));
+requires ((strlen(x17)>=0) &&
+\valid(x17+(0..strlen(x17))));
 assigns \nothing;
-ensures \result <==> match_any_w(x20);
+ensures \result <==> match_any_w(x17);
 */
-int match_any_w(char  * x20) {
-  int x22 = strlen(x20);
-  int x31 = 0;
-  /*@ loop invariant (0 <= x25 <= strlen(x20));
-  loop invariant !(\exists int x24; (0 <= x24 < x25) && match_w((x20+x24)));
-  loop invariant x31==0;
-  loop assigns x25, x31;
-  loop variant (strlen(x20)-x25); */
-  for (int x25 = 0; x25 < strlen(x20); x25++) {
-    char  *x29 = x20+x25;
-    int x30 = match_w(x29);
-    if (x30) { x31 = 1; break; }
+int match_any_w(char  * x17) {
+  int x27 = 0;
+  /*@ loop invariant (0 <= x22 <= strlen(x17));
+  loop invariant !(\exists int x21; (0 <= x21 < x22) && match_w((x17+x21)));
+  loop invariant x27==0;
+  loop assigns x22, x27;
+  loop variant (strlen(x17)-x22); */
+  for (int x22 = 0; x22 < strlen(x17); x22++) {
+    char  *x25 = x17+x22;
+    int x26 = match_w(x25);
+    if (x26) { x27 = 1; break; }
   }
-  return x31;
+  return x27;
 }
 /*@
-requires (((strlen(x41)>=0) &&
-\valid(x41+(0..(strlen(x41)+1)-1))) &&
-(((strlen(x41)*2)+3)<=INT_MAX));
+requires (((strlen(x33)>=0) &&
+\valid(x33+(0..strlen(x33)))) &&
+(((strlen(x33)*2)+3)<=INT_MAX));
 assigns \nothing;
-ensures ((((\result ==> match_any_w(x41)) &&
-(match_any_w(x41) ==> \result)) &&
-((!\result) ==> (!match_any_w(x41)))) &&
-((!match_any_w(x41)) ==> (!\result)));
+ensures ((((\result ==> match_any_w(x33)) &&
+(match_any_w(x33) ==> \result)) &&
+((!\result) ==> (!match_any_w(x33)))) &&
+((!match_any_w(x33)) ==> (!\result)));
 */
-int matcher(char  * x41) {
-  int x43 = 0;
-  int x44 = 0;
+int matcher(char  * x33) {
+  int x35 = 0;
+  int x36 = 0;
   /*@
-  loop invariant (((((((0<=x44) &&
-  (x44<=strlen(x41))) &&
-  (0<=x43)) &&
-  (x43<=3)) &&
-  ((strlen(x41)>=0) &&
-  \valid(x41+(0..(strlen(x41)+1)-1)))) &&
-  (\forall int  x121; (((0<=x121) &&
-  (x121<(x44-x43))) ==> (!match_w((x41+x121)))))) &&
-  (((x43==1) ==> ((x44>=1) &&
-  (x41[(x44-1)]=='a'))) &&
-  (((x43==2) ==> ((x44>=2) &&
-  ((x41[(x44-2)]=='a') &&
-  (x41[(x44-1)]=='a')))) &&
-  ((x43==3) ==> ((x44>=3) &&
-  ((x41[(x44-3)]=='a') &&
-  ((x41[(x44-2)]=='a') &&
-  (x41[(x44-1)]=='b'))))))));
-  loop assigns x43, x44;
-  loop variant (((strlen(x41)*2)-(x44*2))+x43);
+  loop invariant (((((((0<=x36) &&
+  (x36<=strlen(x33))) &&
+  (0<=x35)) &&
+  (x35<=3)) &&
+  ((strlen(x33)>=0) &&
+  \valid(x33+(0..strlen(x33))))) &&
+  (\forall int  x107; (((0<=x107) &&
+  (x107<(x36-x35))) ==> (!match_w((x33+x107)))))) &&
+  (((x35==1) ==> ((x36>=1) &&
+  (x33[(x36-1)]=='a'))) &&
+  (((x35==2) ==> ((x36>=2) &&
+  ((x33[(x36-2)]=='a') &&
+  (x33[(x36-1)]=='a')))) &&
+  ((x35==3) ==> ((x36>=3) &&
+  ((x33[(x36-3)]=='a') &&
+  ((x33[(x36-2)]=='a') &&
+  (x33[(x36-1)]=='b'))))))));
+  loop assigns x35, x36;
+  loop variant (((strlen(x33)*2)-(x36*2))+x35);
   */
   for (;;) {
-    int x45 = x44;
-    char x46 = x41[x45];
-    int x48 = x46 == '\0';
-    int x52;
-    if (x48) {
-      x52 = 0/*false*/;
+    int x37 = x36;
+    char x38 = x33[x37];
+    int x40 = x38 == '\0';
+    int x44;
+    if (x40) {
+      x44 = 0/*false*/;
     } else {
-      int x49 = x43;
-      int x50 = x49 < 3;
-      x52 = x50;
+      int x41 = x35;
+      int x42 = x41 < 3;
+      x44 = x42;
     }
-    if (!x52) break;
-    int x54 = x43;
-    int x55 = x54 == 0;
-    if (x55) {
-      int x56 = x44;
-      char x57 = x41[x56];
-      int x58 = 'a' == x57;
-      if (x58) {
-        x43 += 1;
-        x44 += 1;
+    if (!x44) break;
+    int x46 = x35;
+    int x47 = x46 == 0;
+    if (x47) {
+      int x48 = x36;
+      char x49 = x33[x48];
+      int x50 = 'a' == x49;
+      if (x50) {
+        x35 += 1;
+        x36 += 1;
       } else {
-        x43 = 0;
-        x44 += 1;
+        x35 = 0;
+        x36 += 1;
       }
     } else {
-      int x67 = x54 == 1;
-      if (x67) {
-        int x68 = x44;
-        char x69 = x41[x68];
-        int x70 = 'a' == x69;
-        if (x70) {
-          x43 += 1;
-          x44 += 1;
+      int x59 = x46 == 1;
+      if (x59) {
+        int x60 = x36;
+        char x61 = x33[x60];
+        int x62 = 'a' == x61;
+        if (x62) {
+          x35 += 1;
+          x36 += 1;
         } else {
-          x43 = 0;
+          x35 = 0;
         }
       } else {
-        int x78 = x54 == 2;
-        if (x78) {
-          int x79 = x44;
-          char x80 = x41[x79];
-          int x81 = 'b' == x80;
-          if (x81) {
-            x43 += 1;
-            x44 += 1;
+        int x70 = x46 == 2;
+        if (x70) {
+          int x71 = x36;
+          char x72 = x33[x71];
+          int x73 = 'b' == x72;
+          if (x73) {
+            x35 += 1;
+            x36 += 1;
           } else {
-            x43 = 1;
+            x35 = 1;
           }
         } else {
         }
       }
     }
   }
-  int x208 = x43;
-  int x209 = x208 == 3;
-  return x209;
+  int x167 = x35;
+  int x168 = x167 == 3;
+  return x168;
 }

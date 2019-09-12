@@ -2,7 +2,7 @@
 #include <string.h>
 /*@
 requires ((strlen(x0)>=0) &&
-\valid(x0+(0..(strlen(x0)+1)-1)));
+\valid(x0+(0..strlen(x0))));
 */
 int matcher_a_end(char  * x0) {
   int x2 = 0/*false*/;
@@ -10,9 +10,9 @@ int matcher_a_end(char  * x0) {
   char  *x4 = x0;
   /*@
   loop invariant ((strlen(x4)>=0) &&
-  \valid(x4+(0..(strlen(x4)+1)-1)));
+  \valid(x4+(0..strlen(x4))));
   loop assigns x2, x3, x4;
-  loop variant ((strlen(x4)+(((!x2)) ? (1) : (0)))+((x3) ? (1) : (0)));
+  loop variant ((strlen(x4)+((x2) ? (0) : (1)))+((x3) ? (1) : (0)));
   */
   for (;;) {
     int x5 = x2;
@@ -57,6 +57,6 @@ int matcher_a_end(char  * x0) {
       }
     }
   }
-  int x58 = x2;
-  return x58;
+  int x56 = x2;
+  return x56;
 }

@@ -329,23 +329,27 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
   implicit def anyTyp: Typ[Any] = manifestTyp
   def typ_arrayTyp[T](t: Typ[T]) = t.arrayTyp
 
-  var suspendCSE: Boolean = false
+  var reifyingSpec: Boolean = false
   def reifySpec[A:Typ](block: => Exp[A]): Block[A] = {
-    val savedCSE = suspendCSE
-    suspendCSE = true
+    val saved = reifyingSpec
+    reifyingSpec = true
     try {
       reifyEffects(block)
     } finally {
-      suspendCSE = savedCSE
+      reifyingSpec = saved
     }
   }
 
+  var specSyms: Set[Rep[Any]] = Set.empty
   override protected implicit def toAtom[T:Typ](d: Def[T])(implicit pos: SourceContext): Exp[T] = {
     def a = super.toAtom[T](d)(implicitly[Typ[T]], pos)
-    if (suspendCSE) d match {
-      case _:Reify[_] => a
-      case _:Reflect[_] => a
-      case _ => reflectEffect(d)
+    if (reifyingSpec) {
+      val x = d match {
+        case _:Reify[_] => a
+        case _ => a//reflectEffect(d)
+      }
+      specSyms += x
+      x
     } else a
   }
 
@@ -397,7 +401,7 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
   case class ToplevelApply[B:Typ](name: String, args: List[Rep[_]]) extends Def[B]
   val eff = new scala.collection.mutable.LinkedHashMap[String,(List[Sym[Any]], Summary)]
   def toplevelApply[B:Typ](name: String, args: List[Rep[_]]): Rep[B] = {
-    if (suspendCSE) { // in spec
+    if (reifyingSpec) {
       rec.get(name) match {
         case Some(t:TopLevel[_]) if !t.spec =>
           // inline and ignore contract???
@@ -539,7 +543,7 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
 
   override def symsFreq(e: Any): List[(Sym[Any], Double)] = e match {
     case Assert(y) => freqNormal(y)
-    case Quantifier(k, x, y) => freqCold(y)
+    case Quantifier(k, x, y) => freqHot(y)
     case RangeQuantifier(k, start, end, j, i, y, z) => freqNormal(start):::freqNormal(end):::freqCold(y):::freqHot(z)
     case _ => super.symsFreq(e)
   }
@@ -741,7 +745,7 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
     case Const(b: Boolean) => "\\"+b.toString
     case Const(_) => quotee(e)
     case s@Sym(n) => s match {
-      case Def(d) if !emitted(s) => exprOfDef(d, m)
+      case Def(d) if !emitted(s) || specSyms(s) => exprOfDef(d, m)
       case _ => m.get(s) match {
         case Some(v) => v
         case None => quotee(e)
@@ -749,7 +753,8 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
     }
   }
 
-  override def emitNode(sym: Sym[Any], rhs: Def[Any]) = {
+  override def emitNode(sym: Sym[Any], rhs: Def[Any]): Unit = {
+    if (specSyms(sym)) return
     emitted += sym
     if (emitFileAndLine && !rhs.isInstanceOf[Reflect[_]]) {
       val s = quotePos(sym).split("//")(0).split(":")

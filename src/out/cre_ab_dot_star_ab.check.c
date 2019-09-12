@@ -2,7 +2,7 @@
 #include <string.h>
 /*@
 requires ((strlen(x0)>=0) &&
-\valid(x0+(0..(strlen(x0)+1)-1)));
+\valid(x0+(0..strlen(x0))));
 */
 int matcher_ab_dot_star_ab(char  * x0) {
   int x2 = 0/*false*/;
@@ -10,9 +10,9 @@ int matcher_ab_dot_star_ab(char  * x0) {
   char  *x4 = x0;
   /*@
   loop invariant ((strlen(x4)>=0) &&
-  \valid(x4+(0..(strlen(x4)+1)-1)));
+  \valid(x4+(0..strlen(x4))));
   loop assigns x2, x3, x4;
-  loop variant ((strlen(x4)+(((!x2)) ? (1) : (0)))+((x3) ? (1) : (0)));
+  loop variant ((strlen(x4)+((x2) ? (0) : (1)))+((x3) ? (1) : (0)));
   */
   for (;;) {
     int x5 = x2;
@@ -34,7 +34,7 @@ int matcher_ab_dot_star_ab(char  * x0) {
       int x15 = 'a' == x12;
       x16 = x15;
     }
-    int x90;
+    int x88;
     if (x16) {
       char  *x17 = x11+1;
       char x18 = x17[0];
@@ -46,7 +46,7 @@ int matcher_ab_dot_star_ab(char  * x0) {
         int x21 = 'b' == x18;
         x22 = x21;
       }
-      int x89;
+      int x87;
       if (x22) {
         int x24 = 0/*false*/;
         int x25 = 1/*true*/;
@@ -54,9 +54,9 @@ int matcher_ab_dot_star_ab(char  * x0) {
         char  *x26 = x23;
         /*@
         loop invariant ((strlen(x26)>=0) &&
-        \valid(x26+(0..(strlen(x26)+1)-1)));
+        \valid(x26+(0..strlen(x26))));
         loop assigns x24, x25, x26;
-        loop variant ((strlen(x26)+(((!x24)) ? (1) : (0)))+((x25) ? (1) : (0)));
+        loop variant ((strlen(x26)+((x24) ? (0) : (1)))+((x25) ? (1) : (0)));
         */
         for (;;) {
           int x27 = x24;
@@ -115,29 +115,29 @@ int matcher_ab_dot_star_ab(char  * x0) {
             }
           }
         }
-        int x87 = x24;
-        x89 = x87;
+        int x85 = x24;
+        x87 = x85;
       } else {
-        x89 = 0/*false*/;
+        x87 = 0/*false*/;
       }
-      x90 = x89;
+      x88 = x87;
     } else {
-      x90 = 0/*false*/;
+      x88 = 0/*false*/;
     }
-    x2 = x90;
-    int x92 = x2;
-    if (x92) {
+    x2 = x88;
+    int x90 = x2;
+    if (x90) {
     } else {
       int x14 = !x13;
       x3 = x14;
-      int x95 = x3;
-      if (x95) {
+      int x93 = x3;
+      if (x93) {
         char  *x17 = x11+1;
         x4 = x17;
       } else {
       }
     }
   }
-  int x128 = x2;
-  return x128;
+  int x124 = x2;
+  return x124;
 }

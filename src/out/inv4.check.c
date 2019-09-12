@@ -1,61 +1,61 @@
 #include <limits.h>
 /*@ predicate inv_vec_Int(int  * x0, integer  x1) = ((x1==0) || ((x1>0) &&
 \valid(x0+(0..x1-1))));*/
-/*@ predicate inv_vec_vec_Int(int  * * x16, int  * x17, integer  x18) = (((x18==0) || ((x18>0) &&
-(\valid(x16+(0..x18-1)) &&
-\valid(x17+(0..x18-1))))) &&
-(\forall int x28; (0<=x28<x18) ==> ((x17[x28]==0) || ((x17[x28]>0) &&
-\valid(x16[x28]+(0..x17[x28]-1))))));*/
+/*@ predicate inv_vec_vec_Int(int  * * x15, int  * x16, integer  x17) = (((x17==0) || ((x17>0) &&
+(\valid(x15+(0..x17-1)) &&
+\valid(x16+(0..x17-1))))) &&
+(\forall int x27; (0<=x27<x17) ==> ((x16[x27]==0) || ((x16[x27]>0) &&
+\valid(x15[x27]+(0..x16[x27]-1))))));*/
 /*@
-requires inv_vec_vec_Int(x66,x67,x68);
+requires inv_vec_vec_Int(x58,x59,x60);
 assigns \nothing;
-ensures inv_vec_vec_Int(x66,x67,x68);
+ensures inv_vec_vec_Int(x58,x59,x60);
 */
-int count_pos(int  * * x66, int  * x67, int  x68) {
-  int x70 = 0;
+int count_pos(int  * * x58, int  * x59, int  x60) {
+  int x62 = 0;
   /*@
-  loop invariant 0<=x72<=x68;
-  loop invariant ((0<=x70) &&
-  (x70<=x72));
-  loop assigns x72, x70;
-  loop variant x68-x72;
+  loop invariant 0<=x64<=x60;
+  loop invariant ((0<=x62) &&
+  (x62<=x64));
+  loop assigns x64, x62;
+  loop variant x60-x64;
   */
-  for(int x72=0; x72 < x68; x72++) {
-    int x75 = x70;
-    int x81 = 0;
-    int x74 = x67[x72];
-    int  *x73 = x66[x72];
+  for(int x64=0; x64 < x60; x64++) {
+    int x67 = x62;
+    int x71 = 0;
+    int x66 = x59[x64];
+    int  *x65 = x58[x64];
     /*@
-    loop invariant 0<=x83<=x74;
-    loop invariant ((0<=x81) &&
-    (x81<=x83));
-    loop assigns x83, x81;
-    loop variant x74-x83;
+    loop invariant 0<=x73<=x66;
+    loop invariant ((0<=x71) &&
+    (x71<=x73));
+    loop assigns x73, x71;
+    loop variant x66-x73;
     */
-    for(int x83=0; x83 < x74; x83++) {
-      int x85 = x81;
-      int x84 = x73[x83];
-      int x91 = x84 > 0;
-      int x92;
-      if (x91) {
-        x92 = 1;
+    for(int x73=0; x73 < x66; x73++) {
+      int x75 = x71;
+      int x74 = x65[x73];
+      int x79 = x74 > 0;
+      int x80;
+      if (x79) {
+        x80 = 1;
       } else {
-        x92 = 0;
+        x80 = 0;
       }
-      int x93 = x85 + x92;
-      x81 = x93;
+      int x81 = x75 + x80;
+      x71 = x81;
     }
-    int x97 = x81;
-    int x98 = x97 > 0;
-    int x99;
-    if (x98) {
-      x99 = 1;
+    int x85 = x71;
+    int x86 = x85 > 0;
+    int x87;
+    if (x86) {
+      x87 = 1;
     } else {
-      x99 = 0;
+      x87 = 0;
     }
-    int x100 = x75 + x99;
-    x70 = x100;
+    int x88 = x67 + x87;
+    x62 = x88;
   }
-  int x104 = x70;
-  return x104;
+  int x92 = x62;
+  return x92;
 }

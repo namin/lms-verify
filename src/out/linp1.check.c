@@ -17,57 +17,57 @@ int index(int  x0, int  x1, int  x2, int  x3) {
   int x6 = x5 + x3;
   return x6;
 }
-/*@ predicate inv_matrix_Boolean(int  * x36, integer  x37, integer  x38) = (((((x37<100) &&
-(x38<100)) &&
-(0<x37)) &&
-(0<x38)) &&
-(((x37*x38)>0) &&
-\valid(x36+(0..(x37*x38)-1))));*/
+/*@ predicate inv_matrix_Boolean(int  * x26, integer  x27, integer  x28) = (((((x27<100) &&
+(x28<100)) &&
+(0<x27)) &&
+(0<x28)) &&
+(((x27*x28)>0) &&
+\valid(x26+(0..(x27*x28)-1))));*/
 /*@
-requires (((inv_matrix_Boolean(x79,x80,x81) &&
-inv_matrix_Boolean(x82,x83,x84)) &&
-inv_matrix_Boolean(x85,x86,x87)) &&
-(((x81==x83) &&
-(x80==x86)) &&
-(x84==x87)));
-ensures ((inv_matrix_Boolean(x79,x80,x81) &&
-inv_matrix_Boolean(x82,x83,x84)) &&
-inv_matrix_Boolean(x85,x86,x87));
+requires (((inv_matrix_Boolean(x63,x64,x65) &&
+inv_matrix_Boolean(x66,x67,x68)) &&
+inv_matrix_Boolean(x69,x70,x71)) &&
+(((x65==x67) &&
+(x64==x70)) &&
+(x68==x71)));
+ensures ((inv_matrix_Boolean(x63,x64,x65) &&
+inv_matrix_Boolean(x66,x67,x68)) &&
+inv_matrix_Boolean(x69,x70,x71));
 */
-void mult(int  * x79, int  x80, int  x81, int  * x82, int  x83, int  x84, int  * x85, int  x86, int  x87) {
+void mult(int  * x63, int  x64, int  x65, int  * x66, int  x67, int  x68, int  * x69, int  x70, int  x71) {
   /*@
-  loop invariant 0<=x92<=x80;
-  loop assigns x92, x85[(0..(x86*x87)-1)];
-  loop variant x80-x92;
+  loop invariant 0<=x76<=x64;
+  loop assigns x76, x69[(0..(x70*x71)-1)];
+  loop variant x64-x76;
   */
-  for(int x92=0; x92 < x80; x92++) {
+  for(int x76=0; x76 < x64; x76++) {
     /*@
-    loop invariant 0<=x94<=x84;
-    loop assigns x94, x85[(0..(x86*x87)-1)];
-    loop variant x84-x94;
+    loop invariant 0<=x78<=x68;
+    loop assigns x78, x69[(0..(x70*x71)-1)];
+    loop variant x68-x78;
     */
-    for(int x94=0; x94 < x84; x94++) {
-      int x95 = index(x86,x87,x92,x94);
-      x85[x95] = 0/*false*/;
+    for(int x78=0; x78 < x68; x78++) {
+      int x79 = index(x70,x71,x76,x78);
+      x69[x79] = 0/*false*/;
       /*@
-      loop invariant 0<=x98<=x81;
-      loop assigns x98, x85[(0..(x86*x87)-1)];
-      loop variant x81-x98;
+      loop invariant 0<=x82<=x65;
+      loop assigns x82, x69[(0..(x70*x71)-1)];
+      loop variant x65-x82;
       */
-      for(int x98=0; x98 < x81; x98++) {
-        int x99 = x85[x95];
-        int x100 = index(x80,x81,x92,x98);
-        int x101 = x79[x100];
-        int x104;
-        if (x101) {
-          int x102 = index(x83,x84,x98,x94);
-          int x103 = x82[x102];
-          x104 = x103;
+      for(int x82=0; x82 < x65; x82++) {
+        int x83 = x69[x79];
+        int x84 = index(x64,x65,x76,x82);
+        int x85 = x63[x84];
+        int x88;
+        if (x85) {
+          int x86 = index(x67,x68,x82,x78);
+          int x87 = x66[x86];
+          x88 = x87;
         } else {
-          x104 = 0/*false*/;
+          x88 = 0/*false*/;
         }
-        int x105 = x99 || x104;
-        x85[x95] = x105;
+        int x89 = x83 || x88;
+        x69[x79] = x89;
       }
     }
   }

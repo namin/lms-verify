@@ -2,12 +2,11 @@
 #include <string.h>
 /*@
 requires ((strlen(x0)>=0) &&
-\valid(x0+(0..(strlen(x0)+1)-1)));
+\valid(x0+(0..strlen(x0))));
 */
 int matcher(char  * x0) {
   int x2 = -1;
   int x3 = 0/*false*/;
-  int x7 = strlen(x0);
   /*@
   loop invariant ((-1<=x2) &&
   (x2<=strlen(x0)));
@@ -36,7 +35,7 @@ int matcher(char  * x0) {
     } else {
       x17 = 0/*false*/;
     }
-    int x96;
+    int x92;
     if (x17) {
       int x18 = x13 + 1;
       int x19 = x18 < x7;
@@ -48,7 +47,7 @@ int matcher(char  * x0) {
       } else {
         x22 = 0/*false*/;
       }
-      int x95;
+      int x91;
       if (x22) {
         int x23 = x18 + 1;
         int x24 = x23;
@@ -148,24 +147,24 @@ int matcher(char  * x0) {
           }
           x38 = x68;
         }
-        int x89 = x39;
-        int x93;
-        if (x89) {
-          x93 = 0/*false*/;
+        int x85 = x39;
+        int x89;
+        if (x85) {
+          x89 = 0/*false*/;
         } else {
-          int x91 = x38;
-          x93 = x91;
+          int x87 = x38;
+          x89 = x87;
         }
-        x95 = x93;
+        x91 = x89;
       } else {
-        x95 = 0/*false*/;
+        x91 = 0/*false*/;
       }
-      x96 = x95;
+      x92 = x91;
     } else {
-      x96 = 0/*false*/;
+      x92 = 0/*false*/;
     }
-    x3 = x96;
+    x3 = x92;
   }
-  int x116 = x3;
-  return x116;
+  int x108 = x3;
+  return x108;
 }

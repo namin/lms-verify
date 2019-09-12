@@ -17,78 +17,78 @@ int index(int  x0, int  x1, int  x2, int  x3) {
   int x6 = x5 + x3;
   return x6;
 }
-/*@ predicate inv_matrix_Boolean(int  * x36, integer  x37, integer  x38) = (((((x37<100) &&
-(x38<100)) &&
-(0<x37)) &&
-(0<x38)) &&
-(((x37*x38)>0) &&
-\valid(x36+(0..(x37*x38)-1))));*/
+/*@ predicate inv_matrix_Boolean(int  * x26, integer  x27, integer  x28) = (((((x27<100) &&
+(x28<100)) &&
+(0<x27)) &&
+(0<x28)) &&
+(((x27*x28)>0) &&
+\valid(x26+(0..(x27*x28)-1))));*/
 /*@
-requires (((inv_matrix_Boolean(x79,x80,x81) &&
-inv_matrix_Boolean(x82,x83,x84)) &&
-inv_matrix_Boolean(x85,x86,x87)) &&
-((((x80==x83) &&
-(x80==x86)) &&
-(x81==x84)) &&
-(x81==x87)));
-ensures ((inv_matrix_Boolean(x79,x80,x81) &&
-inv_matrix_Boolean(x82,x83,x84)) &&
-inv_matrix_Boolean(x85,x86,x87));
+requires (((inv_matrix_Boolean(x63,x64,x65) &&
+inv_matrix_Boolean(x66,x67,x68)) &&
+inv_matrix_Boolean(x69,x70,x71)) &&
+((((x64==x67) &&
+(x64==x70)) &&
+(x65==x68)) &&
+(x65==x71)));
+ensures ((inv_matrix_Boolean(x63,x64,x65) &&
+inv_matrix_Boolean(x66,x67,x68)) &&
+inv_matrix_Boolean(x69,x70,x71));
 */
-void add(int  * x79, int  x80, int  x81, int  * x82, int  x83, int  x84, int  * x85, int  x86, int  x87) {
+void add(int  * x63, int  x64, int  x65, int  * x66, int  x67, int  x68, int  * x69, int  x70, int  x71) {
   /*@
-  loop invariant 0<=x92<=x86;
-  loop assigns x92, x85[(0..(x86*x87)-1)];
-  loop variant x86-x92;
+  loop invariant 0<=x76<=x70;
+  loop assigns x76, x69[(0..(x70*x71)-1)];
+  loop variant x70-x76;
   */
-  for(int x92=0; x92 < x86; x92++) {
+  for(int x76=0; x76 < x70; x76++) {
     /*@
-    loop invariant 0<=x94<=x87;
-    loop assigns x94, x85[(0..(x86*x87)-1)];
-    loop variant x87-x94;
+    loop invariant 0<=x78<=x71;
+    loop assigns x78, x69[(0..(x70*x71)-1)];
+    loop variant x71-x78;
     */
-    for(int x94=0; x94 < x87; x94++) {
-      int x95 = index(x80,x81,x92,x94);
-      int x96 = x79[x95];
-      int x97 = index(x83,x84,x92,x94);
-      int x98 = x82[x97];
-      int x99 = x96 || x98;
-      int x100 = index(x86,x87,x92,x94);
-      x85[x100] = x99;
+    for(int x78=0; x78 < x71; x78++) {
+      int x79 = index(x64,x65,x76,x78);
+      int x80 = x63[x79];
+      int x81 = index(x67,x68,x76,x78);
+      int x82 = x66[x81];
+      int x83 = x80 || x82;
+      int x84 = index(x70,x71,x76,x78);
+      x69[x84] = x83;
     }
   }
 }
 /*@
-requires ((inv_matrix_Boolean(x130,x131,x132) &&
-inv_matrix_Boolean(x133,x134,x135)) &&
-((x131==x134) &&
-(x132==x135)));
-ensures (inv_matrix_Boolean(x130,x131,x132) &&
-inv_matrix_Boolean(x133,x134,x135));
+requires ((inv_matrix_Boolean(x111,x112,x113) &&
+inv_matrix_Boolean(x114,x115,x116)) &&
+((x112==x115) &&
+(x113==x116)));
+ensures (inv_matrix_Boolean(x111,x112,x113) &&
+inv_matrix_Boolean(x114,x115,x116));
 */
-void scalar_mult(int  x129, int  * x130, int  x131, int  x132, int  * x133, int  x134, int  x135) {
+void scalar_mult(int  x110, int  * x111, int  x112, int  x113, int  * x114, int  x115, int  x116) {
   /*@
-  loop invariant 0<=x140<=x134;
-  loop assigns x140, x133[(0..(x134*x135)-1)];
-  loop variant x134-x140;
+  loop invariant 0<=x121<=x115;
+  loop assigns x121, x114[(0..(x115*x116)-1)];
+  loop variant x115-x121;
   */
-  for(int x140=0; x140 < x134; x140++) {
+  for(int x121=0; x121 < x115; x121++) {
     /*@
-    loop invariant 0<=x142<=x135;
-    loop assigns x142, x133[(0..(x134*x135)-1)];
-    loop variant x135-x142;
+    loop invariant 0<=x123<=x116;
+    loop assigns x123, x114[(0..(x115*x116)-1)];
+    loop variant x116-x123;
     */
-    for(int x142=0; x142 < x135; x142++) {
-      int x145;
-      if (x129) {
-        int x143 = index(x131,x132,x140,x142);
-        int x144 = x130[x143];
-        x145 = x144;
+    for(int x123=0; x123 < x116; x123++) {
+      int x126;
+      if (x110) {
+        int x124 = index(x112,x113,x121,x123);
+        int x125 = x111[x124];
+        x126 = x125;
       } else {
-        x145 = 0/*false*/;
+        x126 = 0/*false*/;
       }
-      int x146 = index(x134,x135,x140,x142);
-      x133[x146] = x145;
+      int x127 = index(x115,x116,x121,x123);
+      x114[x127] = x126;
     }
   }
 }
