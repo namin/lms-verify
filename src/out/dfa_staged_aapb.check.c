@@ -157,29 +157,35 @@ int dfa(char  * x300) {
       x338 = x335;
     }
     x302 = x338;
-    //@ ghost int x340 = x304;
-    //@ ghost int x341 = x340 + 1;
-    //@ ghost x304 = x341;
-    char  *x343 = x315+1;
-    x305 = x343;
+    /*@assert (x302 ==> (((x303==2) ==> re_bwd_2(x300,0,(x304+1))) &&
+    (((x303==1) ==> re_bwd_1(x300,0,(x304+1))) &&
+    ((x303==0) ==> re_bwd_0(x300,0,(x304+1))))));*/
+    //@ ghost int x359 = x304;
+    //@ ghost int x360 = x359 + 1;
+    //@ ghost x304 = x360;
+    char  *x362 = x315+1;
+    x305 = x362;
+    /*@assert (x302 ==> (((x303==2) ==> re_bwd_2(x300,0,x304)) &&
+    (((x303==1) ==> re_bwd_1(x300,0,x304)) &&
+    ((x303==0) ==> re_bwd_0(x300,0,x304)))));*/
   }
-  int x428 = x303;
-  char  *x429 = x305;
-  char x430 = x429[0];
-  int x431 = x430 == '\0';
-  int x434;
-  if (x431) {
-    int x432 = x302;
-    x434 = x432;
+  int x465 = x303;
+  char  *x466 = x305;
+  char x467 = x466[0];
+  int x468 = x467 == '\0';
+  int x471;
+  if (x468) {
+    int x469 = x302;
+    x471 = x469;
   } else {
-    x434 = 0/*false*/;
+    x471 = 0/*false*/;
   }
-  int x436;
-  if (x434) {
-    int x435 = 2 == x428;
-    x436 = x435;
+  int x473;
+  if (x471) {
+    int x472 = 2 == x465;
+    x473 = x472;
   } else {
-    x436 = 0/*false*/;
+    x473 = 0/*false*/;
   }
-  return x436;
+  return x473;
 }
