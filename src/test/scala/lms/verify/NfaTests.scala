@@ -299,6 +299,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
     }
     toplevel("dfa", { inp: Rep[Array[Char]] =>
       requires(valid_input(inp))
+      requires(inp.length<=Int.MaxValue) // to avoid overflow error in SPEC!
       ensures{(res: Rep[Boolean]) => res ==> matching(re, inp, 0, inp.length)}
       var matched = true
       var id = 0
