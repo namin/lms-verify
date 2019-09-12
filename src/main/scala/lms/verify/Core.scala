@@ -538,7 +538,7 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
   }
 
   override def symsFreq(e: Any): List[(Sym[Any], Double)] = e match {
-    case Assert(y) => freqCold(y)
+    case Assert(y) => freqNormal(y)
     case Quantifier(k, x, y) => freqCold(y)
     case RangeQuantifier(k, start, end, j, i, y, z) => freqNormal(start):::freqNormal(end):::freqCold(y):::freqHot(z)
     case _ => super.symsFreq(e)
