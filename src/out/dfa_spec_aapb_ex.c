@@ -1,12 +1,13 @@
+#include<limits.h>
 #include<string.h>
 
 /*@
 predicate star_A(char* s, integer i, integer j) = 
   i==j || (j>i && (s[i]=='A' && star_A(s, i+1, j)));
 predicate match_aapb(char* s, integer i, integer j) =
- s[i]=='A' && \exists integer m; i<m<=j && star_A(s,i,m) && s[m+1]=='B' && s[m+2]=='\0' && m+2==j;
+ s[i]=='A' && \exists integer m; i<m<=j && star_A(s,i+1,m) && s[m+1]=='B' && s[m+2]=='\0' && m+2==j;
 predicate bwd0(char* s, integer i, integer j) = i>=j;
-predicate bwd1(char* s, integer i, integer j) =  s[i]=='A' && \exists integer m; i<m<=j && star_A(s,i,m) && m>=j;
+predicate bwd1(char* s, integer i, integer j) =  s[i]=='A' && \exists integer m; i<m<=j && star_A(s,i+1,m) && m>=j;
 predicate bwd2(char* s, integer i, integer j) =
  s[i]=='A' && \exists integer m; i<m<=j && star_A(s,i,m) && s[m+1]=='B' && m+2>=j;
 */
@@ -18,14 +19,73 @@ requires strlen(s)<=INT_MAX;
 
 requires 0<=i<=strlen(s);
 requires 0<=j<=strlen(s);
+requires i<j;
 
-requires bwd0(s, 0, j);
-requires s[j]=='A';
-ensures bwd1(s, 0, j+1);
+requires star_A(s, i, j);
+ensures star_A(s, i, j-1);
 
 assigns \nothing;
 */
-void lemma01(char* s, int i, int j) {
+void lemma_star_A_dec(char* s, int i, int j) {
+}
+
+
+/*@
+requires strlen(s)>=0 && \valid(s+(0..strlen(s)));
+
+requires strlen(s)<=INT_MAX;
+
+requires 0<=i<j<=strlen(s);
+
+requires star_A(s, i, j);
+ensures s[j-1]=='A';
+
+assigns \nothing;
+*/
+void lemma_star_A_all(char* s, int i, int j) {
+  int x = i;
+  /*@
+    loop invariant 0 <= i <= x < j <= strlen(s);
+    loop invariant star_A(s, x, j);
+    loop assigns x;
+    loop variant j-x;
+  */
+  while (x < j-1) {
+    x++;
+  }
+}
+
+/*@
+requires strlen(s)>=0 && \valid(s+(0..strlen(s)));
+
+requires strlen(s)<=INT_MAX;
+
+requires 0<=i<=j<=n<=strlen(s);
+
+requires star_A(s, i, j);
+requires star_A(s, j, n);
+ensures star_A(s, i, n);
+
+assigns \nothing;
+*/
+void lemma_star_A(char* s, int i, int j, int n) {
+  int x = j;
+  /*@
+    loop invariant 0 <= i <= x <= j <= n <= strlen(s);
+    loop invariant star_A(s, x, n);
+    loop invariant star_A(s, i, x);
+    loop assigns x;
+    loop variant x;
+  */
+  while (i < x) {
+    //@ghost lemma_star_A_dec(s, i, x);
+    //@assert i<x;
+    //@ghost lemma_star_A_all(s, i, x);
+    //@assert s[x-1]=='A';
+    //@assert star_A(s, x, n);
+    //@assert star_A(s, x-1, n);
+    x--;
+  }
 }
 
 /*@
@@ -35,6 +95,27 @@ requires strlen(s)<=INT_MAX;
 
 requires 0<=i<=strlen(s);
 requires 0<=j<=strlen(s);
+requires i<=j;
+
+requires bwd0(s, 0, j);
+requires s[j]=='A';
+ensures bwd1(s, 0, j+1);
+
+assigns \nothing;
+*/
+void lemma01(char* s, int i, int j) {
+  //@assert j==0;
+  //@assert star_A(s, j+1, j+1);
+}
+
+/*@
+requires strlen(s)>=0 && \valid(s+(0..strlen(s)));
+
+requires strlen(s)<=INT_MAX;
+
+requires 0<=i<=strlen(s);
+requires 0<=j<=strlen(s);
+requires i<=j;
 
 requires bwd1(s, 0, j);
 requires s[j]=='A';
@@ -43,6 +124,12 @@ ensures bwd1(s, 0, j+1);
 assigns \nothing;
 */
 void lemma11(char* s, int i, int j) {
+  //@assert s[0]=='A';
+  //@assert star_A(s, 1, j);
+  //@assert s[j]=='A';
+  //@assert star_A(s, j+1, j+1);
+  //@ghost lemma_star_A(s, 1, j, j+1);
+  //@assert star_A(s, 1, j+1);
 }
 
 /*@
