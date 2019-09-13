@@ -750,7 +750,15 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
         case "\\forall" => "==>"
         case "\\exists" => "&&"
       }
-      s"($k int ${exprOf(j, m)}; (${exprOf(z, m)}<=${exprOf(j,m)}<${exprOf(n,m)}) $imp ${exprOfBlock(y, m)})"
+      val lower = z match {
+        case Def(IntPlus(n, Const(1))) => s"${exprOf(z,m)}<"
+        case _ => s"${exprOf(z,m)}<="
+      }
+      val upper = n match {
+        case Def(IntPlus(n, Const(1))) => s"<=${exprOf(n,m)}"
+        case _ => s"<${exprOf(n,m)}"
+      }
+      s"($k int ${exprOf(j, m)}; (${lower}${exprOf(j,m)}${upper}) $imp ${exprOfBlock(y, m)})"
     }
     case PointerPlus(a, i) => s"(${exprOf(a, m)}+${exprOf(i, m)})"
     case _ => "TODO:Def:"+d

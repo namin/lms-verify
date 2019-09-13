@@ -193,6 +193,8 @@ trait Re2Ast extends Regexp {
 trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
   type RF = (Rep[Input], Rep[Int], Rep[Int]) => Rep[Boolean]
   type RL = (Rep[Input], Rep[Int], Rep[Int], Rep[Int]) => Rep[Unit]
+  def re_lemma(name: String, inp: Rep[Input], i: Rep[Int], n: Rep[Int], stop: Rep[Int]): Rep[Unit] =
+    ghost(toplevelApply[Unit]("lemma_"+name, list(inp, i, n, stop)))
   def mkpr(name: String, f: RF): RF = rec.get(name) match {
     case Some(_) => {
       val r: RF = {(inp,i,j) => toplevelApply[Boolean](name, list(inp,i,j))}
@@ -200,7 +202,9 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
     }
     case None =>
       val r: RF = unwrap3(toplevel(name, wrap3(f), spec=true, code=false))
-      val c: RL = unwrap4(toplevel("lemma_not_"+name, wrap4({(inp,i,n,stop) =>
+/*
+      if (name.startsWith("star_")) {
+        val c: RL = unwrap4(toplevel("lemma_not_"+name, wrap4({(inp,i,n,stop) =>
           requires(valid_input(inp))
           requires(0 <= i)
           requires(inp.length-i>=stop)
@@ -209,6 +213,8 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
           ensures{res: Rep[Unit] => !r(inp, i, stop)}
           unit(())
         }), spec=false, code=true))
+      }
+ */
       r
   }
   def key(r:RE): String = r match {
@@ -225,14 +231,12 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
     case R(a, b) => {(inp,i,j) => a<=inp(i) && inp(i)<=b && j==i+1}
     case W => {(inp,i,j) => !inp.to(i).atEnd && j==i+1}
     case Alt(x, y) => {(inp,i,j) => re2pr(x)(inp,i,j) || re2pr(y)(inp,i,j) }
-    case Cat(x, y) => {(inp,i,j) => exists{m: Rep[Int] =>
-      i <= m && m <= j && re2pr(x)(inp,i,m) && re2pr(y)(inp,m,j)}}
+    case Cat(x, y) => {(inp,i,j) => (i until (j+1)).exists{m =>
+      re2pr(x)(inp,i,m) && re2pr(y)(inp,m,j)}}
     case I => {(inp,i,j) => i==j}
     case Star(x) => {
-      lazy val z: RF = { mkpr("star_"+key(x), { (inp, i, j) => (i==j) ||
-        exists{m: Rep[Int] =>
-          ((i < m && m <= j) ==>
-            (re2pr(x)(inp,i,m) && z(inp, m, j)))} }) }
+      lazy val z: RF = { mkpr("star_"+key(x), { (inp, i, j) => (i==j) || ((i+1) until (j+1)).exists{m =>
+        re2pr(x)(inp,i,m) && z(inp, m, j)} }) }
       z
     }
   }
@@ -242,13 +246,11 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
     case W => {(inp,i,j) => i==j || (!inp.to(i).atEnd && j>=i+1)}
     case Alt(x, y) => {(inp,i,j) => re2pr0(x)(inp,i,j) || re2pr0(y)(inp,i,j) }
     case Cat(x, y) => {(inp,i,j) =>
-      re2pr0(x)(inp,i,j) ||
-      exists{m: Rep[Int] =>
-        i <= m && m <= j && re2pr(x)(inp,i,m) && re2pr0(y)(inp,m,j)}}
+      re2pr0(x)(inp,i,j) || (i until (j+1)).exists{m => re2pr(x)(inp,i,m) && re2pr0(y)(inp,m,j)}}
     case I => {(inp,i,j) => j>=i}
     case Star(x) => {
       lazy val z: RF = { mkpr("star_starting_"+key(x), { (inp, i, j) => re2pr0(x)(inp,i,j) ||
-        exists{m: Rep[Int] => (((i < m) && (m  <= j)) ==> (re2pr(x)(inp,i,m) && z(inp, m, j)))} || (j>=i)})}
+        (i+1 until j+1).exists{m => (re2pr(x)(inp,i,m) && z(inp, m, j))} || (j>=i) }) }
       z
     }
   }
@@ -325,7 +327,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
       requires(valid_input(inp))
       requires(inp.length<=Int.MaxValue) // to avoid overflow error in SPEC!
       ensures{(res: Rep[Boolean]) =>
-        (res ==> matching(re, inp, 0, inp.length))
+        (res ==> matching(re, inp, 0, inp.length)) &&
         (matching(re, inp, 0, inp.length) ==> res)
       }
       var matched = true
@@ -370,6 +372,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
               if (id==r) {
                 _assert((id == r) ==> re_invariant(r, inp, i))
                 _assert(re_invariant(r, inp, i))
+                _assert(bwd(r).map{x => matching(x, inp, 0, i)}.getOrElse(unit(false)))
                 dfa.transitions(r)(t).foreach{a =>
                   _assert(!(c == a))
                 }
