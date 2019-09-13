@@ -35,22 +35,22 @@ requires strlen(s)>=0 && \valid(s+(0..strlen(s)));
 
 requires strlen(s)<=INT_MAX;
 
-requires 0<=i<j<=strlen(s);
+requires 0<=i<=m<j<=strlen(s);
 
 requires star_A(s, i, j);
-ensures s[j-1]=='A';
+ensures s[m]=='A';
 
 assigns \nothing;
 */
-void lemma_star_A_all(char* s, int i, int j) {
+void lemma_star_A_all(char* s, int i, int m, int j) {
   int x = i;
   /*@
-    loop invariant 0 <= i <= x < j <= strlen(s);
+    loop invariant 0 <= i <= x <= m < j <= strlen(s);
     loop invariant star_A(s, x, j);
     loop assigns x;
     loop variant j-x;
   */
-  while (x < j-1) {
+  while (x < m) {
     x++;
   }
 }
@@ -80,7 +80,7 @@ void lemma_star_A(char* s, int i, int j, int n) {
   while (i < x) {
     //@ghost lemma_star_A_dec(s, i, x);
     //@assert i<x;
-    //@ghost lemma_star_A_all(s, i, x);
+    //@ghost lemma_star_A_all(s, i, x-1, x);
     //@assert s[x-1]=='A';
     //@assert star_A(s, x, n);
     //@assert star_A(s, x-1, n);
