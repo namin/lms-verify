@@ -5,11 +5,11 @@
 predicate star_A(char* s, integer i, integer j) = 
   i==j || (j>i && (s[i]=='A' && star_A(s, i+1, j)));
 predicate match_aapb(char* s, integer i, integer j) =
- s[i]=='A' && \exists integer m; i<m<=j && star_A(s,i+1,m) && s[m+1]=='B' && s[m+2]=='\0' && m+2==j;
+ s[i]=='A' && \exists integer m; i<m<j && star_A(s,i+1,m) && s[m]=='B' && s[m+1]=='\0' && m+1==j;
 predicate bwd0(char* s, integer i, integer j) = i>=j;
 predicate bwd1(char* s, integer i, integer j) =  s[i]=='A' && \exists integer m; i<m<=j && star_A(s,i+1,m) && m>=j;
 predicate bwd2(char* s, integer i, integer j) =
- s[i]=='A' && \exists integer m; i<m<=j && star_A(s,i,m) && s[m+1]=='B' && m+2>=j;
+ s[i]=='A' && \exists integer m; i<m<j && star_A(s,i+1,m) && s[m]=='B' && m+1>=j;
 */
 
 /*@
@@ -175,6 +175,11 @@ ensures bwd2(s, i, j+1);
 assigns \nothing;
 */
 void lemma12(char* s, int i, int j) {
+  //@assert bwd1(s, i, j);
+  //@assert s[i]=='A';
+  //@assert star_A(s, i+1, j);
+  //@assert s[j]=='B';
+  //@assert bwd2(s, i, j+1);
 }
 
 /*@
@@ -186,11 +191,16 @@ requires 0<=i<=strlen(s);
 requires 0<=j<=strlen(s);
 
 requires bwd2(s, i, j);
-ensures s[j]=='\0' ==> match_aapb(s, i, j+1);
+ensures s[j]=='\0' ==> match_aapb(s, i, j);
 
 assigns \nothing;
 */
 void lemma2f(char* s, int i, int j) {
+  //@assert bwd2(s, i, j);
+  //@assert s[i]=='A';
+  //@assert star_A(s, i+1, j-1);
+  //@assert s[j-1]=='B';
+  //@assert s[j]=='\0' ==> match_aapb(s, i, j);
 }
 
 /*@
