@@ -225,6 +225,7 @@ int m_aapb(char* s) {
     loop invariant (id == 0) && (m == 1) ==> bwd0(s, 0, i);
     loop invariant (id == 1) && (m == 1) ==> bwd1(s, 0, i);
     loop invariant (id == 2) && (m == 1) ==> bwd2(s, 0, i);
+    loop invariant (id == 2) && cur[0]=='\0' ==> match_aapb(s, 0, strlen(s));
     loop invariant (id == 0) || (id == 1) || (id == 2);
     loop invariant (m == 1) || (m == 0);
     loop invariant cur==s+i;
@@ -256,6 +257,7 @@ int m_aapb(char* s) {
         //@ghost lemma12(s, 0, i);
         id = 2;
         //@assert bwd2(s, 0, i+1);
+        //@ghost lemma2f(s, 0, i+1);
         m = 1;
       }
     } else if (id == 2) {
@@ -268,5 +270,6 @@ int m_aapb(char* s) {
       //@ghost i++;
     }
   }
-  return id==2 && cur[0]=='\0';
+  int atEnd = cur[0]=='\0';
+  return id==2 && atEnd;
 }
