@@ -78,9 +78,8 @@ void lemma_star_A(char* s, int i, int j, int n) {
     loop variant x;
   */
   while (i < x) {
-    //@ghost lemma_star_A_dec(s, i, x);
-    //@assert i<x;
     //@ghost lemma_star_A_all(s, i, x);
+    //@assert i<x;
     //@assert s[x-1]=='A';
     //@assert star_A(s, x, n);
     //@assert star_A(s, x-1, n);
