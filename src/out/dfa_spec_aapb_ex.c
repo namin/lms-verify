@@ -206,15 +206,28 @@ void lemma2f(char* s, int i, int j) {
 /*@
 requires strlen(s)>=0 && \valid(s+(0..strlen(s)));
 
-requires strlen(s)<=INT_MAX;
+requires 0<=i<=strlen(s)<=INT_MAX;
 
-ensures !match_aapb(s, 0, i);
+requires !match_aapb(s, 0, i);
 ensures !match_aapb(s, 0, strlen(s));
 
 assigns \nothing;
 */
 void no_match_mono(char* s, int i) {
+  int n = strlen(s);
+  int x = i;
+  /*@
+    loop invariant 0<=i<=x<=strlen(s);
+    loop invariant !match_aapb(s, 0, x);
+    loop assigns x;
+    loop variant strlen(s)-x;
+  */
+  while (x < n) {
+    x++;
+  }
+  //@assert x==n;
 }
+
 /*@
 requires strlen(s)>=0 && \valid(s+(0..strlen(s)));
 
