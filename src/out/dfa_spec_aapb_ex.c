@@ -208,6 +208,18 @@ requires strlen(s)>=0 && \valid(s+(0..strlen(s)));
 
 requires strlen(s)<=INT_MAX;
 
+ensures !match_aapb(s, 0, i);
+ensures !match_aapb(s, 0, strlen(s));
+
+assigns \nothing;
+*/
+void no_match_mono(char* s, int i) {
+}
+/*@
+requires strlen(s)>=0 && \valid(s+(0..strlen(s)));
+
+requires strlen(s)<=INT_MAX;
+
 ensures match_aapb(s, 0, strlen(s)) ==> \result==1;
 ensures \result==1 ==> match_aapb(s, 0, strlen(s));
 
@@ -226,6 +238,7 @@ int m_aapb(char* s) {
     loop invariant (id == 1) && (m == 1) ==> bwd1(s, 0, i);
     loop invariant (id == 2) && (m == 1) ==> bwd2(s, 0, i);
     loop invariant (id == 2) && cur[0]=='\0' ==> match_aapb(s, 0, strlen(s));
+    loop invariant (id != 2) || cur[0]!='\0' ==> !match_aapb(s, 0, i);
     loop invariant (id == 0) || (id == 1) || (id == 2);
     loop invariant (m == 1) || (m == 0);
     loop invariant cur==s+i;
@@ -271,5 +284,9 @@ int m_aapb(char* s) {
     }
   }
   int atEnd = cur[0]=='\0';
-  return id==2 && atEnd;
+  int res = id==2 && atEnd;
+  if (!res) {
+    //@ghost no_match_mono(s, i);
+  }
+  return res;
 }
