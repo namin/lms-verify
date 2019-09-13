@@ -43,6 +43,32 @@ requires strlen(s)>=0 && \valid(s+(0..strlen(s)));
 
 requires strlen(s)<=INT_MAX;
 
+requires 0<=i<=j<=strlen(s);
+
+requires \forall integer m; 0<=i<=m<j ==> s[m]=='A';
+ensures star_A(s, i, j);
+
+assigns \nothing;
+*/
+void lemma_all_star_A(char* s, int i, int j) {
+  int x = j;
+  /*@
+    loop invariant 0 <= i <= x <= j <= strlen(s);
+    loop invariant star_A(s, x, j);
+    loop invariant \forall integer m; 0<=i<=m<j ==> s[m]=='A';
+    loop assigns x;
+    loop variant x;
+  */
+  while (i < x) {
+    x--;
+  }
+}
+
+/*@
+requires strlen(s)>=0 && \valid(s+(0..strlen(s)));
+
+requires strlen(s)<=INT_MAX;
+
 requires 0<=i<=strlen(s);
 requires 0<=j<=strlen(s);
 requires i<j;
@@ -53,6 +79,8 @@ ensures star_A(s, i, j-1);
 assigns \nothing;
 */
 void lemma_star_A_dec(char* s, int i, int j) {
+  //@ghost lemma_star_A_all(s, i, j);
+  //@ghost lemma_all_star_A(s, i, j-1);
 }
 
 /*@
