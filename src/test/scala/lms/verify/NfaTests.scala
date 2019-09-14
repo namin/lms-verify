@@ -267,14 +267,15 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
     case W => {(inp,i,j) => i==j || (!inp.to(i).atEnd && j>=i+1)}
     case Alt(x, y) => {(inp,i,j) => re2pr0(x)(inp,i,j) || re2pr0(y)(inp,i,j) }
     case Cat(x, y) => {(inp,i,j) => re2pr0(x)(inp,i,j) || (len(x) match {
-      case Some(lx) => i+lx<=j && re2pr(x)(inp,i,i+lx) && re2pr0(y)(inp,i+lx,j)
+      case Some(lx) => (re2pr(x)(inp,i,i+lx) && re2pr0(y)(inp,i+lx,j))
       case None => (i until (j+1)).exists{m => re2pr(x)(inp,i,m) && re2pr0(y)(inp,m,j)}})}
     case I => {(inp,i,j) => i>=j}
     case Star(x) => {
-      lazy val z: RF = {mkpr("star_starting_"+key(x), {(inp,i,j) => re2pr0(x)(inp,i,j) || (len(x) match {
-          case Some(lx) => (i>=j) || (re2pr(x)(inp,i,i+lx) && z(inp,i+lx,j))
-          case None => (i>=j) || ((i+1) until (j+1)).exists{m =>
-            re2pr(x)(inp,i,m) && z(inp, m, j)}})})}
+      lazy val z: RF = { mkpr("star_"+key(x), { (inp,i,j) =>
+        len(x) match {
+          case Some(lx) => (i==j) || re2pr0(x)(inp, i, j) || (re2pr(x)(inp,i,i+lx) && z(inp,i+lx,j))
+          case None => (i==j) || re2pr0(x)(inp, i, j) || ((i+1) until (j+1)).exists{m =>
+            re2pr(x)(inp,i,m) && z(inp, m, j)}} }) }
       z
     }
   }
@@ -321,7 +322,6 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
     val res_bwd = dfa2re_backwards(dfa)
     val bwd: Vector[RF] = r0n.map{r => res_bwd(r).map{p => mkpr("re_bwd_"+r, re2pr0(p))}.getOrElse{never_match}}
     val re = fwd(0)
-    val re0 = mkpr("re0", re2pr0(dfa_res(0)))
     toplevel("dfa", { inp: Rep[Array[Char]] =>
       requires(valid_input(inp))
       requires(inp.length<=Int.MaxValue) // to avoid overflow error in SPEC!
@@ -360,8 +360,12 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
             foldThunks(unit(false)){(b,t) =>
               val chars = dfa.transitions(r)(t)
               if (chars.contains(cur.first)) {
+                _assert(bwd(r)(inp, 0, i))
                 id = t
                 _assert(bwd(t)(inp, 0, i+1))
+                if (dfa.finals(t)) {
+                  _assert(inp.to(i+1).atEnd ==> re(inp, 0, i+1))
+                }
                 unit(true)
               } else b(())
             }
