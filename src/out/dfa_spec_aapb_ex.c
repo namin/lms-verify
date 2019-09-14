@@ -250,17 +250,17 @@ int m_aapb(char* s) {
     loop invariant (id == 0) && (m == 1) ==> bwd0(s, 0, i);
     loop invariant (id == 1) && (m == 1) ==> bwd1(s, 0, i);
     loop invariant (id == 2) && (m == 1) ==> bwd2(s, 0, i);
-    loop invariant (m == 0) ==> !bwd0(s, 0, i+1) && !bwd1(s, 0, i+1) && (id != 2) ==> !bwd2(s, 0, i+1);
-    loop invariant (id == 2) && cur[0]=='\0' ==> match_aapb(s, 0, strlen(s));
-    loop invariant (id != 2) || cur[0]!='\0' ==> !match_aapb(s, 0, i);
+    loop invariant (m == 0) ==> !bwd0(s, 0, i) && !bwd1(s, 0, i) && !bwd2(s, 0, i);
+    loop invariant (id == 2) && cur[0]=='\0' && m ==> match_aapb(s, 0, i);
+    loop invariant (id != 2) || cur[0]!='\0' || !m ==> !match_aapb(s, 0, i);
     loop invariant (id == 0) || (id == 1) || (id == 2);
     loop invariant (m == 1) || (m == 0);
     loop invariant cur==s+i;
     loop invariant cur[0]==s[i];
     loop assigns cur, id, i, m;
-    loop variant strlen(cur) + m;
+    loop variant strlen(cur);
    */
-  while (cur[0] != '\0' && m) {
+  while (cur[0]!='\0' && m) {
     m = 0;
     if (id == 0) {
       //@assert (id == 0) ==> bwd0(s, 0, i);
@@ -298,27 +298,19 @@ int m_aapb(char* s) {
     } else if (id == 2) {
       //@assert (id == 2) ==> bwd2(s, 0, i);
       //@assert bwd2(s, 0, i);
-      //@ghost lemma2f(s, 0, i);
       //@assert !bwd0(s, 0, i+1);
       //@assert s[i-1]!='A';
       //@ghost lemma_star_A_not(s, 1, i-1, i+1);
       //@assert !star_A(s, 1, i+1);
       //@assert !bwd1(s, 0, i+1);
+      //@ghost lemma_star_A_not(s, 1, i-1, i);
+      //@assert !star_A(s, 1, i);
+      //@assert !bwd2(s, 0, i+1);
     } else {
       //@assert \false;
     }
-    if (m==1) {
-      cur++;
-      //@ghost i++;
-    } else {
-      //@assert !bwd0(s, 0, i+1);
-      //@assert !bwd1(s, 0, i+1);
-      //@assert (id!=2) ==> !bwd2(s, 0, i+1);
-    }
+    cur++;
+    //@ghost i++;
   }
-  int atEnd = cur[0]=='\0';
-  int res = id==2 && atEnd;
-  if (!res) {
-  }
-  return res;
+  return id==2 && cur[0]=='\0' && m;
 }
