@@ -208,6 +208,7 @@ trait Re2Ast extends Regexp {
 
 trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
   type RF = (Rep[Input], Rep[Int], Rep[Int]) => Rep[Boolean]
+  type RU = (Rep[Input], Rep[Int], Rep[Int]) => Rep[Unit]
   type RL = (Rep[Input], Rep[Int], Rep[Int], Rep[Int]) => Rep[Unit]
   val never_match: RF = {(inp,i,n) => unit(false)}
   def re_lemma(name: String, inp: Rep[Input], i: Rep[Int], n: Rep[Int], stop: Rep[Int]): Rep[Unit] =
@@ -222,6 +223,22 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
     case None =>
       val r: RF = unwrap3(toplevel(name, wrap3(f), spec=true, code=false))
       if (name.startsWith("star_")) {
+        val c_all: RU = unwrap3(toplevel("lemma_"+name+"_all", wrap3({(inp:Rep[Input],i:Rep[Int],j:Rep[Int]) =>
+          requires(valid_input(inp))
+          requires(0<=i && i<=j)
+          requires(0<=j && j<=inp.length)
+          requires(r(inp, i, j))
+          ensures{_:Rep[Unit] => forall{m: Rep[Int] => (0<=i && i<=m && m<j) ==> (inp.to(m).first=='A')}}
+          var x = i
+          loop(0 <= i && i <= x && j <= inp.length,
+            List[Any](x), j-x) {
+            while (x < j) {
+              loop_invariant(r(inp, x, j))
+              loop_invariant(forall{m: Rep[Int] => (i<=m && m < x) ==> (inp.to(m).first=='A')})
+              x = x+1
+            }
+          }
+        }),spec=false,code=true))
         val c: RL = unwrap4(toplevel("lemma_"+name, wrap4({(inp,start,i,j) =>
           requires(valid_input(inp))
           requires(0<=start && start<=i)
@@ -231,7 +248,14 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
           requires(r(inp, i, j))
           requires(i+1==j)
           ensures{res: Rep[Unit] => r(inp, start, j)}
-          unit(())
+          var x = j
+          loop(0 <= i && i <= x && x <= j && j <= inp.length,
+            List[Any](x), x) {
+            while (i < x) {
+              ghost{c_all(inp, i, x)}
+              x = x-1;
+            }
+          }
         }), spec=false, code=true))
       }
       r
