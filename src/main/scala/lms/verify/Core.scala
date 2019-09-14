@@ -322,7 +322,7 @@ trait VerifyOps extends Base with BooleanOps {
   def pointer_plus[A:Typ](a: Rep[Array[A]], i: Rep[Int]): Rep[Array[A]]
 
   def ghostVar[A:Typ](e: Rep[A]): Var[A]
-  def ghost[A:Typ](e: Rep[A]): Rep[A]
+  def ghost[A:Typ](e: =>Rep[A]): Rep[A]
 }
 
 trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with WhileExp with LiftBoolean with ListOpsExp with BooleanOpsExpOpt {
@@ -534,6 +534,7 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with WhileE
 
   override def syms(e: Any): List[Sym[Any]] = e match {
     case Assert(y) => syms(y)
+    case Ghost(y) => syms(y)
     case Quantifier(k, x, y) => syms(y)
     case RangeQuantifier(k, start, end, j, i, spec, body) => syms(start):::syms(end):::syms(spec):::syms(body)
     case _ => super.syms(e)
@@ -541,6 +542,7 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with WhileE
 
   override def boundSyms(e: Any): List[Sym[Any]] = e match {
     case Assert(y) => effectSyms(y)
+    case Ghost(y) => effectSyms(y)
     case Quantifier(k, x, y) => syms(x) ::: effectSyms(y)
     case RangeQuantifier(k, start, end, j, i, y, z) => j :: i :: effectSyms(y) ::: effectSyms(z)
     case _ => super.boundSyms(e)
@@ -548,6 +550,7 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with WhileE
 
   override def symsFreq(e: Any): List[(Sym[Any], Double)] = e match {
     case Assert(y) => freqCold(y)
+    case Ghost(y) => freqCold(y)
     case Quantifier(k, x, y) => freqHot(y)
     case RangeQuantifier(k, start, end, j, i, y, z) => freqNormal(start):::freqNormal(end):::freqCold(y):::freqHot(z)
     case _ => super.symsFreq(e)
@@ -565,9 +568,11 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with WhileE
     ghostSyms += v.e
     v
   }
-  def ghost[A:Typ](e: Rep[A]): Rep[A] = {
-    ghostSyms += e
-    e
+  case class Ghost[A:Typ](b: Block[A]) extends Def[A]
+  def ghost[A:Typ](e: =>Rep[A]): Rep[A] = {
+    val y = reifyEffects(e)
+    val r = reflectEffect(Ghost(y))
+    r
   }
 }
 
@@ -656,7 +661,6 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
   }
 
   override def emitValDef(sym: Sym[Any], rhs: String): Unit = {
-    if (ghostSyms.contains(sym)) stream.print("//@ ghost ")
     if (!isVoidType(sym.tp)) super.emitValDef(sym, rhs)
     else emitVoid(rhs)
   }
@@ -667,7 +671,6 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
     } else emitVoid(rhs)
   }
   override def emitAssignment(sym: Sym[Any], rhs: String): Unit = {
-    if (ghostSyms.contains(sym)) stream.print("//@ ghost ")
     if (!isVoidVar(sym)) {
       if (rhs.endsWith(";")) {
         // by convention, assume we already have a full statement
@@ -805,6 +808,10 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
     rhs match {
       case ToplevelApply(name, args) => emitValDef(sym, name+args.map(quote).mkString("(", ",", ")"))
       case Assert(y) => stream.println(exprOfBlock("/*@assert", y, end="*/"))
+      case Ghost(y) =>
+        stream.println("/*@ghost")
+        emitBlock(y)
+        stream.println("*/")
       case ArrayApply(x,n) => emitValDef(sym, quote(x) + "[" + quote(n) + "]")
       case ArrayUpdate(x,n,y) => stream.println(quote(x) + "[" + quote(n) + "] = " + quote(y) + ";")
       // TODO: the LMS C codegen should be updated to use emitAssignment instead

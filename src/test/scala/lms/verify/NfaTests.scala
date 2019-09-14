@@ -211,7 +211,9 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
   type RL = (Rep[Input], Rep[Int], Rep[Int], Rep[Int]) => Rep[Unit]
   val never_match: RF = {(inp,i,n) => unit(false)}
   def re_lemma(name: String, inp: Rep[Input], i: Rep[Int], n: Rep[Int], stop: Rep[Int]): Rep[Unit] =
-    ghost(toplevelApply[Unit]("lemma_"+name, list(inp, i, n, stop)))
+    toplevelApply[Unit]("lemma_"+name, list(inp, i, n, stop))
+  def re_pr(name: String)(inp: Rep[Input], i: Rep[Int], n: Rep[Int]): Rep[Boolean] =
+    toplevelApply[Boolean](name, list(inp, i, n))
   def mkpr(name: String, f: RF): RF = rec.get(name) match {
     case Some(_) => {
       val r: RF = {(inp,i,j) => toplevelApply[Boolean](name, list(inp,i,j))}
@@ -247,7 +249,7 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
     case W => {(inp,i,j) => !inp.to(i).atEnd && j==i+1}
     case Alt(x, y) => {(inp,i,j) => re2pr(x)(inp,i,j) || re2pr(y)(inp,i,j) }
     case Cat(x, y) => (len(x),len(y)) match {
-      case (_,Some(ly)) => {(inp,i,j) => i<=j-ly && re2pr(x)(inp,i,j-ly) && re2pr(y)(inp,i,j-ly)}
+      case (_,Some(ly)) => {(inp,i,j) => i<=j-ly && re2pr(x)(inp,i,j-ly) && re2pr(y)(inp,j-ly,j)}
       case (Some(lx),_) => {(inp,i,j) => re2pr(x)(inp,i,i+lx) && i+lx<=j && re2pr(y)(inp,i+lx,j)}
       case (None,None) => {(inp,i,j) => (i until (j+1)).exists{m =>
       re2pr(x)(inp,i,m) && re2pr(y)(inp,m,j)}}}
@@ -345,25 +347,27 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
           loop_invariant{((id == r) && !m) ==> bwd(r)(inp, 0, i-1)}}
         loop_invariant{(in_finals && cur.atEnd && m) ==> re(inp, 0, i)}
         loop_invariant{foldThunks(unit(false)){(b,r) => id==r || b(())}}
+        loop_invariant{(id == 1) ==> (inp.first=='A' && re_pr("star_A")(inp,1,i))}
 
         m = foldThunks(unit(false)){(b,r) =>
           if (id == r) {
             _assert((id == r) ==> bwd(r)(inp, 0, i))
             _assert(bwd(r)(inp, 0, i))
+            if (r==1) {
+              _assert{(id == 1) ==> (inp.first=='A' && re_pr("star_A")(inp,1,i))}
+              _assert{inp.first=='A' && re_pr("star_A")(inp,1,i)}
+            }
             foldThunks(unit(false)){(b,t) =>
               val chars = dfa.transitions(r)(t)
               if (chars.contains(cur.first)) {
                 _assert(bwd(r)(inp, 0, i))
                 id = t
                 if (t==1) {
-                  _assert(inp.first=='A')
-                  _assert(mkpr("star_A", null)(inp, 1, i))
-                  ghost(re_lemma("star_A", inp, 1, ghost(i), ghost(ghost(i)+1)))
-                } else (t==2) {
-                  _assert(inp.first=='A')
-                  _assert(mkpr("star_A", null)(inp, 1, i-1))
-                  ghost(re_lemma("star_A", inp, 1, ghost(i-1), ghost(i)))
-                  _assert(inp(i-1)=='B')
+                  if (r==0) {
+                    _assert(re_pr("star_A")(inp, 1, 1));
+                  } else {
+                    ghost(re_lemma("star_A", inp, 1, i, i+1))
+                  }
                 }
                 _assert(bwd(t)(inp, 0, i+1))
                 if (dfa.finals(t)) {
@@ -374,8 +378,8 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
             }
           } else b(())
         }
-          cur = cur.rest
-        ghost{i = ghost(i)+1}
+        cur = cur.rest
+        ghost{i = i+1}
       }}
       val res = cur.atEnd && m && in_finals
       res
