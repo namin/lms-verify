@@ -250,7 +250,7 @@ int m_aapb(char* s) {
     loop invariant (id == 0) && (m == 1) ==> bwd0(s, 0, i);
     loop invariant (id == 1) && (m == 1) ==> bwd1(s, 0, i);
     loop invariant (id == 2) && (m == 1) ==> bwd2(s, 0, i);
-    loop invariant (m == 0) ==> !bwd0(s, 0, i+1) && !bwd1(s, 0, i+1) && !bwd2(s, 0, i+1);
+    loop invariant (m == 0) ==> !bwd0(s, 0, i+1) && !bwd1(s, 0, i+1) && (id != 2) ==> !bwd2(s, 0, i+1);
     loop invariant (id == 2) && cur[0]=='\0' ==> match_aapb(s, 0, strlen(s));
     loop invariant (id != 2) || cur[0]!='\0' ==> !match_aapb(s, 0, i);
     loop invariant (id == 0) || (id == 1) || (id == 2);
@@ -304,7 +304,6 @@ int m_aapb(char* s) {
       //@ghost lemma_star_A_not(s, 1, i-1, i+1);
       //@assert !star_A(s, 1, i+1);
       //@assert !bwd1(s, 0, i+1);
-      //@assert !bwd2(s, 0, i+1);
     } else {
       //@assert \false;
     }
@@ -314,7 +313,7 @@ int m_aapb(char* s) {
     } else {
       //@assert !bwd0(s, 0, i+1);
       //@assert !bwd1(s, 0, i+1);
-      //@assert !bwd2(s, 0, i+1);
+      //@assert (id!=2) ==> !bwd2(s, 0, i+1);
     }
   }
   int atEnd = cur[0]=='\0';
