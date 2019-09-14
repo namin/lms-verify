@@ -386,6 +386,15 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
       val i = ghostVar(0)
       var cur = inp
       val n = inp.length
+      def tactic(r: Int, t: Int) = {
+        if (t==1) {
+          if (r==0) {
+            _assert(re_pr("star_A")(inp, i+1, i+1))
+          } else {
+            ghost{re_lemma("star_A", inp, 1, i, i+1)}
+          }
+        }
+      }
       def in_finals = foldThunks(unit(false)){(b,r) =>
         (if (dfa.finals(r)) (id==r) else unit(false)) || b(())}
       loop((valid_input(inp) &&
@@ -406,31 +415,12 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
           if (id == r) {
             _assert((id == r) ==> bwd(r)(inp, 0, i))
             _assert(bwd(r)(inp, 0, i))
-            if (r==1) {
-              //_assert{(id == 1) ==> (inp.first=='A' && re_pr("star_A")(inp,1,i))}
-              //_assert{inp.first=='A' && re_pr("star_A")(inp,1,i)}
-            }
             foldThunks(unit(false)){(b,t) =>
               val chars = dfa.transitions(r)(t)
               if (chars.contains(cur.first)) {
                 _assert(bwd(r)(inp, 0, i))
                 id = t
-                if (t==1) {
-                  if (r==0) {
-                    //_assert(i==0);
-                    //_assert(inp.first=='A');
-                    //_assert(re_pr("star_A")(inp, 1, 1));
-                    _assert(re_pr("star_A")(inp, 1, 1))
-                  } else {
-                    ghost{re_lemma("star_A", inp, 1, i, i+1)}
-                  }
-                  //_assert(inp.first=='A')
-                  //_assert(re_pr("star_A")(inp,1,i+1));
-                  //_assert((id == 1) ==> (inp.first=='A' && re_pr("star_A")(inp,1,i+1)))
-                } else {
-                  //_assert(!(id == 1))
-                  //_assert((id == 1) ==> (inp.first=='A' && re_pr("star_A")(inp,1,i+1)))
-                }
+                tactic(r,t)
                 _assert(bwd(t)(inp, 0, i+1))
                 if (dfa.finals(t)) {
                   _assert(inp.to(i+1).atEnd ==> re(inp, 0, i+1))
