@@ -318,7 +318,7 @@ int m_aapb(char* s) {
     //@ghost i++;
   }
   int res = id==2 && cur[0]=='\0' && m;
-  // TODO: ghost!
+  /*@ghost
   if (!res) {
     if (!m) {
       //@assert i>=1;
@@ -348,5 +348,6 @@ int m_aapb(char* s) {
       //@assert !match_aapb(s, 0, strlen(s));
     }
   }
+  */
   return res;
 }
