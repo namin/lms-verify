@@ -225,10 +225,10 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
       if (name.startsWith("star_")) {
         val c_all: RU = unwrap3(toplevel("lemma_"+name+"_all", wrap3({(inp:Rep[Input],i:Rep[Int],j:Rep[Int]) =>
           requires(valid_input(inp))
-          requires(0<=i && i<=j)
-          requires(0<=j && j<=inp.length)
+          requires(0<=i && i<=j && j <= inp.length)
           requires(r(inp, i, j))
-          ensures{_:Rep[Unit] => forall{m: Rep[Int] => (0<=i && i<=m && m<j) ==> (inp.to(m).first=='A')}}
+          ensures{_:Rep[Unit] => forall{m: Rep[Int] => (0<=i && i<=m && m<j) ==> (inp.to(m).first=='A') //TODO: hardcoding
+          }}
           var x = i
           loop(0 <= i && i <= x && j <= inp.length,
             List[Any](x), j-x) {
@@ -239,6 +239,31 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
             }
           }
         }),spec=false,code=true))
+        val c_from_all: RU = unwrap3(toplevel("lemma_"+name+"_from_all", wrap3({(inp:Rep[Input],i:Rep[Int],j:Rep[Int]) =>
+          requires(valid_input(inp))
+          requires(0<=i && i<=j && j <= inp.length)
+          requires{forall{m: Rep[Int] => (0<=i && i<=m && m<j) ==> (inp.to(m).first=='A') //TODO: hardcoding
+          }}
+          ensures{_:Rep[Unit] => r(inp, i, j)}
+          var x = j
+          loop(0 <= i && i <= x && j <= inp.length,
+            List[Any](x), x) {
+            while (i < x) {
+              loop_invariant(r(inp, x, j))
+              loop_invariant{forall{m: Rep[Int] => (0<=i && i<=m && m<j) ==> (inp.to(m).first=='A')}}
+              x = x-1
+            }
+          }
+        }),spec=false,code=true))
+        val c_dec: RU = unwrap3(toplevel("lemma_"+name+"_dec", wrap3({(inp:Rep[Input],i:Rep[Int],j:Rep[Int]) =>
+          requires(valid_input(inp))
+          requires(0<=i && i<=j)
+          requires(i<j && j<=inp.length)
+          requires(r(inp, i, j))
+          ensures{_:Rep[Unit] => r(inp,i,j-1)}
+          ghost{c_all(inp,i,j)}
+          ghost{c_from_all(inp,i,j-1)}
+        }),spec=false,code=true))
         val c: RL = unwrap4(toplevel("lemma_"+name, wrap4({(inp,start,i,j) =>
           requires(valid_input(inp))
           requires(0<=start && start<=i)
@@ -248,11 +273,18 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
           requires(r(inp, i, j))
           requires(i+1==j)
           ensures{res: Rep[Unit] => r(inp, start, j)}
-          var x = j
-          loop(0 <= i && i <= x && x <= j && j <= inp.length,
+          var x = i
+          loop(0 <= start && start <= x && x <= j && j <= inp.length,
             List[Any](x), x) {
-            while (i < x) {
-              ghost{c_all(inp, i, x)}
+            while (start < x) {
+              loop_invariant(r(inp, x, j))
+              loop_invariant(r(inp, start, x))
+              c_dec(inp, start, x)
+              _assert(start<x)
+              ghost{c_all(inp, start, x)}
+              _assert(inp.to(x-1).first=='A') // TODO: hardcoding
+              _assert(r(inp, x, j))
+              _assert(r(inp, x-1, j))
               x = x-1;
             }
           }
@@ -373,6 +405,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
           loop_invariant{((id == r) && !m) ==> bwd(r)(inp, 0, i-1)}}
         loop_invariant{(in_finals && cur.atEnd && m) ==> re(inp, 0, i)}
         loop_invariant{foldThunks(unit(false)){(b,r) => id==r || b(())}}
+        // TODO: remove hardcoding
         loop_invariant{((id == 1) && m)==> (inp.first=='A' && re_pr("star_A")(inp,1,i))}
 
         m = foldThunks(unit(false)){(b,r) =>
@@ -388,6 +421,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
               if (chars.contains(cur.first)) {
                 _assert(bwd(r)(inp, 0, i))
                 id = t
+                // TODO: remove hardcoding
                 if (t==1) {
                   if (r==0) {
                     _assert(i==0);
