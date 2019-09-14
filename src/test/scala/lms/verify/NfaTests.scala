@@ -349,7 +349,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
           loop_invariant{((id == r) && !m) ==> bwd(r)(inp, 0, i-1)}}
         loop_invariant{(in_finals && cur.atEnd && m) ==> re(inp, 0, i)}
         loop_invariant{foldThunks(unit(false)){(b,r) => id==r || b(())}}
-        loop_invariant{(id == 1) ==> (inp.first=='A' && re_pr("star_A")(inp,1,i))}
+        loop_invariant{((id == 1) && m)==> (inp.first=='A' && re_pr("star_A")(inp,1,i))}
 
         m = foldThunks(unit(false)){(b,r) =>
           if (id == r) {
@@ -374,6 +374,9 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
                   }
                   _assert(inp.first=='A')
                   _assert(re_pr("star_A")(inp,1,i+1));
+                  _assert((id == 1) ==> (inp.first=='A' && re_pr("star_A")(inp,1,i+1)))
+                } else {
+                  _assert(!(id == 1))
                   _assert((id == 1) ==> (inp.first=='A' && re_pr("star_A")(inp,1,i+1)))
                 }
                 _assert(bwd(t)(inp, 0, i+1))
