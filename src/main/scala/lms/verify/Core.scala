@@ -325,7 +325,7 @@ trait VerifyOps extends Base with BooleanOps {
   def ghost[A:Typ](e: Rep[A]): Rep[A]
 }
 
-trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBoolean with ListOpsExp with BooleanOpsExpOpt {
+trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with WhileExp with LiftBoolean with ListOpsExp with BooleanOpsExpOpt {
   implicit def anyTyp: Typ[Any] = manifestTyp
   def typ_arrayTyp[T](t: Typ[T]) = t.arrayTyp
 
@@ -520,6 +520,9 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with LiftBo
   }
   override def range_foreach(r: Exp[Range], block: Exp[Int] => Exp[Unit])(implicit pos: SourceContext) : Exp[Unit] = {
     reifyInvariants{super.range_foreach(r, block)(pos)}
+  }
+  override def __whileDo(cond: => Exp[Boolean], body: => Exp[Unit])(implicit pos: SourceContext): Exp[Unit] = {
+    reifyInvariants{super.__whileDo(cond, body)(pos)}
   }
 
   case class Assert(y: Block[Boolean]) extends Def[Unit]

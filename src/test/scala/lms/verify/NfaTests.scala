@@ -209,6 +209,7 @@ trait Re2Ast extends Regexp {
 trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
   type RF = (Rep[Input], Rep[Int], Rep[Int]) => Rep[Boolean]
   type RL = (Rep[Input], Rep[Int], Rep[Int], Rep[Int]) => Rep[Unit]
+  val never_match: RF = {(inp,i,n) => unit(false)}
   def re_lemma(name: String, inp: Rep[Input], i: Rep[Int], n: Rep[Int], stop: Rep[Int]): Rep[Unit] =
     ghost(toplevelApply[Unit]("lemma_"+name, list(inp, i, n, stop)))
   def mkpr(name: String, f: RF): RF = rec.get(name) match {
@@ -318,107 +319,58 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
     val res = dfa_res.map(re2pr)
     val fwd = r0n.map{r:Int => mkpr("re_"+r, res(r))}
     val res_bwd = dfa2re_backwards(dfa)
-    val bwd = r0n.map{r => res_bwd(r).map{p => mkpr("re_bwd_"+r, re2pr(p))}}
+    val bwd: Vector[RF] = r0n.map{r => res_bwd(r).map{p => mkpr("re_bwd_"+r, re2pr0(p))}.getOrElse{never_match}}
     val re = fwd(0)
     val re0 = mkpr("re0", re2pr0(dfa_res(0)))
-    def matching(re: RF, inp: Rep[Input], i: Rep[Int], j: Rep[Int]): Rep[Boolean] = re(inp, i, j)
-    def re_cover(inp: Rep[Input], i: Rep[Int]): Rep[Boolean] =
-      foldThunks{unit(false)}{(b,r) =>
-        (bwd(r).map{x => matching(x, inp, 0, i)}.getOrElse(unit(false))) || b(())
-      }
-    def re_invariant(r: Int, inp: Rep[Input], i: Rep[Int]): Rep[Boolean] =
-      (bwd(r).map{x => matching(x, inp, 0, i)}.getOrElse(unit(false)))/* &&
-        foldThunks(unit(true)){(b,t) =>
-          (if (t==r) unit(true)
-          else (bwd(t).map{x => !matching(x, inp, 0, i)}.getOrElse(unit(true)))) && b(())
-        }*/
-    def re_invariants(id: Rep[Int], inp: Rep[Input], i: Rep[Int]): Rep[Boolean] = foldThunks(unit(true)){(b,r) =>
-      ((id == r) ==> (re_invariant(r, inp, i))) && b(())
-    }
-    def re_not_invariants(inp: Rep[Input], i: Rep[Int]): Rep[Boolean] = foldThunks(unit(true)){(b,r) =>
-      !re_invariant(r, inp, i) && b(())
-    }
-    def final_invariant(r: Int, inp: Rep[Input], i: Rep[Int]): Rep[Boolean] =
-      (((bwd(r).map{x => matching(x, inp, 0, i)}).getOrElse(unit(false))) ==> matching(re, inp, 0, i))
-    def finals_invariants(id: Rep[Int], inp: Rep[Input], i: Rep[Int]): Rep[Boolean] = foldThunks(unit(true)){(b,r) =>
-      if (dfa.finals(r)) ((id == r) ==> final_invariant(r, inp, i)) else b(())
-    }
-    def id_invariant(id: Var[Int]): Rep[Boolean] = foldThunks(unit(false)){(b,r) =>
-      (id == r) || b(())
-    }
     toplevel("dfa", { inp: Rep[Array[Char]] =>
       requires(valid_input(inp))
       requires(inp.length<=Int.MaxValue) // to avoid overflow error in SPEC!
       ensures{(res: Rep[Boolean]) =>
-        (res ==> matching(re, inp, 0, inp.length)) /*&&
+        (res ==> re(inp, 0, inp.length)) /*&&
         (matching(re, inp, 0, inp.length) ==> res)*/
       }
-      var matched = true
+      var m = true
       var id = 0
       val i = ghostVar(0)
       var cur = inp
       val n = inp.length
+      def in_finals = foldThunks(unit(false)){(b,r) =>
+        (if (dfa.finals(r)) (id==r) else unit(false)) || b(())}
       loop((valid_input(inp) &&
-        ((unit(0) <= i) && (i <= n)) &&
-        (cur==inp.to(i)) &&
-        valid_input(inp.to(i)) &&
-        (matched ==> re_invariants(id, inp, i)) &&
-        (matched ==> matching(re0, inp, 0, i)) &&
-        //(matching(re0, inp, 0, i) ==> re_cover(inp, i)) &&
-        //(!matched ==> !re_cover(inp, i)) &&
-        finals_invariants(id, inp, i) &&
-        id_invariant(id)),
-        List[Any](cur, i, id, matched),
-        cur.length) {
-        while (!cur.atEnd && matched) {
-          _assert(matched ==> re_invariants(id, inp, i))
-          _assert(re_invariants(id, inp, i))
-          val c = cur.first
-          matched = foldThunks(unit(false)){(b,r) =>
-            if (id == r) {
-              _assert(re_invariants(id, inp, i))
-              _assert((id == r) ==> re_invariant(r, inp, i))
-              foldThunks(unit(false)){(b,t) =>
-                val chars = dfa.transitions(r)(t)
-                if (chars.contains(c)) {
-                  if (t == 1 && r == 1) {
-                    ghost(re_lemma("star_A", inp, 1, i, i+1))
-                  }
-                  _assert(re_invariant(t, inp, i+1))
-                  id = t
-                  _assert(re_invariant(t, inp, i+1))
-                  _assert((id==t) ==> re_invariant(t, inp, i+1))
-                  unit(true)
-                } else b(())
-              }
-            } else b(())
-          }
-          /*
-          if (!matched) {
-            r0n.foreach{t => r0n.foreach{r =>
-              if (id==r) {
-                _assert((id == r) ==> re_invariant(r, inp, i))
-                _assert(re_invariant(r, inp, i))
-                _assert(bwd(r).map{x => matching(x, inp, 0, i)}.getOrElse(unit(false)))
-                dfa.transitions(r)(t).foreach{a =>
-                  _assert(!(c == a))
-                }
-                _assert(!bwd(t).map{x => matching(x, inp, 0, i+1)}.getOrElse(unit(false)))
-              }
-            }}
-            _assert(!re_cover(inp, i+1))
-          }
-          _assert(!matched ==> !re_cover(inp, i+1))
-          _assert(!re_cover(inp, i+1) ==> !matching(re0, inp, 0, i+1))*/
-          _assert(matched ==> re_invariants(id, inp, i+1));
-          i = ghost(ghost(i)+1) //TODO: could be inferred
+          ((unit(0) <= i) && (i <= n)) &&
+          (cur==inp.to(i)) &&
+        valid_input(inp.to(i))),
+        List[Any](cur, i, id, m),
+        cur.length){
+      while (!cur.atEnd && m) {
+        r0n.foreach{r: Int =>
+          loop_invariant{((id == r) && m) ==> (bwd(r)(inp, 0, i))}}
+        r0n.foreach{r: Int =>
+          loop_invariant{(!m) ==> foldThunks(unit(true)){(b,r) =>
+            !bwd(r)(inp, 0, i) && b(())}}}
+        r0n.foreach{r: Int =>
+          loop_invariant{((id == r) && !m) ==> bwd(r)(inp, 0, i-1)}}
+        loop_invariant{(in_finals && cur.atEnd && m) ==> re(inp, 0, i)}
+        loop_invariant{foldThunks(unit(false)){(b,r) => id==r || b(())}}
+
+        m = foldThunks(unit(false)){(b,r) =>
+          if (id == r) {
+            _assert((id == r) ==> bwd(r)(inp, 0, i))
+            _assert(bwd(r)(inp, 0, i))
+            foldThunks(unit(false)){(b,t) =>
+              val chars = dfa.transitions(r)(t)
+              if (chars.contains(cur.first)) {
+                id = t
+                _assert(bwd(t)(inp, 0, i+1))
+                unit(true)
+              } else b(())
+            }
+          } else b(())
+        }
           cur = cur.rest
-          _assert(matched ==> re_invariants(id, inp, i));
-        }}
-      def in_finals = foldThunks{unit(false)}{(b,r) => if (dfa.finals(r)) (r==id || b(())) else b(())}
-      val res = cur.atEnd && matched && in_finals
-      _assert((cur.atEnd) ==> (i==n))
-      //_assert(matching(re, inp, 0, n) ==> (matching(re0, inp, 0, n) && in_finals))
+        ghost{i = ghost(i)+1}
+      }}
+      val res = cur.atEnd && m && in_finals
       res
     })
   }
