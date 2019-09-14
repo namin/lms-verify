@@ -77,7 +77,27 @@ trait DfaLib extends NfaLib with CommonLib with LetrecLib {
   case class Dfa(finals: Vector[Boolean], transitions: Vector[Vector[CharSet]]) {
     override def toString = "Dfa("+finals+", Vector(\n"+
     transitions.map{ts => ts.map{cs => cs.map("'"+_+"'")}}.mkString(",\n")+"))"
-  }
+    def next(m: Int): List[Int] = {
+      (0 until transitions.length).filter(transitions(m)(_).nonEmpty).toList
+    }
+    def reachable(r: Int, t: Int): Boolean = {
+      System.out.println("r:"+r)
+      System.out.println("t:"+t)
+      var seen: Set[Int] = Set.empty
+      var queue: List[Int] = next(r)
+      while (queue.nonEmpty) {
+        val m = queue.head
+        System.out.println("m:"+m)
+        if (m==t) return true
+        queue = queue.tail
+        if (!seen.contains(m)) {
+          seen += m
+          queue = next(m):::queue
+        }
+      }
+      false
+    }
+}
   def nfa2dfa(nfa: Nfa): Dfa = {
     import scala.collection.mutable.ArrayBuffer
 
@@ -340,7 +360,7 @@ trait CommonLib {
 }
 
 trait StagedLib extends Dsl with Reader with CommonLib {
-  def infix_contains(cs: CharSet, c: Rep[Char]) =
+  def infix_has(cs: CharSet, c: Rep[Char]) =
     cs.foldLeft(unit(false))(_ || _==c)
 }
 
@@ -349,7 +369,7 @@ trait NfaStagedLib extends NfaLib with DfaLib with LetrecLib with StagedLib {
     nexts(nfa, cur).foldLeft{unit(false)}{(r: Rep[Boolean], kv: (StSet, CharSet)) =>
       val ss = kv._1
       val cs = kv._2
-      if (cs.contains(c)) k(ss) else r
+      if (cs.has(c)) k(ss) else r
     }
   }
   def staged_accept(nfa: Nfa) = {
@@ -388,16 +408,14 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
       val i = ghostVar(0)
       var cur = inp
       val n = inp.length
-      def tactic(r: Int, t: Int) = {
-        // TODO: heuristic
-        dfa.transitions(t)(r).foreach{c =>
-          if (r==0) {
-            _assert(re_pr("star_"+c)(inp, i+1, i+1))
-          } else {
-            ghost{re_lemma("star_"+c, inp, 1, i, i+1)}
+      def tactic(r: Int, t: Int) =
+          dfa.transitions(t)(t).foreach{c =>
+            if (!(dfa.transitions(t)(r).contains(c))) {
+              _assert(re_pr("star_"+c)(inp, i+1, i+1))
+            } else {
+              ghost{re_lemma("star_"+c, inp, r/*TODO:hack, besides assumes no previous star...*/, i, i+1)}
+            }
           }
-        }
-      }
       def in_finals = foldThunks(unit(false)){(b,r) =>
         (if (dfa.finals(r)) (id==r) else unit(false)) || b(())}
       loop((valid_input(inp) &&
@@ -420,7 +438,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
             _assert(bwd(r)(inp, 0, i))
             foldThunks(unit(false)){(b,t) =>
               val chars = dfa.transitions(r)(t)
-              if (chars.contains(cur.first)) {
+              if (chars.has(cur.first)) {
                 _assert(bwd(r)(inp, 0, i))
                 id = t
                 tactic(r,t)
@@ -447,6 +465,12 @@ trait DfaExamples extends DfaLib {
     Vector(Set(), Set('A'), Set()),
     Vector(Set(), Set('A'), Set('B')),
     Vector(Set(), Set(), Set())))
+
+  val dfa2 = Dfa(Vector(false, false, false, true), Vector(
+    Vector(Set(), Set('W'), Set(), Set()),
+    Vector(Set(), Set('X'), Set('Y'), Set()),
+    Vector(Set(), Set(), Set('Y'), Set('Z')),
+    Vector(Set(), Set(), Set(), Set())))
 
   val dfa3 = Dfa(Vector(false, false, false, false, true), Vector(
     Vector(Set(), Set('A'), Set(), Set(), Set()),
@@ -523,6 +547,12 @@ class Dfa2ReTests extends TestSuite {
     }
     checkOut("aapb", new Ex1 {}, "txt")
   }
+  ignore("2") {
+    trait Ex2 extends Dfa2RePrinter with DfaExamples {
+      print(dfa2)
+    }
+    checkOut("aapb", new Ex2 {}, "txt")
+  }
   test("3") {
     trait Ex3 extends Dfa2RePrinter with DfaExamples {
       print(dfa3)
@@ -538,6 +568,12 @@ class StagedDfaTests extends TestSuite {
       val machine = staged_dfa_accept(dfa1)
     }
     check("aapb", (new Dfa1 with Impl).code)
+  }
+  ignore("2") {
+    trait Dfa2 extends DfaStagedLib with NfaExamples with DfaExamples {
+      val machine = staged_dfa_accept(dfa2)
+    }
+    check("2", (new Dfa2 with Impl).code)
   }
   //TODO
   ignore("3") {
