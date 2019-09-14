@@ -397,7 +397,7 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with WhileE
   case class ToplevelApply[B:Typ](name: String, args: List[Rep[_]]) extends Def[B]
   val eff = new scala.collection.mutable.LinkedHashMap[String,(List[Sym[Any]], Summary)]
   def toplevelApply[B:Typ](name: String, args: List[Rep[_]]): Rep[B] = {
-    if (reifyingSpec) {
+    if (reifyingSpec && !reifyingGhost) {
       rec.get(name) match {
         case Some(t:TopLevel[_]) if !t.spec =>
           // inline and ignore contract???
@@ -413,20 +413,18 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with WhileE
       }
     }
     val d = ToplevelApply[B](name, args)
-    // rec.get(name) match {
-    //   case _:Logic[_] => d
-    //   case (x:TopLevel[_]) if x.spec && !x.code => d
-    //   case _ =>
-        eff.get(name) match {
-          case Some((params,es)) =>
-            val m = params.zip(args.map{x => x match {
-              case s:Sym[Any] => s
-              case _ => null
-            }}).toMap
-            val es2 = replaceInSummary(m, es)
-            reflectEffect(d, es2)
-          case None => reflectEffect(d)
-        }
+      (rec.get(name), eff.get(name)) match {
+      case (_, _) if reifyingGhost =>
+        reflectEffect(d)
+      case (_, Some((params,es))) =>
+        val m = params.zip(args.map{x => x match {
+          case s:Sym[Any] => s
+          case _ => null
+        }}).toMap
+        val es2 = replaceInSummary(m, es)
+        reflectEffect(d, es2)
+      case _ => reflectEffect(d)
+    }
     // }
   }
   def replaceInSummary(m: Map[Sym[Any], Sym[Any]], es: Summary) = {
@@ -568,9 +566,13 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with WhileE
     ghostSyms += v.e
     v
   }
+  var reifyingGhost: Boolean = false
   case class Ghost[A:Typ](b: Block[A]) extends Def[A]
   def ghost[A:Typ](e: =>Rep[A]): Rep[A] = {
+    val saved = reifyingGhost
+    reifyingGhost = true
     val y = reifySpec(e)
+    reifyingGhost = saved
     val r = reflectEffect(Ghost(y))
     r
   }

@@ -370,7 +370,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
                     _assert(inp.first=='A');
                     _assert(re_pr("star_A")(inp, 1, 1));
                   } else {
-                    ghost(re_lemma("star_A", inp, 1, i, i+1))
+                    ghost{re_lemma("star_A", inp, 1, i, i+1)}
                   }
                   _assert(inp.first=='A')
                   _assert(re_pr("star_A")(inp,1,i+1));
