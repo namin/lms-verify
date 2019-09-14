@@ -552,7 +552,7 @@ class StagedDfaTests extends TestSuite {
     }
     check("aapb", (new Dfa1 with Impl).code)
   }
-  test("3") {
+  ignore("3") {
     trait Dfa3 extends DfaStagedLib with NfaExamples with DfaExamples {
       val machine = staged_dfa_accept(dfa3)
     }
