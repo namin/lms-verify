@@ -247,14 +247,19 @@ int m_aapb(char* s) {
     loop invariant strlen(s)>=0 && \valid(s+(0..strlen(s)));
     loop invariant strlen(cur)>=0 && \valid(cur+(0..strlen(cur)));
     loop invariant 0<=i<=strlen(s);
-    loop invariant (id == 0) && (m == 1) ==> bwd0(s, 0, i);
-    loop invariant (id == 1) && (m == 1) ==> bwd1(s, 0, i);
-    loop invariant (id == 2) && (m == 1) ==> bwd2(s, 0, i);
+    loop invariant (id == 0) && m ==> bwd0(s, 0, i);
+    loop invariant (id == 1) && m ==> bwd1(s, 0, i);
+    loop invariant (id == 2) && m ==> bwd2(s, 0, i);
     loop invariant (m == 0) ==> !bwd0(s, 0, i) && !bwd1(s, 0, i) && !bwd2(s, 0, i);
+    loop invariant (id == 0) && !m ==> s[0]!='A';
+    loop invariant (id == 1) && !m ==> s[i-1]!='A' && s[i-1]!='B';
+    loop invariant (id == 2) && !m ==> s[i-2]=='B';
+    loop invariant (id == 0) && !m ==> bwd0(s, 0, i-1);
+    loop invariant (id == 1) && !m ==> bwd1(s, 0, i-1);
+    loop invariant (id == 2) && !m ==> bwd2(s, 0, i-1);
     loop invariant (id == 2) && cur[0]=='\0' && m ==> match_aapb(s, 0, i);
     loop invariant (id != 2) || cur[0]!='\0' || !m ==> !match_aapb(s, 0, i);
     loop invariant (id == 0) || (id == 1) || (id == 2);
-    loop invariant (m == 1) || (m == 0);
     loop invariant cur==s+i;
     loop invariant cur[0]==s[i];
     loop assigns cur, id, i, m;
@@ -312,5 +317,36 @@ int m_aapb(char* s) {
     cur++;
     //@ghost i++;
   }
-  return id==2 && cur[0]=='\0' && m;
+  int res = id==2 && cur[0]=='\0' && m;
+  // TODO: ghost!
+  if (!res) {
+    if (!m) {
+      //@assert i>=1;
+      //@assert !match_aapb(s, 0, i);
+      //@assert !bwd2(s, 0, i);
+      int x = i;
+      int j = strlen(s);
+      if (id==0) {
+        //@assert s[0]!='A';
+        //@assert !bwd2(s, 0, j);
+      } else if (id==1) {
+        //@assert s[i-1]!='A' && s[i-1]!='B';
+        //@assert s[i-1]!='A';
+        if (i-1<j-1) {
+          //@ghost lemma_star_A_not(s, 1, i-1, j-1);
+        } else {
+          //@assert i==j;
+        }
+        //@assert !bwd2(s, 0, j);
+      } else if (id==2) {
+        //@assert s[i-2]=='B';
+        //@assert s[i-2]!='A';
+        //@ghost lemma_star_A_not(s, 1, i-2, j-1);
+        //@assert !bwd2(s, 0, j);
+      }
+      //@assert !bwd2(s, 0, strlen(s));
+      //@assert !match_aapb(s, 0, strlen(s));
+    }
+  }
+  return res;
 }
