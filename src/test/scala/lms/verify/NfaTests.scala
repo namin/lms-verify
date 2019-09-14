@@ -310,7 +310,7 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
       case (Some(lx),_) => {(inp,i,j) => re2pr(x)(inp,i,i+lx) && i+lx<=j && re2pr(y)(inp,i+lx,j)}
       case (None,None) => {(inp,i,j) => (i until (j+1)).exists{m =>
       re2pr(x)(inp,i,m) && re2pr(y)(inp,m,j)}}}
-    case I => {(inp,i,j) => i==j}
+    case I => {(inp,i,j) => i>=j}
     case Star(x) => {
       lazy val z: RF = { mkpr("star_"+key(x), r, { (inp,i,j) =>
         len(x) match {
@@ -321,14 +321,14 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
     }
   }
   def re2pr0(r: RE): RF = r match {
-    case C(c) => {(inp,i,j) => i==j || (c==inp(i) && j>=i+1)}
-    case R(a, b) => {(inp,i,j) => i==j || (a<=inp(i) && inp(i)<=b && j>=i+1)}
-    case W => {(inp,i,j) => i==j || (!inp.to(i).atEnd && j>=i+1)}
+    case C(c) => {(inp,i,j) => i==j || (c==inp(i) && i+1<=j)}
+    case R(a, b) => {(inp,i,j) => i==j || (a<=inp(i) && inp(i)<=b && i+1<=j)}
+    case W => {(inp,i,j) => i==j || (!inp.to(i).atEnd && i+1<=j)}
     case Alt(x, y) => {(inp,i,j) => re2pr0(x)(inp,i,j) || re2pr0(y)(inp,i,j) }
     case Cat(x, y) => {(inp,i,j) => re2pr0(x)(inp,i,j) || (len(x) match {
       case Some(lx) => (re2pr(x)(inp,i,i+lx) && re2pr0(y)(inp,i+lx,j))
       case None => (i until (j+1)).exists{m => re2pr(x)(inp,i,m) && re2pr0(y)(inp,m,j)}})}
-    case I => {(inp,i,j) => i>=j}
+    case I => {(inp,i,j) => i<=j}
     case Star(x) => re2pr(Star(x))
   }
 }
@@ -372,7 +372,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
     val res = dfa_res.map(re2pr)
     val fwd = r0n.map{r:Int => mkpr("re_"+r, dfa_res(r), res(r))}
     val res_bwd = dfa2re_backwards(dfa)
-    val bwd: Vector[RF] = r0n.map{r => res_bwd(r).map{p => mkpr("re_bwd_"+r, p, re2pr0(p))}.getOrElse{never_match}}
+    val bwd = r0n.map{r => res_bwd(r).map{p => mkpr("re_bwd_"+r, p, re2pr(p))}.getOrElse{never_match}}
     val re = fwd(0)
     toplevel("dfa", { inp: Rep[Array[Char]] =>
       requires(valid_input(inp))
@@ -398,43 +398,38 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
         r0n.foreach{r: Int =>
           loop_invariant{((id == r) && m) ==> (bwd(r)(inp, 0, i))}}
         r0n.foreach{r: Int =>
-          loop_invariant{(!m) ==> foldThunks(unit(true)){(b,r) =>
-            !bwd(r)(inp, 0, i) && b(())}}}
-        r0n.foreach{r: Int =>
           loop_invariant{((id == r) && !m) ==> bwd(r)(inp, 0, i-1)}}
         loop_invariant{(in_finals && cur.atEnd && m) ==> re(inp, 0, i)}
         loop_invariant{foldThunks(unit(false)){(b,r) => id==r || b(())}}
-        // TODO: remove hardcoding
-        loop_invariant{((id == 1) && m)==> (inp.first=='A' && re_pr("star_A")(inp,1,i))}
 
         m = foldThunks(unit(false)){(b,r) =>
           if (id == r) {
             _assert((id == r) ==> bwd(r)(inp, 0, i))
             _assert(bwd(r)(inp, 0, i))
             if (r==1) {
-              _assert{(id == 1) ==> (inp.first=='A' && re_pr("star_A")(inp,1,i))}
-              _assert{inp.first=='A' && re_pr("star_A")(inp,1,i)}
+              //_assert{(id == 1) ==> (inp.first=='A' && re_pr("star_A")(inp,1,i))}
+              //_assert{inp.first=='A' && re_pr("star_A")(inp,1,i)}
             }
             foldThunks(unit(false)){(b,t) =>
               val chars = dfa.transitions(r)(t)
               if (chars.contains(cur.first)) {
                 _assert(bwd(r)(inp, 0, i))
                 id = t
-                // TODO: remove hardcoding
                 if (t==1) {
                   if (r==0) {
-                    _assert(i==0);
-                    _assert(inp.first=='A');
-                    _assert(re_pr("star_A")(inp, 1, 1));
+                    //_assert(i==0);
+                    //_assert(inp.first=='A');
+                    //_assert(re_pr("star_A")(inp, 1, 1));
+                    _assert(re_pr("star_A")(inp, 1, 1))
                   } else {
                     ghost{re_lemma("star_A", inp, 1, i, i+1)}
                   }
-                  _assert(inp.first=='A')
-                  _assert(re_pr("star_A")(inp,1,i+1));
-                  _assert((id == 1) ==> (inp.first=='A' && re_pr("star_A")(inp,1,i+1)))
+                  //_assert(inp.first=='A')
+                  //_assert(re_pr("star_A")(inp,1,i+1));
+                  //_assert((id == 1) ==> (inp.first=='A' && re_pr("star_A")(inp,1,i+1)))
                 } else {
-                  _assert(!(id == 1))
-                  _assert((id == 1) ==> (inp.first=='A' && re_pr("star_A")(inp,1,i+1)))
+                  //_assert(!(id == 1))
+                  //_assert((id == 1) ==> (inp.first=='A' && re_pr("star_A")(inp,1,i+1)))
                 }
                 _assert(bwd(t)(inp, 0, i+1))
                 if (dfa.finals(t)) {
