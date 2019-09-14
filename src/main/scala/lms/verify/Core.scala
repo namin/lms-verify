@@ -752,7 +752,7 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
         case _ => true}}.map{r => exprOf(r, m)}.mkString(";")
     case Reify(r, _, _) => exprOf(r, m)
     case Reflect(r, _, _) => exprOfDef(r, m)
-    case ReadVar(Variable(s@Sym(n))) => quotee(s)
+    case ReadVar(Variable(s@Sym(n))) => if (isVoidVar(s)) "" else quotee(s)
     case Assign(Variable(s@Sym(n)), r) => quote(s)+" = "+exprOf(r, m)
     case ListNew(xs) => xs.map(exprOf(_, m)).filter(_.nonEmpty).mkString(", ")
     // FIXME: only works for strings / Seq[Char] / Array[Char]
