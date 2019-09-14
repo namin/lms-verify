@@ -69,6 +69,31 @@ requires strlen(s)>=0 && \valid(s+(0..strlen(s)));
 
 requires strlen(s)<=INT_MAX;
 
+requires 0<=i<=m<j<=strlen(s);
+
+requires s[m]!='A';
+ensures !star_A(s, i, j);
+
+assigns \nothing;
+*/
+void lemma_star_A_not(char* s, int i, int m, int j) {
+  int x = m;
+  /*@
+    loop invariant 0<=i<=x<=m<j;
+    loop invariant !star_A(s, x, j);
+    loop assigns x;
+    loop variant x;
+  */
+  while (i < x) {
+    x--;
+  }
+}
+
+/*@
+requires strlen(s)>=0 && \valid(s+(0..strlen(s)));
+
+requires strlen(s)<=INT_MAX;
+
 requires 0<=i<=strlen(s);
 requires 0<=j<=strlen(s);
 requires i<j;
@@ -206,31 +231,6 @@ void lemma2f(char* s, int i, int j) {
 /*@
 requires strlen(s)>=0 && \valid(s+(0..strlen(s)));
 
-requires 0<=i<=strlen(s)<=INT_MAX;
-
-requires !match_aapb(s, 0, i);
-ensures !match_aapb(s, 0, strlen(s));
-
-assigns \nothing;
-*/
-void no_match_mono(char* s, int i) {
-  int n = strlen(s);
-  int x = i;
-  /*@
-    loop invariant 0<=i<=x<=strlen(s);
-    loop invariant !match_aapb(s, 0, x);
-    loop assigns x;
-    loop variant strlen(s)-x;
-  */
-  while (x < n) {
-    x++;
-  }
-  //@assert x==n;
-}
-
-/*@
-requires strlen(s)>=0 && \valid(s+(0..strlen(s)));
-
 requires strlen(s)<=INT_MAX;
 
 ensures match_aapb(s, 0, strlen(s)) ==> \result==1;
@@ -250,6 +250,7 @@ int m_aapb(char* s) {
     loop invariant (id == 0) && (m == 1) ==> bwd0(s, 0, i);
     loop invariant (id == 1) && (m == 1) ==> bwd1(s, 0, i);
     loop invariant (id == 2) && (m == 1) ==> bwd2(s, 0, i);
+    loop invariant (m == 0) ==> !bwd0(s, 0, i+1) && !bwd1(s, 0, i+1) && !bwd2(s, 0, i+1);
     loop invariant (id == 2) && cur[0]=='\0' ==> match_aapb(s, 0, strlen(s));
     loop invariant (id != 2) || cur[0]!='\0' ==> !match_aapb(s, 0, i);
     loop invariant (id == 0) || (id == 1) || (id == 2);
@@ -270,6 +271,8 @@ int m_aapb(char* s) {
         //@ghost lemma01(s, 0, i);
         //@assert bwd1(s, 0, i+1);
         m = 1;
+      } else {
+        //@assert !bwd0(s, 0, i+1) && !bwd1(s, 0, i+1) && !bwd2(s, 0, i+1);
       }
     } else if (id == 1) {
       //@assert (id == 1) ==> bwd1(s, 0, i);
@@ -285,21 +288,38 @@ int m_aapb(char* s) {
         //@assert bwd2(s, 0, i+1);
         //@ghost lemma2f(s, 0, i+1);
         m = 1;
+      } else {
+        //@assert !bwd0(s, 0, i+1);
+        //@assert s[i]!='A';
+        //@ghost lemma_star_A_not(s, 1, i, i+1);
+        //@assert !bwd1(s, 0, i+1);
+        //@assert !bwd2(s, 0, i+1);
       }
     } else if (id == 2) {
       //@assert (id == 2) ==> bwd2(s, 0, i);
       //@assert bwd2(s, 0, i);
       //@ghost lemma2f(s, 0, i);
+      //@assert !bwd0(s, 0, i+1);
+      //@assert s[i-1]!='A';
+      //@ghost lemma_star_A_not(s, 1, i-1, i+1);
+      //@assert !star_A(s, 1, i+1);
+      //@assert !bwd1(s, 0, i+1);
+      //@assert !bwd2(s, 0, i+1);
+    } else {
+      //@assert \false;
     }
     if (m==1) {
       cur++;
       //@ghost i++;
+    } else {
+      //@assert !bwd0(s, 0, i+1);
+      //@assert !bwd1(s, 0, i+1);
+      //@assert !bwd2(s, 0, i+1);
     }
   }
   int atEnd = cur[0]=='\0';
   int res = id==2 && atEnd;
   if (!res) {
-    //@ghost no_match_mono(s, i);
   }
   return res;
 }
