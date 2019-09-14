@@ -570,7 +570,11 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with WhileE
   }
   case class Ghost[A:Typ](b: Block[A]) extends Def[A]
   def ghost[A:Typ](e: =>Rep[A]): Rep[A] = {
-    val y = reifyEffects(e)
+    val y = reifySpec(e)
+    System.out.println(y)
+    y.res match {
+      case Def(d) => System.out.println(d)
+    }
     val r = reflectEffect(Ghost(y))
     r
   }
@@ -700,8 +704,7 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
       case _ => kw + " " + r + ";" + end
     }
   }
-  def exprOfBlock[A](e: Block[A], m: Map[Sym[_], String]): String =
-    exprOf(e.res, m)
+  def exprOfBlock[A](e: Block[A], m: Map[Sym[_], String]): String = exprOf(e.res, m)
   def exprOfDef[A](d: Def[A], m: Map[Sym[_], String]): String = d match {
     case ToplevelApply(name, es) => name+"("+es.map(exprOf(_, m)).mkString(",")+")"
     case Old(v) => "\\old("+exprOf(v, m)+")"
@@ -744,9 +747,15 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
     case IntBinaryAnd(a, b) => "("+exprOf(a, m)+"&"+exprOf(b, m)+")"
     case SeqApply(p, i) => exprOf(p, m) + "[" + exprOf(i, m) + "]"
     case ArrayApply(p, i) => exprOf(p, m)+"["+exprOf(i, m)+"]"
+    case Reify(Const(()), _, rs) =>
+      rs.filter{_ match {
+        case Def(ReadVar(_)) => false
+        case Def(Reflect(ReadVar(_), _, _)) => false
+        case _ => true}}.map{r => exprOf(r, m)}.mkString(";")
     case Reify(r, _, _) => exprOf(r, m)
     case Reflect(r, _, _) => exprOfDef(r, m)
-    case ReadVar(Variable(s@Sym(n))) => if (isVoidVar(s)) "" else quotee(s)
+    case ReadVar(Variable(s@Sym(n))) => quotee(s)
+    case Assign(Variable(s@Sym(n)), r) => quote(s)+" = "+exprOf(r, m)
     case ListNew(xs) => xs.map(exprOf(_, m)).filter(_.nonEmpty).mkString(", ")
     // FIXME: only works for strings / Seq[Char] / Array[Char]
     case SeqLength(x) => "strlen("+exprOf(x, m)+")"
@@ -808,14 +817,14 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
     rhs match {
       case ToplevelApply(name, args) => emitValDef(sym, name+args.map(quote).mkString("(", ",", ")"))
       case Assert(y) => stream.println(exprOfBlock("/*@assert", y, end="*/"))
-      case Ghost(y) =>
-        stream.println("/*@ghost")
-        emitBlock(y)
-        stream.println("*/")
+      case Ghost(y) => stream.println(exprOfBlock("/*@ghost", y, end="*/"))
       case ArrayApply(x,n) => emitValDef(sym, quote(x) + "[" + quote(n) + "]")
       case ArrayUpdate(x,n,y) => stream.println(quote(x) + "[" + quote(n) + "] = " + quote(y) + ";")
       // TODO: the LMS C codegen should be updated to use emitAssignment instead
-      case Assign(Variable(a), b) => emitAssignment(a.asInstanceOf[Sym[Variable[Any]]], quote(b))
+      case Assign(Variable(a), b) =>
+        val s = a.asInstanceOf[Sym[Variable[Any]]]
+        val r = quote(b)
+        emitAssignment(s, r)
       case SeqLength(x) =>
         // FIXME: only works for strings / Seq[Char]
         emitValDef(sym, "strlen("+quote(x)+")")

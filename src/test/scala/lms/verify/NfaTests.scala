@@ -225,10 +225,12 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
         val c: RL = unwrap4(toplevel("lemma_"+name, wrap4({(inp,start,i,j) =>
           requires(valid_input(inp))
           requires(0<=start && start<=i)
-          requires(0<=i && i<inp.length)
+          requires(0<=i && i<j)
+          requires(0<=j && j<=inp.length)
           requires(r(inp, start, i))
-          requires(r(inp, i, i+1))
-          ensures{res: Rep[Unit] => r(inp, i, i+1)}
+          requires(r(inp, i, j))
+          requires(i+1==j)
+          ensures{res: Rep[Unit] => r(inp, start, j)}
           unit(())
         }), spec=false, code=true))
       }
@@ -365,10 +367,14 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
                 if (t==1) {
                   if (r==0) {
                     _assert(i==0);
+                    _assert(inp.first=='A');
                     _assert(re_pr("star_A")(inp, 1, 1));
                   } else {
                     ghost(re_lemma("star_A", inp, 1, i, i+1))
                   }
+                  _assert(inp.first=='A')
+                  _assert(re_pr("star_A")(inp,1,i+1));
+                  _assert((id == 1) ==> (inp.first=='A' && re_pr("star_A")(inp,1,i+1)))
                 }
                 _assert(bwd(t)(inp, 0, i+1))
                 if (dfa.finals(t)) {
