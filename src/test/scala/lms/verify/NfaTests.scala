@@ -215,7 +215,7 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
     toplevelApply[Unit]("lemma_"+name, list(inp, i, n, stop))
   def re_pr(name: String)(inp: Rep[Input], i: Rep[Int], n: Rep[Int]): Rep[Boolean] =
     toplevelApply[Boolean](name, list(inp, i, n))
-  def mkpr(name: String, f: RF): RF = rec.get(name) match {
+  def mkpr(name: String, a: RE, f: RF): RF = rec.get(name) match {
     case Some(_) => {
       val r: RF = {(inp,i,j) => toplevelApply[Boolean](name, list(inp,i,j))}
       r
@@ -223,12 +223,12 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
     case None =>
       val r: RF = unwrap3(toplevel(name, wrap3(f), spec=true, code=false))
       if (name.startsWith("star_")) {
+        val Star(u) = a
         val c_all: RU = unwrap3(toplevel("lemma_"+name+"_all", wrap3({(inp:Rep[Input],i:Rep[Int],j:Rep[Int]) =>
           requires(valid_input(inp))
           requires(0<=i && i<=j && j <= inp.length)
           requires(r(inp, i, j))
-          ensures{_:Rep[Unit] => forall{m: Rep[Int] => (0<=i && i<=m && m<j) ==> (inp.to(m).first=='A') //TODO: hardcoding
-          }}
+          ensures{_:Rep[Unit] => forall{m: Rep[Int] => (0<=i && i<=m && m<j) ==> (re2pr(u)(inp, m, m+1))}}
           var x = i
           loop(0 <= i && i <= x && j <= inp.length,
             List[Any](x), j-x) {
@@ -242,15 +242,14 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
         val c_from_all: RU = unwrap3(toplevel("lemma_"+name+"_from_all", wrap3({(inp:Rep[Input],i:Rep[Int],j:Rep[Int]) =>
           requires(valid_input(inp))
           requires(0<=i && i<=j && j <= inp.length)
-          requires{forall{m: Rep[Int] => (0<=i && i<=m && m<j) ==> (inp.to(m).first=='A') //TODO: hardcoding
-          }}
+          requires{forall{m: Rep[Int] => (0<=i && i<=m && m<j) ==> (re2pr(u)(inp, m, m+1))}}
           ensures{_:Rep[Unit] => r(inp, i, j)}
           var x = j
           loop(0 <= i && i <= x && j <= inp.length,
             List[Any](x), x) {
             while (i < x) {
               loop_invariant(r(inp, x, j))
-              loop_invariant{forall{m: Rep[Int] => (0<=i && i<=m && m<j) ==> (inp.to(m).first=='A')}}
+              loop_invariant{forall{m: Rep[Int] => (0<=i && i<=m && m<j) ==> (re2pr(u)(inp, m, m+1))}}
               x = x-1
             }
           }
@@ -282,7 +281,7 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
               c_dec(inp, start, x)
               _assert(start<x)
               ghost{c_all(inp, start, x)}
-              _assert(inp.to(x-1).first=='A') // TODO: hardcoding
+              _assert(re2pr(u)(inp, x-1, x))
               _assert(r(inp, x, j))
               _assert(r(inp, x-1, j))
               x = x-1;
@@ -313,7 +312,7 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
       re2pr(x)(inp,i,m) && re2pr(y)(inp,m,j)}}}
     case I => {(inp,i,j) => i==j}
     case Star(x) => {
-      lazy val z: RF = { mkpr("star_"+key(x), { (inp,i,j) =>
+      lazy val z: RF = { mkpr("star_"+key(x), r, { (inp,i,j) =>
         len(x) match {
           case Some(lx) => (i==j) || (i<j && (re2pr(x)(inp,i,i+lx) && z(inp,i+lx,j)))
           case None => (i==j) || ((i<j) && ((i+1) until (j+1)).exists{m =>
@@ -371,9 +370,9 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
     })(()))
     val dfa_res = dfa2re(dfa)
     val res = dfa_res.map(re2pr)
-    val fwd = r0n.map{r:Int => mkpr("re_"+r, res(r))}
+    val fwd = r0n.map{r:Int => mkpr("re_"+r, dfa_res(r), res(r))}
     val res_bwd = dfa2re_backwards(dfa)
-    val bwd: Vector[RF] = r0n.map{r => res_bwd(r).map{p => mkpr("re_bwd_"+r, re2pr0(p))}.getOrElse{never_match}}
+    val bwd: Vector[RF] = r0n.map{r => res_bwd(r).map{p => mkpr("re_bwd_"+r, p, re2pr0(p))}.getOrElse{never_match}}
     val re = fwd(0)
     toplevel("dfa", { inp: Rep[Array[Char]] =>
       requires(valid_input(inp))
