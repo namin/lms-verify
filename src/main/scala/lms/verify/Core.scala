@@ -571,10 +571,6 @@ trait VerifyOpsExp extends VerifyOps with EffectExp with RangeOpsExp with WhileE
   case class Ghost[A:Typ](b: Block[A]) extends Def[A]
   def ghost[A:Typ](e: =>Rep[A]): Rep[A] = {
     val y = reifySpec(e)
-    System.out.println(y)
-    y.res match {
-      case Def(d) => System.out.println(d)
-    }
     val r = reflectEffect(Ghost(y))
     r
   }
