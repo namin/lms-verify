@@ -378,7 +378,9 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
       requires(valid_input(inp))
       requires(inp.length<=Int.MaxValue) // to avoid overflow error in SPEC!
       ensures{(res: Rep[Boolean]) =>
-        (res ==> re(inp, 0, inp.length)) /*&&
+        (res ==> re(inp, 0, inp.length))
+        //TODO
+        /*&&
         (matching(re, inp, 0, inp.length) ==> res)*/
       }
       var m = true
@@ -387,7 +389,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
       var cur = inp
       val n = inp.length
       def tactic(r: Int, t: Int) = {
-        // heuristic
+        // TODO: heuristic
         dfa.transitions(t)(r).foreach{c =>
           if (r==0) {
             _assert(re_pr("star_"+c)(inp, i+1, i+1))
@@ -537,6 +539,7 @@ class StagedDfaTests extends TestSuite {
     }
     check("aapb", (new Dfa1 with Impl).code)
   }
+  //TODO
   ignore("3") {
     trait Dfa3 extends DfaStagedLib with NfaExamples with DfaExamples {
       val machine = staged_dfa_accept(dfa3)
