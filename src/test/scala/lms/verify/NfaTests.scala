@@ -387,11 +387,12 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
       var cur = inp
       val n = inp.length
       def tactic(r: Int, t: Int) = {
-        if (t==1) {
+        // heuristic
+        dfa.transitions(t)(r).foreach{c =>
           if (r==0) {
-            _assert(re_pr("star_A")(inp, i+1, i+1))
+            _assert(re_pr("star_"+c)(inp, i+1, i+1))
           } else {
-            ghost{re_lemma("star_A", inp, 1, i, i+1)}
+            ghost{re_lemma("star_"+c, inp, 1, i, i+1)}
           }
         }
       }
