@@ -188,6 +188,22 @@ trait Re2Ast extends Regexp {
   def seq(x: RE, y: RE): RE = Cat(x, y)
   val id: RE = I
   def star(x: RE): RE = Star(x)
+
+  def len(r: RE): Option[Int] = r match {
+    case C(_) => Some(1)
+    case R(_,_) => Some(1)
+    case W => Some(1)
+    case Alt(x, y) => (len(x),len(y)) match {
+      case (Some(x),Some(y)) if x==y => Some(x)
+      case _ => None
+    }
+    case Cat(x, y) => (len(x),len(y)) match {
+      case (Some(x),Some(y)) => Some(x+y)
+      case _ => None
+    }
+    case I => Some(0)
+    case Star(_) => None
+  }
 }
 
 trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
@@ -229,12 +245,18 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
     case R(a, b) => {(inp,i,j) => a<=inp(i) && inp(i)<=b && j==i+1}
     case W => {(inp,i,j) => !inp.to(i).atEnd && j==i+1}
     case Alt(x, y) => {(inp,i,j) => re2pr(x)(inp,i,j) || re2pr(y)(inp,i,j) }
-    case Cat(x, y) => {(inp,i,j) => (i until (j+1)).exists{m =>
-      re2pr(x)(inp,i,m) && re2pr(y)(inp,m,j)}}
+    case Cat(x, y) => (len(x),len(y)) match {
+      case (_,Some(ly)) => {(inp,i,j) => i<=j-ly && re2pr(x)(inp,i,j-ly) && re2pr(y)(inp,i+ly,j)}
+      case (Some(lx),_) => {(inp,i,j) => i+lx<=j && re2pr(x)(inp,i,i+lx) && re2pr(y)(inp,i+lx,j)}
+      case (None,None) => {(inp,i,j) => (i until (j+1)).exists{m =>
+      re2pr(x)(inp,i,m) && re2pr(y)(inp,m,j)}}}
     case I => {(inp,i,j) => i==j}
     case Star(x) => {
-      lazy val z: RF = { mkpr("star_"+key(x), { (inp, i, j) => (i==j) || ((i+1) until (j+1)).exists{m =>
-        re2pr(x)(inp,i,m) && z(inp, m, j)} }) }
+      lazy val z: RF = { mkpr("star_"+key(x), { (inp,i,j) =>
+        len(x) match {
+          case Some(lx) => (i==j) || (re2pr(x)(inp,i,i+lx) && z(inp,i+lx,j))
+          case None => (i==j) || ((i+1) until (j+1)).exists{m =>
+            re2pr(x)(inp,i,m) && z(inp, m, j)}} }) }
       z
     }
   }
@@ -243,12 +265,15 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
     case R(a, b) => {(inp,i,j) => i==j || (a<=inp(i) && inp(i)<=b && j>=i+1)}
     case W => {(inp,i,j) => i==j || (!inp.to(i).atEnd && j>=i+1)}
     case Alt(x, y) => {(inp,i,j) => re2pr0(x)(inp,i,j) || re2pr0(y)(inp,i,j) }
-    case Cat(x, y) => {(inp,i,j) =>
-      re2pr0(x)(inp,i,j) || (i until (j+1)).exists{m => re2pr(x)(inp,i,m) && re2pr0(y)(inp,m,j)}}
-    case I => {(inp,i,j) => j>=i}
+    case Cat(x, y) => {(inp,i,j) => re2pr0(x)(inp,i,j) || (len(x) match {
+      case Some(lx) => i+lx<=j && re2pr(x)(inp,i,i+lx) && re2pr0(y)(inp,i+lx,j)
+      case None => (i until (j+1)).exists{m => re2pr(x)(inp,i,m) && re2pr0(y)(inp,m,j)}})}
+    case I => {(inp,i,j) => i>=j}
     case Star(x) => {
-      lazy val z: RF = { mkpr("star_starting_"+key(x), { (inp, i, j) => re2pr0(x)(inp,i,j) ||
-        (i+1 until j+1).exists{m => (re2pr(x)(inp,i,m) && z(inp, m, j))} || (j>=i) }) }
+      lazy val z: RF = {mkpr("star_starting_"+key(x), {(inp,i,j) => re2pr0(x)(inp,i,j) || (len(x) match {
+          case Some(lx) => (i>=j) || (re2pr(x)(inp,i,i+lx) && z(inp,i+lx,j))
+          case None => (i>=j) || ((i+1) until (j+1)).exists{m =>
+            re2pr(x)(inp,i,m) && z(inp, m, j)}})})}
       z
     }
   }
