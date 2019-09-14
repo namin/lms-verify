@@ -247,17 +247,17 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
     case W => {(inp,i,j) => !inp.to(i).atEnd && j==i+1}
     case Alt(x, y) => {(inp,i,j) => re2pr(x)(inp,i,j) || re2pr(y)(inp,i,j) }
     case Cat(x, y) => (len(x),len(y)) match {
-      case (_,Some(ly)) => {(inp,i,j) => i<=j-ly && re2pr(x)(inp,i,j-ly) && re2pr(y)(inp,i+ly,j)}
-      case (Some(lx),_) => {(inp,i,j) => i+lx<=j && re2pr(x)(inp,i,i+lx) && re2pr(y)(inp,i+lx,j)}
+      case (_,Some(ly)) => {(inp,i,j) => i<=j-ly && re2pr(x)(inp,i,j-ly) && re2pr(y)(inp,i,j-ly)}
+      case (Some(lx),_) => {(inp,i,j) => re2pr(x)(inp,i,i+lx) && i+lx<=j && re2pr(y)(inp,i+lx,j)}
       case (None,None) => {(inp,i,j) => (i until (j+1)).exists{m =>
       re2pr(x)(inp,i,m) && re2pr(y)(inp,m,j)}}}
     case I => {(inp,i,j) => i==j}
     case Star(x) => {
       lazy val z: RF = { mkpr("star_"+key(x), { (inp,i,j) =>
         len(x) match {
-          case Some(lx) => (i==j) || (re2pr(x)(inp,i,i+lx) && z(inp,i+lx,j))
-          case None => (i==j) || ((i+1) until (j+1)).exists{m =>
-            re2pr(x)(inp,i,m) && z(inp, m, j)}} }) }
+          case Some(lx) => (i==j) || (i<j && (re2pr(x)(inp,i,i+lx) && z(inp,i+lx,j)))
+          case None => (i==j) || ((i<j) && ((i+1) until (j+1)).exists{m =>
+            re2pr(x)(inp,i,m) && z(inp,m,j)})}})}
       z
     }
   }
@@ -270,14 +270,7 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
       case Some(lx) => (re2pr(x)(inp,i,i+lx) && re2pr0(y)(inp,i+lx,j))
       case None => (i until (j+1)).exists{m => re2pr(x)(inp,i,m) && re2pr0(y)(inp,m,j)}})}
     case I => {(inp,i,j) => i>=j}
-    case Star(x) => {
-      lazy val z: RF = { mkpr("star_starting_"+key(x), { (inp,i,j) =>
-        len(x) match {
-          case Some(lx) => (i==j) || re2pr0(x)(inp, i, j) || (re2pr(x)(inp,i,i+lx) && z(inp,i+lx,j))
-          case None => (i==j) || re2pr0(x)(inp, i, j) || ((i+1) until (j+1)).exists{m =>
-            re2pr(x)(inp,i,m) && z(inp, m, j)}} }) }
-      z
-    }
+    case Star(x) => re2pr(Star(x))
   }
 }
 
@@ -362,6 +355,16 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
               if (chars.contains(cur.first)) {
                 _assert(bwd(r)(inp, 0, i))
                 id = t
+                if (t==1) {
+                  _assert(inp.first=='A')
+                  _assert(mkpr("star_A", null)(inp, 1, i))
+                  ghost(re_lemma("star_A", inp, 1, ghost(i), ghost(ghost(i)+1)))
+                } else (t==2) {
+                  _assert(inp.first=='A')
+                  _assert(mkpr("star_A", null)(inp, 1, i-1))
+                  ghost(re_lemma("star_A", inp, 1, ghost(i-1), ghost(i)))
+                  _assert(inp(i-1)=='B')
+                }
                 _assert(bwd(t)(inp, 0, i+1))
                 if (dfa.finals(t)) {
                   _assert(inp.to(i+1).atEnd ==> re(inp, 0, i+1))
