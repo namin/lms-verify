@@ -244,6 +244,7 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
       val r: RF = unwrap3(toplevel(name, wrap3(f), spec=true, code=false))
       if (name.startsWith("star_")) {
         val Star(u) = a
+        val C(chr) = u //TODO: generalize?
         val c_all: RU = unwrap3(toplevel("lemma_"+name+"_all", wrap3({(inp:Rep[Input],i:Rep[Int],j:Rep[Int]) =>
           requires(valid_input(inp))
           requires(0<=i && i<=j && j <= inp.length)
@@ -254,7 +255,7 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
             List[Any](x), j-x) {
             while (x < j) {
               loop_invariant(r(inp, x, j))
-              loop_invariant(forall{m: Rep[Int] => (i<=m && m < x) ==> (inp.to(m).first=='A')})
+              loop_invariant(forall{m: Rep[Int] => (i<=m && m < x) ==> (inp.to(m).first==chr)})
               x = x+1
             }
           }
