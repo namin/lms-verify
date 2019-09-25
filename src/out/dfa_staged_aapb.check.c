@@ -143,7 +143,7 @@ int dfa(char  * x142) {
           if (x324) {
             /*@assert re_bwd_0(x142,0,x146);*/
             x145 = 1;
-            /*@assert star_A(x142,(x146+1),(x146+1));*/
+            /*@assert star_A(x142,x146,(x146+1));*/
             /*@assert re_bwd_1(x142,0,(x146+1));*/
             x341 = 1/*true*/;
           } else {

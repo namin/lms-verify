@@ -412,7 +412,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
       def tactic(r: Int, t: Int) =
           dfa.transitions(t)(t).foreach{c =>
             if (!(dfa.transitions(t)(r).contains(c))) {
-              _assert(re_pr("star_"+c)(inp, i+1, i+1))
+              _assert(re_pr("star_"+c)(inp, i, i+1))
             } else {
               ghost{re_lemma("star_"+c, inp, r/*TODO:hack, besides assumes no previous star...*/, i, i+1)}
             }
