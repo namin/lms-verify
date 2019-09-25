@@ -331,7 +331,7 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
       case (Some(lx),_) => {(inp,i,j) => re2pr(x)(inp,i,i+lx) && i+lx<=j && re2pr(y)(inp,i+lx,j)}
       case (None,None) => {(inp,i,j) => (i until (j+1)).exists{m =>
       re2pr(x)(inp,i,m) && re2pr(y)(inp,m,j)}}}
-    case I => {(inp,i,j) => i>=j}
+    case I => {(inp,i,j) => i==j}
     case Star(x) => {
       lazy val z: RF = { mkpr("star_"+key(x), r, { (inp,i,j) =>
         len(x) match {
