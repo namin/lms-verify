@@ -731,7 +731,7 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
     case IfThenElse(a, Block(Const(true)), Block(Const(false))) => exprOf(a, m)
     case IfThenElse(a, Block(Def(Reify(Const(true), _, _))), Block(Const(false))) => exprOf(a, m)
     case IfThenElse(a, b, Block(Const(false))) => "("+exprOf(a, m)+" &&\n "+exprOfBlock(b, m)+")"
-    case IfThenElse(a, Block(Const(false)), c) => "(!"+exprOf(a, m)+" ||\n "+exprOfBlock(c, m)+")"
+    case IfThenElse(a, Block(Const(false)), c) => "(!"+exprOf(a, m)+" &&\n "+exprOfBlock(c, m)+")"
     case IfThenElse(a, b, c) => "(("+exprOf(a,m)+") ? ("+exprOfBlock(b,m)+") : ("+exprOfBlock(c,m)+"))"
     case BooleanOr(a, b) => "("+exprOf(a, m)+" || "+exprOf(b, m)+")"
     case BooleanNegate(a) => "(!"+exprOf(a, m)+")"
