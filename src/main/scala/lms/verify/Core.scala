@@ -764,7 +764,7 @@ trait CCodeGenDsl extends CCodeGenPkg with CGenVariables with CGenTupledFunction
         case "\\exists" => "&&"
       }
       val lower = z match {
-        case Def(IntPlus(n, Const(1))) => s"${exprOf(z,m)}<"
+        case Def(IntPlus(n, Const(1))) => s"${exprOf(n,m)}<"
         case _ => s"${exprOf(z,m)}<="
       }
       val upper = n match {
