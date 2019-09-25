@@ -409,21 +409,39 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
       val i = ghostVar(0)
       var cur = inp
       val n = inp.length
-      def tactic(r: Int, t: Int) =
-          dfa.transitions(t)(t).foreach{c =>
-            if (!(dfa.transitions(t)(r).contains(c))) {
-              _assert(re_pr("star_"+c)(inp, i+1, i+1))
-            } else {
-              ghost{re_lemma("star_"+c, inp, r/*TODO:hack, besides assumes no previous star...*/, i, i+1)}
-            }
+      var cur_starts_map: Map[(Int,Char),Var[Int]] = Map.empty
+      var cur_starts: List[Rep[Any]] = r0n.toList.flatMap{t =>
+        dfa.transitions(t)(t).map{c =>
+          val cur_start = ghostVar(-1)
+          cur_starts_map += ((t,c) -> cur_start)
+          readVar(cur_start)
+        }
+      }
+      def tactic(r: Int, t: Int) = {
+        dfa.transitions(t)(t).foreach{c =>
+          val cur_start = cur_starts_map((t,c))
+          if (!(dfa.transitions(t)(r).contains(c))) {
+            ghost{cur_start = i+1}
+            _assert(re_pr("star_"+c)(inp, i+1, i+1))
+          } else {
+            ghost{re_lemma("star_"+c, inp, cur_start, i, i+1)}
+            _assert(re_pr("star_"+c)(inp, cur_start, i+1))
           }
+        }
+        if (r != t) {
+          dfa.transitions(r)(r).foreach{c =>
+            val cur_start = cur_starts_map((r,c))
+            ghost{cur_start = -1}
+          }
+        }
+      }
       def in_finals = foldThunks(unit(false)){(b,r) =>
         (if (dfa.finals(r)) (id==r) else unit(false)) || b(())}
       loop((valid_input(inp) &&
           ((unit(0) <= i) && (i <= n)) &&
           (cur==inp.to(i)) &&
         valid_input(inp.to(i))),
-        List[Any](cur, i, id, m),
+        List[Any](readVar(cur)::readVar(i)::readVar(id)::readVar(m)::cur_starts: _*),
         cur.length){
       while (!cur.atEnd && m) {
         r0n.foreach{r: Int =>
@@ -432,6 +450,17 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
           loop_invariant{((id == r) && !m) ==> bwd(r)(inp, 0, i-1)}}
         loop_invariant{(in_finals && cur.atEnd && m) ==> re(inp, 0, i)}
         loop_invariant{foldThunks(unit(false)){(b,r) => id==r || b(())}}
+        r0n.foreach{t: Int => dfa.transitions(t)(t).foreach{c =>
+          val cur_start = cur_starts_map((t,c))
+          loop_invariant(unit(-1) <= cur_start && cur_start <= i)
+          loop_invariant(cur_start>=0 ==> (id==t))
+          loop_invariant((id==t) ==> cur_start>=0)
+          loop_invariant((cur_start==unit(-1)) ==> (id!=t))
+          loop_invariant((id!=t) ==> (cur_start==unit(-1)))
+          loop_invariant(forall{j: Rep[Int] => (cur_start>=0 && cur_start<=j) ==> ((bwd(t)(inp, 0, cur_start) && re_pr("star_"+c)(inp, cur_start, j)) ==> bwd(t)(inp, 0, j))})
+          loop_invariant(forall{j: Rep[Int] => (cur_start>=0 && cur_start<=j && bwd(t)(inp, 0, j)) ==> (bwd(t)(inp, 0, cur_start) && re_pr("star_"+c)(inp, cur_start, j))})
+          loop_invariant((cur_start>=0 && m) ==> re_pr("star_"+c)(inp, cur_start, i))
+        }}
 
         m = foldThunks(unit(false)){(b,r) =>
           if (id == r) {
