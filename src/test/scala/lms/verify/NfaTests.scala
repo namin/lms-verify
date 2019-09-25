@@ -336,7 +336,7 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
       lazy val z: RF = { mkpr("star_"+key(x), r, { (inp,i,j) =>
         len(x) match {
           case Some(lx) => (i==j) || (i<j && (re2pr(x)(inp,i,i+lx) && z(inp,i+lx,j)))
-          case None => (i==j) || ((i<j) && ((i+1) until (j+1)).exists{m =>
+          case None => (i==j) || ((i<j) && (i until (j+1)).exists{m =>
             re2pr(x)(inp,i,m) && z(inp,m,j)})}})}
       z
     }
@@ -395,6 +395,37 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
     val res_bwd = dfa2re_backwards(dfa)
     val bwd = r0n.map{r => res_bwd(r).map{p => mkpr("re_bwd_"+r, p, re2pr(p))}.getOrElse{never_match}}
     val re = fwd(0)
+    def sanity(r: Int, t: Int): String = "sanity_"+r+"_"+t
+    r0n.foreach{r =>
+      r0n.foreach{t =>
+          toplevel("lemma_"+sanity(r,t), wrap4({(inp: Rep[Input], i: Rep[Int], m: Rep[Int], j: Rep[Int]) =>
+            requires(valid_input(inp))
+            requires(inp.length<=Int.MaxValue)
+            requires(0<=i && i<=m && m<=j && j < inp.length)
+            requires(dfa.transitions(r)(t).foldLeft(unit(false)){
+              (b:Rep[Boolean],c:Char) => inp(j)==c || b})
+            if (r==t) {
+              dfa.transitions(r)(t).foreach{c =>
+                requires(re_pr("star_"+c)(inp, m, j))
+                requires(forall{x: Rep[Int] => m<=x ==> ((bwd(t)(inp, i, m) && re_pr("star_"+c)(inp, m, x)) ==> bwd(t)(inp, i, x))})
+                requires(bwd(t)(inp, i, m))
+                //requires(forall{x: Rep[Int] => m<=x ==> ((bwd(t)(inp, i, x)) ==> (bwd(t)(inp, i, m) && re_pr("star_"+c)(inp, m, x)))})
+              }
+            }
+            requires(bwd(r)(inp, i, j))
+            ensures{_:Rep[Unit] => bwd(t)(inp, i, j+1)}
+            if (r==t) {
+              dfa.transitions(r)(t).foreach{c =>
+                ensures{_:Rep[Unit] => re_pr("star_"+c)(inp, m, j+1)}
+                ghost{re_lemma("star_"+c, inp, m, j, j+1)}
+                _assert(forall{x: Rep[Int] => m<=x ==> ((bwd(t)(inp, i, m) && re_pr("star_"+c)(inp, m, x)) ==> bwd(t)(inp, i, x))})
+                _assert(m<=j+1 ==> ((bwd(t)(inp, i, m) && re_pr("star_"+c)(inp, m, j+1)) ==> bwd(t)(inp, i, j+1)))
+                //_assert(forall{x: Rep[Int] => m<=x ==> ((bwd(t)(inp, i, x)) ==> (bwd(t)(inp, i, m) && re_pr("star_"+c)(inp, m, x)))})
+                //_assert((m<=j) ==> (((bwd(t)(inp, i, j)) ==> (bwd(t)(inp, i, m) && re_pr("star_"+c)(inp, m, j)))))
+                _assert(bwd(t)(inp, i, m))
+              }
+            }
+        }),spec=false,code=true)}}
     toplevel("dfa", { inp: Rep[Array[Char]] =>
       requires(valid_input(inp))
       requires(inp.length<=Int.MaxValue) // to avoid overflow error in SPEC!
@@ -427,8 +458,12 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
             ghost{re_lemma("star_"+c, inp, cur_start, i, i+1)}
             _assert(re_pr("star_"+c)(inp, cur_start, i+1))
           }
+          if (r==t) {
+            ghost{re_lemma(sanity(r,t), inp, 0, cur_start, i)}
+          }
         }
         if (r != t) {
+          ghost{re_lemma(sanity(r,t), inp, 0, 0, i)}
           dfa.transitions(r)(r).foreach{c =>
             val cur_start = cur_starts_map((r,c))
             ghost{cur_start = -1}
@@ -458,7 +493,8 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
           loop_invariant((cur_start==unit(-1)) ==> (id!=t))
           loop_invariant((id!=t) ==> (cur_start==unit(-1)))
           loop_invariant(forall{j: Rep[Int] => (cur_start>=0 && cur_start<=j) ==> ((bwd(t)(inp, 0, cur_start) && re_pr("star_"+c)(inp, cur_start, j)) ==> bwd(t)(inp, 0, j))})
-          loop_invariant(forall{j: Rep[Int] => (cur_start>=0 && cur_start<=j && bwd(t)(inp, 0, j)) ==> (bwd(t)(inp, 0, cur_start) && re_pr("star_"+c)(inp, cur_start, j))})
+          //loop_invariant(forall{j: Rep[Int] => (cur_start>=0 && cur_start<=j && bwd(t)(inp, 0, j)) ==> (bwd(t)(inp, 0, cur_start) && re_pr("star_"+c)(inp, cur_start, j))})
+          loop_invariant((cur_start>=0) ==> bwd(t)(inp, 0, cur_start))
           loop_invariant((cur_start>=0 && m) ==> re_pr("star_"+c)(inp, cur_start, i))
         }}
 
