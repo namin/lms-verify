@@ -48,7 +48,7 @@ ensures re_bwd_0(x142,x143,(x145+1));
 void lemma_sanity_0_0(char  * x142, int  x143, int  x144, int  x145) {
 }
 /*@
-requires ((((((strlen(x167)>=0) &&
+requires ((((((((strlen(x167)>=0) &&
 \valid(x167+(0..strlen(x167)))) &&
 (strlen(x167)<=INT_MAX)) &&
 ((((0<=x168) &&
@@ -56,376 +56,387 @@ requires ((((((strlen(x167)>=0) &&
 (x169<=x170)) &&
 (x170<strlen(x167)))) &&
 (x167[x170]=='A')) &&
-re_bwd_0(x167,x168,x170));
+re_bwd_0(x167,x168,x170)) &&
+star_A(x167,(x170+1),(x170+1))) &&
+re_bwd_0(x167,x168,x169));
 assigns \nothing;
 ensures re_bwd_1(x167,x168,(x170+1));
 */
 void lemma_sanity_0_1(char  * x167, int  x168, int  x169, int  x170) {
+  /*@assert re_bwd_0(x167,x168,x170);*/
+  /*@assert (x167[x170]=='A');*/
+  /*@assert star_A(x167,(x170+1),(x170+1));*/
+  /*@assert re_bwd_0(x167,x168,x169);*/
 }
 /*@
 requires \false;
 assigns \nothing;
-ensures re_bwd_2(x196,x197,(x199+1));
+ensures re_bwd_2(x208,x209,(x211+1));
 */
-void lemma_sanity_0_2(char  * x196, int  x197, int  x198, int  x199) {
+void lemma_sanity_0_2(char  * x208, int  x209, int  x210, int  x211) {
 }
 /*@
 requires \false;
 assigns \nothing;
-ensures re_bwd_0(x221,x222,(x224+1));
+ensures re_bwd_0(x233,x234,(x236+1));
 */
-void lemma_sanity_1_0(char  * x221, int  x222, int  x223, int  x224) {
+void lemma_sanity_1_0(char  * x233, int  x234, int  x235, int  x236) {
 }
 /*@
-requires (((((((((strlen(x246)>=0) &&
-\valid(x246+(0..strlen(x246)))) &&
-(strlen(x246)<=INT_MAX)) &&
-((((0<=x247) &&
-(x247<=x248)) &&
-(x248<=x249)) &&
-(x249<strlen(x246)))) &&
-(x246[x249]=='A')) &&
-star_A(x246,x248,x249)) &&
-(\forall int  x302; ((x248<=x302) ==> ((re_bwd_1(x246,x247,x248) &&
-star_A(x246,x248,x302)) ==> re_bwd_1(x246,x247,x302))))) &&
-re_bwd_1(x246,x247,x248)) &&
-re_bwd_1(x246,x247,x249));
+requires (((((((((strlen(x258)>=0) &&
+\valid(x258+(0..strlen(x258)))) &&
+(strlen(x258)<=INT_MAX)) &&
+((((0<=x259) &&
+(x259<=x260)) &&
+(x260<=x261)) &&
+(x261<strlen(x258)))) &&
+(x258[x261]=='A')) &&
+star_A(x258,x260,x261)) &&
+(\forall int  x314; ((x260<=x314) ==> ((re_bwd_1(x258,x259,x260) &&
+star_A(x258,x260,x314)) ==> re_bwd_1(x258,x259,x314))))) &&
+re_bwd_1(x258,x259,x260)) &&
+re_bwd_1(x258,x259,x261));
 assigns \nothing;
-ensures (re_bwd_1(x246,x247,(x249+1)) &&
-star_A(x246,x248,(x249+1)));
+ensures (re_bwd_1(x258,x259,(x261+1)) &&
+star_A(x258,x260,(x261+1)));
 */
-void lemma_sanity_1_1(char  * x246, int  x247, int  x248, int  x249) {
-  /*@ghost lemma_star_A(x246,x248,x249,(x249+1));*/
-  /*@assert (\forall int  x255; ((x248<=x255) ==> ((re_bwd_1(x246,x247,x248) &&
-  star_A(x246,x248,x255)) ==> re_bwd_1(x246,x247,x255))));*/
-  /*@assert ((x248<=(x249+1)) ==> ((re_bwd_1(x246,x247,x248) &&
-  star_A(x246,x248,(x249+1))) ==> re_bwd_1(x246,x247,(x249+1))));*/
-  /*@assert re_bwd_1(x246,x247,x248);*/
+void lemma_sanity_1_1(char  * x258, int  x259, int  x260, int  x261) {
+  /*@ghost lemma_star_A(x258,x260,x261,(x261+1));*/
+  /*@assert (\forall int  x267; ((x260<=x267) ==> ((re_bwd_1(x258,x259,x260) &&
+  star_A(x258,x260,x267)) ==> re_bwd_1(x258,x259,x267))));*/
+  /*@assert ((x260<=(x261+1)) ==> ((re_bwd_1(x258,x259,x260) &&
+  star_A(x258,x260,(x261+1))) ==> re_bwd_1(x258,x259,(x261+1))));*/
+  /*@assert re_bwd_1(x258,x259,x260);*/
 }
 /*@
-requires ((((((strlen(x323)>=0) &&
-\valid(x323+(0..strlen(x323)))) &&
-(strlen(x323)<=INT_MAX)) &&
-((((0<=x324) &&
-(x324<=x325)) &&
-(x325<=x326)) &&
-(x326<strlen(x323)))) &&
-(x323[x326]=='B')) &&
-re_bwd_1(x323,x324,x326));
+requires ((((((strlen(x335)>=0) &&
+\valid(x335+(0..strlen(x335)))) &&
+(strlen(x335)<=INT_MAX)) &&
+((((0<=x336) &&
+(x336<=x337)) &&
+(x337<=x338)) &&
+(x338<strlen(x335)))) &&
+(x335[x338]=='B')) &&
+re_bwd_1(x335,x336,x338));
 assigns \nothing;
-ensures re_bwd_2(x323,x324,(x326+1));
+ensures re_bwd_2(x335,x336,(x338+1));
 */
-void lemma_sanity_1_2(char  * x323, int  x324, int  x325, int  x326) {
-}
-/*@
-requires \false;
-assigns \nothing;
-ensures re_bwd_0(x353,x354,(x356+1));
-*/
-void lemma_sanity_2_0(char  * x353, int  x354, int  x355, int  x356) {
+void lemma_sanity_1_2(char  * x335, int  x336, int  x337, int  x338) {
 }
 /*@
 requires \false;
 assigns \nothing;
-ensures re_bwd_1(x378,x379,(x381+1));
+ensures re_bwd_0(x365,x366,(x368+1));
 */
-void lemma_sanity_2_1(char  * x378, int  x379, int  x380, int  x381) {
+void lemma_sanity_2_0(char  * x365, int  x366, int  x367, int  x368) {
 }
 /*@
 requires \false;
 assigns \nothing;
-ensures re_bwd_2(x404,x405,(x407+1));
+ensures re_bwd_1(x390,x391,(x393+1));
 */
-void lemma_sanity_2_2(char  * x404, int  x405, int  x406, int  x407) {
+void lemma_sanity_2_1(char  * x390, int  x391, int  x392, int  x393) {
+  /*@assert re_bwd_2(x390,x391,x393);*/
+  /*@assert \false;*/
+  /*@assert star_A(x390,(x393+1),(x393+1));*/
+  /*@assert re_bwd_2(x390,x391,x392);*/
 }
 /*@
-requires (((strlen(x430)>=0) &&
-\valid(x430+(0..strlen(x430)))) &&
-(strlen(x430)<=INT_MAX));
+requires \false;
 assigns \nothing;
-ensures (\result ==> re_0(x430,0,strlen(x430)));
+ensures re_bwd_2(x429,x430,(x432+1));
 */
-int dfa(char  * x430) {
-  int x432 = 1/*true*/;
-  int x433 = 0;
-  //@ ghost int x434 = 0;
-  char  *x435 = x430;
-  //@ ghost int x437 = -1;
-  int x438 = x437;
+void lemma_sanity_2_2(char  * x429, int  x430, int  x431, int  x432) {
+}
+/*@
+requires (((strlen(x455)>=0) &&
+\valid(x455+(0..strlen(x455)))) &&
+(strlen(x455)<=INT_MAX));
+assigns \nothing;
+ensures (\result ==> re_0(x455,0,strlen(x455)));
+*/
+int dfa(char  * x455) {
+  int x457 = 1/*true*/;
+  int x458 = 0;
+  //@ ghost int x459 = 0;
+  char  *x460 = x455;
+  //@ ghost int x462 = -1;
+  int x463 = x462;
   /*@
-  loop invariant (((((strlen(x430)>=0) &&
-  \valid(x430+(0..strlen(x430)))) &&
-  ((0<=x434) &&
-  (x434<=strlen(x430)))) &&
-  (x435==(x430+x434))) &&
-  ((strlen((x430+x434))>=0) &&
-  \valid((x430+x434)+(0..strlen((x430+x434))))));
-  loop invariant (((x433==0) &&
-  x432) ==> re_bwd_0(x430,0,x434));
-  loop invariant (((x433==1) &&
-  x432) ==> re_bwd_1(x430,0,x434));
-  loop invariant (((x433==2) &&
-  x432) ==> re_bwd_2(x430,0,x434));
-  loop invariant (((x433==0) &&
-  (!x432)) ==> re_bwd_0(x430,0,(x434-1)));
-  loop invariant (((x433==1) &&
-  (!x432)) ==> re_bwd_1(x430,0,(x434-1)));
-  loop invariant (((x433==2) &&
-  (!x432)) ==> re_bwd_2(x430,0,(x434-1)));
-  loop invariant ((((x433==2) &&
-  (x435[0]=='\0')) &&
-  x432) ==> re_0(x430,0,x434));
-  loop invariant ((x433==2) || ((x433==1) || (x433==0)));
-  loop invariant ((-1<=x437) &&
-  (x437<=x434));
-  loop invariant ((x437>=0) ==> (x433==1));
-  loop invariant ((x433==1) ==> (x437>=0));
-  loop invariant ((x437==-1) ==> (x433!=1));
-  loop invariant ((x433!=1) ==> (x437==-1));
-  loop invariant (\forall int  x559; (((x437>=0) &&
-  (x437<=x559)) ==> ((re_bwd_1(x430,0,x437) &&
-  star_A(x430,x437,x559)) ==> re_bwd_1(x430,0,x559))));
-  loop invariant ((x437>=0) ==> re_bwd_1(x430,0,x437));
-  loop invariant (((x437>=0) &&
-  x432) ==> star_A(x430,x437,x434));
-  loop assigns x435, x434, x433, x432, x437;
-  loop variant strlen(x435);
+  loop invariant (((((strlen(x455)>=0) &&
+  \valid(x455+(0..strlen(x455)))) &&
+  ((0<=x459) &&
+  (x459<=strlen(x455)))) &&
+  (x460==(x455+x459))) &&
+  ((strlen((x455+x459))>=0) &&
+  \valid((x455+x459)+(0..strlen((x455+x459))))));
+  loop invariant (((x458==0) &&
+  x457) ==> re_bwd_0(x455,0,x459));
+  loop invariant (((x458==1) &&
+  x457) ==> re_bwd_1(x455,0,x459));
+  loop invariant (((x458==2) &&
+  x457) ==> re_bwd_2(x455,0,x459));
+  loop invariant (((x458==0) &&
+  (!x457)) ==> re_bwd_0(x455,0,(x459-1)));
+  loop invariant (((x458==1) &&
+  (!x457)) ==> re_bwd_1(x455,0,(x459-1)));
+  loop invariant (((x458==2) &&
+  (!x457)) ==> re_bwd_2(x455,0,(x459-1)));
+  loop invariant ((((x458==2) &&
+  (x460[0]=='\0')) &&
+  x457) ==> re_0(x455,0,x459));
+  loop invariant ((x458==2) || ((x458==1) || (x458==0)));
+  loop invariant ((-1<=x462) &&
+  (x462<=x459));
+  loop invariant ((x462>=0) ==> (x458==1));
+  loop invariant ((x458==1) ==> (x462>=0));
+  loop invariant ((x462==-1) ==> (x458!=1));
+  loop invariant ((x458!=1) ==> (x462==-1));
+  loop invariant (\forall int  x584; (((x462>=0) &&
+  (x462<=x584)) ==> ((re_bwd_1(x455,0,x462) &&
+  star_A(x455,x462,x584)) ==> re_bwd_1(x455,0,x584))));
+  loop invariant ((x462>=0) ==> re_bwd_1(x455,0,x462));
+  loop invariant (((x462>=0) &&
+  x457) ==> star_A(x455,x462,x459));
+  loop assigns x460, x459, x458, x457, x462;
+  loop variant strlen(x460);
   */
   for (;;) {
-    char  *x439 = x435;
-    char x440 = x439[0];
-    int x441 = x440 == '\0';
-    int x445;
-    if (x441) {
-      x445 = 0/*false*/;
+    char  *x464 = x460;
+    char x465 = x464[0];
+    int x466 = x465 == '\0';
+    int x470;
+    if (x466) {
+      x470 = 0/*false*/;
     } else {
-      int x443 = x432;
-      x445 = x443;
+      int x468 = x457;
+      x470 = x468;
     }
-    if (!x445) break;
-    int x587 = x433;
-    int x588 = x587 == 2;
-    int x724;
-    if (x588) {
-      /*@assert ((x433==2) ==> re_bwd_2(x430,0,x434));*/
-      /*@assert re_bwd_2(x430,0,x434);*/
-      char  *x600 = x435;
-      x724 = 0/*false*/;
+    if (!x470) break;
+    int x612 = x458;
+    int x613 = x612 == 2;
+    int x754;
+    if (x613) {
+      /*@assert ((x458==2) ==> re_bwd_2(x455,0,x459));*/
+      /*@assert re_bwd_2(x455,0,x459);*/
+      char  *x625 = x460;
+      x754 = 0/*false*/;
     } else {
-      int x603 = x587 == 1;
-      int x722;
-      if (x603) {
-        /*@assert ((x433==1) ==> re_bwd_1(x430,0,x434));*/
-        /*@assert re_bwd_1(x430,0,x434);*/
-        char  *x615 = x435;
-        char x616 = x615[0];
-        int x617 = 'B' == x616;
-        int x676;
-        if (x617) {
-          /*@assert re_bwd_1(x430,0,x434);*/
-          x433 = 2;
-          /*@ghost lemma_sanity_1_2(x430,0,0,x434);*/
-          /*@ghost x437 = -1;*/
-          /*@assert re_bwd_2(x430,0,(x434+1));*/
-          /*@assert (((x430+(x434+1))[0]=='\0') ==> re_0(x430,0,(x434+1)));*/
-          x676 = 1/*true*/;
+      int x628 = x612 == 1;
+      int x752;
+      if (x628) {
+        /*@assert ((x458==1) ==> re_bwd_1(x455,0,x459));*/
+        /*@assert re_bwd_1(x455,0,x459);*/
+        char  *x640 = x460;
+        char x641 = x640[0];
+        int x642 = 'B' == x641;
+        int x706;
+        if (x642) {
+          /*@assert re_bwd_1(x455,0,x459);*/
+          x458 = 2;
+          /*@ghost lemma_sanity_1_2(x455,0,x462,x459);*/
+          /*@ghost x462 = -1;*/
+          /*@assert re_bwd_2(x455,0,(x459+1));*/
+          /*@assert (((x455+(x459+1))[0]=='\0') ==> re_0(x455,0,(x459+1)));*/
+          x706 = 1/*true*/;
         } else {
-          int x645 = 'A' == x616;
-          int x674;
-          if (x645) {
-            /*@assert re_bwd_1(x430,0,x434);*/
-            x433 = 1;
-            /*@ghost lemma_star_A(x430,x437,x434,(x434+1));*/
-            /*@assert star_A(x430,x437,(x434+1));*/
-            /*@ghost lemma_sanity_1_1(x430,0,x437,x434);*/
-            /*@assert re_bwd_1(x430,0,(x434+1));*/
-            x674 = 1/*true*/;
+          int x671 = 'A' == x641;
+          int x704;
+          if (x671) {
+            /*@assert re_bwd_1(x455,0,x459);*/
+            x458 = 1;
+            /*@assert (x462>=0);*/
+            /*@ghost lemma_star_A(x455,x462,x459,(x459+1));*/
+            /*@assert star_A(x455,x462,(x459+1));*/
+            /*@ghost lemma_sanity_1_1(x455,0,x462,x459);*/
+            /*@assert re_bwd_1(x455,0,(x459+1));*/
+            x704 = 1/*true*/;
           } else {
-            x674 = 0/*false*/;
+            x704 = 0/*false*/;
           }
-          x676 = x674;
+          x706 = x704;
         }
-        x722 = x676;
+        x752 = x706;
       } else {
-        int x678 = x587 == 0;
-        int x720;
-        if (x678) {
-          /*@assert ((x433==0) ==> re_bwd_0(x430,0,x434));*/
-          /*@assert re_bwd_0(x430,0,x434);*/
-          char  *x690 = x435;
-          char x691 = x690[0];
-          int x692 = 'A' == x691;
-          int x718;
-          if (x692) {
-            /*@assert re_bwd_0(x430,0,x434);*/
-            x433 = 1;
-            /*@ghost x437 = (x434+1);*/
-            /*@assert star_A(x430,(x434+1),(x434+1));*/
-            /*@ghost lemma_sanity_0_1(x430,0,0,x434);*/
-            /*@assert re_bwd_1(x430,0,(x434+1));*/
-            x718 = 1/*true*/;
+        int x708 = x612 == 0;
+        int x750;
+        if (x708) {
+          /*@assert ((x458==0) ==> re_bwd_0(x455,0,x459));*/
+          /*@assert re_bwd_0(x455,0,x459);*/
+          char  *x720 = x460;
+          char x721 = x720[0];
+          int x722 = 'A' == x721;
+          int x748;
+          if (x722) {
+            /*@assert re_bwd_0(x455,0,x459);*/
+            x458 = 1;
+            /*@ghost x462 = (x459+1);*/
+            /*@assert star_A(x455,(x459+1),(x459+1));*/
+            /*@ghost lemma_sanity_0_1(x455,0,0,x459);*/
+            /*@assert re_bwd_1(x455,0,(x459+1));*/
+            x748 = 1/*true*/;
           } else {
-            x718 = 0/*false*/;
+            x748 = 0/*false*/;
           }
-          x720 = x718;
+          x750 = x748;
         } else {
-          x720 = 0/*false*/;
+          x750 = 0/*false*/;
         }
-        x722 = x720;
+        x752 = x750;
       }
-      x724 = x722;
+      x754 = x752;
     }
-    x432 = x724;
-    char  *x726 = x435;
-    char  *x727 = x726+1;
-    x435 = x727;
-    /*@ghost x434 = (x434+1);*/
+    x457 = x754;
+    char  *x756 = x460;
+    char  *x757 = x756+1;
+    x460 = x757;
+    /*@ghost x459 = (x459+1);*/
   }
-  char  *x773 = x435;
-  char x774 = x773[0];
-  int x775 = x774 == '\0';
-  int x778;
-  if (x775) {
-    int x776 = x432;
-    x778 = x776;
+  char  *x803 = x460;
+  char x804 = x803[0];
+  int x805 = x804 == '\0';
+  int x808;
+  if (x805) {
+    int x806 = x457;
+    x808 = x806;
   } else {
-    x778 = 0/*false*/;
+    x808 = 0/*false*/;
   }
-  int x782;
-  if (x778) {
-    int x779 = x433;
-    int x780 = x779 == 2;
-    x782 = x780;
+  int x812;
+  if (x808) {
+    int x809 = x458;
+    int x810 = x809 == 2;
+    x812 = x810;
   } else {
-    x782 = 0/*false*/;
+    x812 = 0/*false*/;
   }
-  return x782;
+  return x812;
 }
 /*@
-requires ((((strlen(x789)>=0) &&
-\valid(x789+(0..strlen(x789)))) &&
-(((0<=x790) &&
-(x790<=x791)) &&
-(x791<=strlen(x789)))) &&
-star_A(x789,x790,x791));
+requires ((((strlen(x819)>=0) &&
+\valid(x819+(0..strlen(x819)))) &&
+(((0<=x820) &&
+(x820<=x821)) &&
+(x821<=strlen(x819)))) &&
+star_A(x819,x820,x821));
 assigns \nothing;
-ensures (\forall int  x845; ((((0<=x790) &&
-(x790<=x845)) &&
-(x845<x791)) ==> (('A'==x789[x845]) &&
-((x845+1)==(x845+1)))));
+ensures (\forall int  x875; ((((0<=x820) &&
+(x820<=x875)) &&
+(x875<x821)) ==> (('A'==x819[x875]) &&
+((x875+1)==(x875+1)))));
 */
-void lemma_star_A_all(char  * x789, int  x790, int  x791) {
-  int x793 = x790;
+void lemma_star_A_all(char  * x819, int  x820, int  x821) {
+  int x823 = x820;
   /*@
-  loop invariant (((0<=x790) &&
-  (x790<=x793)) &&
-  (x791<=strlen(x789)));
-  loop invariant star_A(x789,x793,x791);
-  loop invariant (\forall int  x800; (((x790<=x800) &&
-  (x800<x793)) ==> ((x789+x800)[0]=='A')));
-  loop assigns x793;
-  loop variant (x791-x793);
+  loop invariant (((0<=x820) &&
+  (x820<=x823)) &&
+  (x821<=strlen(x819)));
+  loop invariant star_A(x819,x823,x821);
+  loop invariant (\forall int  x830; (((x820<=x830) &&
+  (x830<x823)) ==> ((x819+x830)[0]=='A')));
+  loop assigns x823;
+  loop variant (x821-x823);
   */
   for (;;) {
-    int x794 = x793;
-    int x795 = x794 < x791;
-    if (!x795) break;
-    int x812 = x793;
-    int x813 = x812 + 1;
-    x793 = x813;
-  }
-}
-/*@
-requires ((((strlen(x857)>=0) &&
-\valid(x857+(0..strlen(x857)))) &&
-(((0<=x858) &&
-(x858<=x859)) &&
-(x859<=strlen(x857)))) &&
-(\forall int  x909; ((((0<=x858) &&
-(x858<=x909)) &&
-(x909<x859)) ==> (('A'==x857[x909]) &&
-((x909+1)==(x909+1))))));
-assigns \nothing;
-ensures star_A(x857,x858,x859);
-*/
-void lemma_star_A_from_all(char  * x857, int  x858, int  x859) {
-  int x861 = x859;
-  /*@
-  loop invariant (((0<=x858) &&
-  (x858<=x861)) &&
-  (x859<=strlen(x857)));
-  loop invariant star_A(x857,x861,x859);
-  loop invariant (\forall int  x868; ((((0<=x858) &&
-  (x858<=x868)) &&
-  (x868<x859)) ==> (('A'==x857[x868]) &&
-  ((x868+1)==(x868+1)))));
-  loop assigns x861;
-  loop variant x861;
-  */
-  for (;;) {
-    int x862 = x861;
-    int x863 = x858 < x862;
-    if (!x863) break;
-    int x881 = x861;
-    int x882 = x881 - 1;
-    x861 = x882;
+    int x824 = x823;
+    int x825 = x824 < x821;
+    if (!x825) break;
+    int x842 = x823;
+    int x843 = x842 + 1;
+    x823 = x843;
   }
 }
 /*@
-requires (((((strlen(x924)>=0) &&
-\valid(x924+(0..strlen(x924)))) &&
-((0<=x925) &&
-(x925<=x926))) &&
-((x925<x926) &&
-(x926<=strlen(x924)))) &&
-star_A(x924,x925,x926));
+requires ((((strlen(x887)>=0) &&
+\valid(x887+(0..strlen(x887)))) &&
+(((0<=x888) &&
+(x888<=x889)) &&
+(x889<=strlen(x887)))) &&
+(\forall int  x939; ((((0<=x888) &&
+(x888<=x939)) &&
+(x939<x889)) ==> (('A'==x887[x939]) &&
+((x939+1)==(x939+1))))));
 assigns \nothing;
-ensures star_A(x924,x925,(x926-1));
+ensures star_A(x887,x888,x889);
 */
-void lemma_star_A_dec(char  * x924, int  x925, int  x926) {
-  /*@ghost lemma_star_A_all(x924,x925,x926);*/
-  /*@ghost lemma_star_A_from_all(x924,x925,(x926-1));*/
-}
-/*@
-requires ((((((((strlen(x955)>=0) &&
-\valid(x955+(0..strlen(x955)))) &&
-((0<=x956) &&
-(x956<=x957))) &&
-((0<=x957) &&
-(x957<x958))) &&
-((0<=x958) &&
-(x958<=strlen(x955)))) &&
-star_A(x955,x956,x957)) &&
-star_A(x955,x957,x958)) &&
-((x957+1)==x958));
-assigns \nothing;
-ensures star_A(x955,x956,x958);
-*/
-void lemma_star_A(char  * x955, int  x956, int  x957, int  x958) {
-  int x960 = x957;
+void lemma_star_A_from_all(char  * x887, int  x888, int  x889) {
+  int x891 = x889;
   /*@
-  loop invariant ((((0<=x956) &&
-  (x956<=x960)) &&
-  (x960<=x958)) &&
-  (x958<=strlen(x955)));
-  loop invariant star_A(x955,x960,x958);
-  loop invariant star_A(x955,x956,x960);
-  loop assigns x960;
-  loop variant x960;
+  loop invariant (((0<=x888) &&
+  (x888<=x891)) &&
+  (x889<=strlen(x887)));
+  loop invariant star_A(x887,x891,x889);
+  loop invariant (\forall int  x898; ((((0<=x888) &&
+  (x888<=x898)) &&
+  (x898<x889)) ==> (('A'==x887[x898]) &&
+  ((x898+1)==(x898+1)))));
+  loop assigns x891;
+  loop variant x891;
   */
   for (;;) {
-    int x961 = x960;
-    int x962 = x956 < x961;
-    if (!x962) break;
-    int x970 = x960;
-    lemma_star_A_dec(x955,x956,x970);
-    /*@assert (x956<x960);*/
-    /*@ghost lemma_star_A_all(x955,x956,x960);*/
-    /*@assert (('A'==x955[(x960-1)]) &&
-    (x960==((x960-1)+1)));*/
-    /*@assert star_A(x955,x960,x958);*/
-    /*@assert star_A(x955,(x960-1),x958);*/
-    int x998 = x970 - 1;
-    x960 = x998;
+    int x892 = x891;
+    int x893 = x888 < x892;
+    if (!x893) break;
+    int x911 = x891;
+    int x912 = x911 - 1;
+    x891 = x912;
+  }
+}
+/*@
+requires (((((strlen(x954)>=0) &&
+\valid(x954+(0..strlen(x954)))) &&
+((0<=x955) &&
+(x955<=x956))) &&
+((x955<x956) &&
+(x956<=strlen(x954)))) &&
+star_A(x954,x955,x956));
+assigns \nothing;
+ensures star_A(x954,x955,(x956-1));
+*/
+void lemma_star_A_dec(char  * x954, int  x955, int  x956) {
+  /*@ghost lemma_star_A_all(x954,x955,x956);*/
+  /*@ghost lemma_star_A_from_all(x954,x955,(x956-1));*/
+}
+/*@
+requires ((((((((strlen(x985)>=0) &&
+\valid(x985+(0..strlen(x985)))) &&
+((0<=x986) &&
+(x986<=x987))) &&
+((0<=x987) &&
+(x987<x988))) &&
+((0<=x988) &&
+(x988<=strlen(x985)))) &&
+star_A(x985,x986,x987)) &&
+star_A(x985,x987,x988)) &&
+((x987+1)==x988));
+assigns \nothing;
+ensures star_A(x985,x986,x988);
+*/
+void lemma_star_A(char  * x985, int  x986, int  x987, int  x988) {
+  int x990 = x987;
+  /*@
+  loop invariant ((((0<=x986) &&
+  (x986<=x990)) &&
+  (x990<=x988)) &&
+  (x988<=strlen(x985)));
+  loop invariant star_A(x985,x990,x988);
+  loop invariant star_A(x985,x986,x990);
+  loop assigns x990;
+  loop variant x990;
+  */
+  for (;;) {
+    int x991 = x990;
+    int x992 = x986 < x991;
+    if (!x992) break;
+    int x1000 = x990;
+    lemma_star_A_dec(x985,x986,x1000);
+    /*@assert (x986<x990);*/
+    /*@ghost lemma_star_A_all(x985,x986,x990);*/
+    /*@assert (('A'==x985[(x990-1)]) &&
+    (x990==((x990-1)+1)));*/
+    /*@assert star_A(x985,x990,x988);*/
+    /*@assert star_A(x985,(x990-1),x988);*/
+    int x1028 = x1000 - 1;
+    x990 = x1028;
   }
 }
