@@ -341,17 +341,6 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
       z
     }
   }
-  def re2pr0(r: RE): RF = r match {
-    case C(c) => {(inp,i,j) => i==j || (c==inp(i) && i+1<=j)}
-    case R(a, b) => {(inp,i,j) => i==j || (a<=inp(i) && inp(i)<=b && i+1<=j)}
-    case W => {(inp,i,j) => i==j || (!inp.to(i).atEnd && i+1<=j)}
-    case Alt(x, y) => {(inp,i,j) => re2pr0(x)(inp,i,j) || re2pr0(y)(inp,i,j) }
-    case Cat(x, y) => {(inp,i,j) => re2pr0(x)(inp,i,j) || (len(x) match {
-      case Some(lx) => (re2pr(x)(inp,i,i+lx) && re2pr0(y)(inp,i+lx,j))
-      case None => (i until (j+1)).exists{m => re2pr(x)(inp,i,m) && re2pr0(y)(inp,m,j)}})}
-    case I => {(inp,i,j) => i<=j}
-    case Star(x) => re2pr(Star(x))
-  }
 }
 
 trait CommonLib {
@@ -441,10 +430,8 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
       requires(valid_input(inp))
       requires(inp.length<=Int.MaxValue) // to avoid overflow error in SPEC!
       ensures{(res: Rep[Boolean]) =>
-        (res ==> re(inp, 0, inp.length))
-        //TODO
-        /*&&
-        (matching(re, inp, 0, inp.length) ==> res)*/
+        ((res ==> re(inp, 0, inp.length)) /*&&
+         (re(inp, 0, inp.length) ==> res)*/)
       }
       var m = true
       var id = 0
@@ -495,7 +482,13 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
           loop_invariant{((id == r) && m) ==> (bwd(r)(inp, 0, i))}}
         r0n.foreach{r: Int =>
           loop_invariant{((id == r) && !m) ==> bwd(r)(inp, 0, i-1)}}
+        //loop_invariant(!re(inp, 0, i) ==> !re(inp, 0, inp.length))
         loop_invariant{(in_finals && cur.atEnd && m) ==> re(inp, 0, i)}
+        //loop_invariant{(!in_finals) ==> !re(inp, 0, i)}
+        loop_invariant{((m) ==> (foldThunks(unit(false)){(b,r) => (((bwd(r)(inp, 0, i))) || b(()))}))}
+        //loop_invariant{((!m) ==> (foldThunks(unit(true)){(b,r) => ((!(bwd(r)(inp, 0, i))) && b(()))}))}
+        loop_invariant{cur.atEnd ==> (inp.length==i)}
+        loop_invariant{(!cur.atEnd) ==> (inp.length!=i)}
         loop_invariant{foldThunks(unit(false)){(b,r) => id==r || b(())}}
         r0n.foreach{t: Int => dfa.transitions(t)(t).foreach{c =>
           val cur_start = cur_starts_map((t,c))
@@ -532,6 +525,7 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
         ghost{i = i+1}
       }}
       val res = cur.atEnd && m && in_finals
+      _assert(cur.atEnd || !m)
       res
     })
   }
