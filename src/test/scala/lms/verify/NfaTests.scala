@@ -322,9 +322,9 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
     case Star(x) => "_s"+key(x)+"s_"
   }
   def re2pr(r: RE): RF = r match {
-    case C(c) => {(inp,i,j) => i==j || (c==inp(i) && j==i+1)}
-    case R(a, b) => {(inp,i,j) => i==j || (a<=inp(i) && inp(i)<=b && j==i+1)}
-    case W => {(inp,i,j) => i==j || (!inp.to(i).atEnd && j==i+1)}
+    case C(c) => {(inp,i,j) => c==inp(i) && j==i+1}
+    case R(a, b) => {(inp,i,j) => a<=inp(i) && inp(i)<=b && j==i+1}
+    case W => {(inp,i,j) => !inp.to(i).atEnd && j==i+1}
     case Alt(x, y) => {(inp,i,j) => re2pr(x)(inp,i,j) || re2pr(y)(inp,i,j) }
     case Cat(x, y) => (len(x),len(y)) match {
       case (_,Some(ly)) => {(inp,i,j) => i<=j-ly && re2pr(x)(inp,i,j-ly) && re2pr(y)(inp,j-ly,j)}
@@ -340,6 +340,17 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
             re2pr(x)(inp,i,m) && z(inp,m,j)})}})}
       z
     }
+  }
+  def re2pr0(r: RE): RF = r match {
+    case C(c) => {(inp,i,j) => i==j || (c==inp(i) && i+1<=j)}
+    case R(a, b) => {(inp,i,j) => i==j || (a<=inp(i) && inp(i)<=b && i+1<=j)}
+    case W => {(inp,i,j) => i==j || (!inp.to(i).atEnd && i+1<=j)}
+    case Alt(x, y) => {(inp,i,j) => re2pr0(x)(inp,i,j) || re2pr0(y)(inp,i,j) }
+    case Cat(x, y) => {(inp,i,j) => re2pr0(x)(inp,i,j) || (len(x) match {
+      case Some(lx) => (re2pr(x)(inp,i,i+lx) && re2pr0(y)(inp,i+lx,j))
+      case None => (i until (j+1)).exists{m => re2pr(x)(inp,i,m) && re2pr0(y)(inp,m,j)}})}
+    case I => {(inp,i,j) => i<=j}
+    case Star(x) => re2pr(Star(x))
   }
 }
 
