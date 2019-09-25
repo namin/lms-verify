@@ -1,0 +1,10 @@
+forward
+0: W(X)*Y(Y)*Z$
+1: (X)*Y(Y)*Z$
+2: (Y)*Z$
+3: $
+backward
+0: $
+1: W(X)*$
+2: W(X)*Y(Y)*$
+3: W(X)*Y(Y)*Z$

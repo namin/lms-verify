@@ -624,11 +624,11 @@ class Dfa2ReTests extends TestSuite {
     }
     checkOut("aapb", new Ex1 {}, "txt")
   }
-  ignore("2") {
+  test("2") {
     trait Ex2 extends Dfa2RePrinter with DfaExamples {
       print(dfa2)
     }
-    checkOut("aapb", new Ex2 {}, "txt")
+    checkOut("2", new Ex2 {}, "txt")
   }
   test("3") {
     trait Ex3 extends Dfa2RePrinter with DfaExamples {
