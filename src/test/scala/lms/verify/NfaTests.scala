@@ -409,7 +409,6 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
                 requires(re_pr("star_"+c)(inp, m, j))
                 requires(forall{x: Rep[Int] => m<=x ==> ((bwd(t)(inp, i, m) && re_pr("star_"+c)(inp, m, x)) ==> bwd(t)(inp, i, x))})
                 requires(bwd(t)(inp, i, m))
-                //requires(forall{x: Rep[Int] => m<=x ==> ((bwd(t)(inp, i, x)) ==> (bwd(t)(inp, i, m) && re_pr("star_"+c)(inp, m, x)))})
               }
             }
             requires(bwd(r)(inp, i, j))
@@ -420,12 +419,24 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
                 ghost{re_lemma("star_"+c, inp, m, j, j+1)}
                 _assert(forall{x: Rep[Int] => m<=x ==> ((bwd(t)(inp, i, m) && re_pr("star_"+c)(inp, m, x)) ==> bwd(t)(inp, i, x))})
                 _assert(m<=j+1 ==> ((bwd(t)(inp, i, m) && re_pr("star_"+c)(inp, m, j+1)) ==> bwd(t)(inp, i, j+1)))
-                //_assert(forall{x: Rep[Int] => m<=x ==> ((bwd(t)(inp, i, x)) ==> (bwd(t)(inp, i, m) && re_pr("star_"+c)(inp, m, x)))})
-                //_assert((m<=j) ==> (((bwd(t)(inp, i, j)) ==> (bwd(t)(inp, i, m) && re_pr("star_"+c)(inp, m, j)))))
                 _assert(bwd(t)(inp, i, m))
               }
+            } else {
+              dfa.transitions(t)(t).foreach{c =>
+                requires(re_pr("star_"+c)(inp, j+1, j+1))
+                _assert(bwd(r)(inp, i, j))
+                _assert(dfa.transitions(r)(t).foldLeft(unit(false)){
+                  (b:Rep[Boolean],c:Char) => inp(j)==c || b})
+                _assert(re_pr("star_"+c)(inp, j+1, j+1))
+                requires(bwd(r)(inp, i, m))
+                _assert(bwd(r)(inp, i, m))
+                dfa.transitions(r)(r).foreach{c0 =>
+                  requires(re_pr("star_"+c0)(inp, m, j))
+                  _assert(re_pr("star_"+c0)(inp, m, j))
+                }
+              }
             }
-        }),spec=false,code=true)}}
+          }),spec=false,code=true)}}
     toplevel("dfa", { inp: Rep[Array[Char]] =>
       requires(valid_input(inp))
       requires(inp.length<=Int.MaxValue) // to avoid overflow error in SPEC!
@@ -455,19 +466,20 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
             ghost{cur_start = i+1}
             _assert(re_pr("star_"+c)(inp, i+1, i+1))
           } else {
+            _assert(cur_start>=0)
             ghost{re_lemma("star_"+c, inp, cur_start, i, i+1)}
             _assert(re_pr("star_"+c)(inp, cur_start, i+1))
-          }
-          if (r==t) {
             ghost{re_lemma(sanity(r,t), inp, 0, cur_start, i)}
           }
         }
         if (r != t) {
-          ghost{re_lemma(sanity(r,t), inp, 0, 0, i)}
           dfa.transitions(r)(r).foreach{c =>
             val cur_start = cur_starts_map((r,c))
+            ghost{re_lemma(sanity(r,t), inp, 0, cur_start, i)}
             ghost{cur_start = -1}
           }
+          if (dfa.transitions(r)(r).isEmpty)
+            ghost{re_lemma(sanity(r,t), inp, 0, 0, i)}
         }
       }
       def in_finals = foldThunks(unit(false)){(b,r) =>
@@ -493,7 +505,6 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
           loop_invariant((cur_start==unit(-1)) ==> (id!=t))
           loop_invariant((id!=t) ==> (cur_start==unit(-1)))
           loop_invariant(forall{j: Rep[Int] => (cur_start>=0 && cur_start<=j) ==> ((bwd(t)(inp, 0, cur_start) && re_pr("star_"+c)(inp, cur_start, j)) ==> bwd(t)(inp, 0, j))})
-          //loop_invariant(forall{j: Rep[Int] => (cur_start>=0 && cur_start<=j && bwd(t)(inp, 0, j)) ==> (bwd(t)(inp, 0, cur_start) && re_pr("star_"+c)(inp, cur_start, j))})
           loop_invariant((cur_start>=0) ==> bwd(t)(inp, 0, cur_start))
           loop_invariant((cur_start>=0 && m) ==> re_pr("star_"+c)(inp, cur_start, i))
         }}
@@ -635,7 +646,7 @@ class StagedDfaTests extends TestSuite {
     }
     check("aapb", (new Dfa1 with Impl).code)
   }
-  ignore("2") {
+  test("2") {
     trait Dfa2 extends DfaStagedLib with NfaExamples with DfaExamples {
       val machine = staged_dfa_accept(dfa2)
     }
