@@ -36,7 +36,7 @@ int matcher(char  * x0) {
     } else {
       x17 = 0/*false*/;
     }
-    int x72;
+    int x89;
     if (x17) {
       int x18 = x13 + 1;
       int x19 = x18 < x7;
@@ -48,7 +48,7 @@ int matcher(char  * x0) {
       } else {
         x22 = 0/*false*/;
       }
-      int x71;
+      int x88;
       if (x22) {
         int x23 = x18 + 1;
         int x24 = x23;
@@ -86,50 +86,84 @@ int matcher(char  * x0) {
         }
         int x38 = x37;
         int x39 = 0/*false*/;
-        int x40 = x39;
-        int x45;
-        if (x40) {
-          x45 = 0/*false*/;
-        } else {
-          int x42 = x38;
-          int x43 = !x42;
-          x45 = x43;
-        }
-        int x46;
-        if (x45) {
-          x46 = x26;
-        } else {
-          x46 = 0/*false*/;
-        }
         /*@
         loop invariant ((x23<=x24) &&
         (x24<=x7));
         loop assigns x24, x38, x39;
         loop variant (x7-x24);
         */
-        if (x46) {
+        for (;;) {
+          int x40 = x39;
+          int x45;
+          if (x40) {
+            x45 = 0/*false*/;
+          } else {
+            int x42 = x38;
+            int x43 = !x42;
+            x45 = x43;
+          }
+          int x49;
+          if (x45) {
+            int x46 = x24;
+            int x47 = x46 < x7;
+            x49 = x47;
+          } else {
+            x49 = 0/*false*/;
+          }
+          if (!x49) break;
+          int x51 = x24;
           x39 = 0/*false*/;
-          x38 = x37;
-        } else {
+          int x55 = x51 < x7;
+          int x57;
+          if (x55) {
+            char x52 = x0[x51];
+            int x56 = 'a' == x52;
+            x57 = x56;
+          } else {
+            x57 = 0/*false*/;
+          }
+          int x65;
+          if (x57) {
+            int x58 = x51 + 1;
+            int x59 = x58 < x7;
+            int x62;
+            if (x59) {
+              char x60 = x0[x58];
+              int x61 = 'b' == x60;
+              x62 = x61;
+            } else {
+              x62 = 0/*false*/;
+            }
+            int x64;
+            if (x62) {
+              x64 = 1/*true*/;
+            } else {
+              x64 = 0/*false*/;
+            }
+            x65 = x64;
+          } else {
+            x65 = 0/*false*/;
+          }
+          x38 = x65;
         }
-        int x65 = x39;
-        int x69;
-        if (x65) {
-          x69 = 0/*false*/;
+        int x82 = x39;
+        int x86;
+        if (x82) {
+          x86 = 0/*false*/;
         } else {
-          int x67 = x38;
-          x69 = x67;
+          int x84 = x38;
+          x86 = x84;
         }
-        x71 = x69;
+        x88 = x86;
       } else {
-        x71 = 0/*false*/;
+        x88 = 0/*false*/;
       }
-      x72 = x71;
+      x89 = x88;
     } else {
-      x72 = 0/*false*/;
+      x89 = 0/*false*/;
     }
-    x3 = x72;
+    x3 = x89;
   }
-  int x88 = x3;
-  return x88;
+  int x105 = x3;
+  return x105;
 }

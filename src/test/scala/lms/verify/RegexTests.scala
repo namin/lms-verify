@@ -55,7 +55,7 @@ trait StagedRegexpMatcher extends Dsl {
     var found = matchhere(regexp, restart, text, sqstart)
     var failed = false
     loop (start <= sqstart && sqstart <= text.length, List[Any](sqstart, found, failed), text.length-sqstart){
-    if(!failed && !found && sqstart < text.length) {
+    while(!failed && !found && sqstart < text.length) {
         failed = !matchchar(c, text(sqstart))
         found = matchhere(regexp, restart, text, sqstart)
     }}
