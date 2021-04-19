@@ -17,8 +17,6 @@ All the files in the [`src/out`](src/out) directory should verify with this comm
 
 Other useful options: `-wp-skip-fct p` to skip verifying a function `p`, `-wp-timeout 50` to increase the timeout in case of flakiness.
 
-TODO: Consider [VeriFast](https://github.com/verifast/verifast) as a backend. Does it have a better memory model and separation logic? To find out by trying C programs. Is it compatible with ACSL as used here to target Frama-C? Probably not entirely, if at all.
-
 ### Docs
 * [Frama-C WP manual (PDF)](http://frama-c.com/download/frama-c-wp-manual.pdf)
 * [ACSL tutorial (PDF)](http://frama-c.com/download/acsl-tutorial.pdf)
@@ -27,7 +25,6 @@ TODO: Consider [VeriFast](https://github.com/verifast/verifast) as a backend. Do
 ### Installation
 * Install [CVC4](https://cvc4.cs.stanford.edu/downloads/).
 * Install [Frama-C](http://frama-c.com/download.html) -- after installation, do `why3 config --detect` to configure the solvers -- without this extra step, examples that discharge to a backend will fail to verify!
-* Workaround: Frama-C does not seem to work with the latest why3. Downgrade why3 with `opam install --unlock-base why3.0.88.3`. Possibly use `frama-c -wp -wp-rte -wp-prover alt-ergo,cvc4-15 <file.c>` as your command.
 
 ## Lessons Learned
 
@@ -96,3 +93,8 @@ and then stage these combinators.
 Can we preserve the bidirectional properties, such as round-tripping (i.e., that parsing and printing are almost inverse), all the way to the generated code?
 
 From [hand-coded example](src/bip_cesar1.c): the abstraction seems a bit leaky in terms of the separation verification. Maybe this can still be encapsulated nicely, and generalized, using appropriate blame when the cypher/decypher pair do not compose to the identity.
+
+## Next Steps
+
+- Consider [VeriFast](https://github.com/verifast/verifast) as a backend. Does it have a better memory model and separation logic? To find out by trying C programs. Is it compatible with ACSL as used here to target Frama-C? Probably not entirely, if at all.
+- Push functional correctness more. In particular, for end-to-end verification of regular expression compilation to C via a DFA.
