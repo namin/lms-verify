@@ -179,34 +179,18 @@ trait DfaStagedLib extends DfaLib with StagedLib {
       val i = ghostVar(0)
       var cur = inp
       val n = inp.length
-      var cur_starts_map: Map[(Int,Char),Var[Int]] = Map.empty
-      var cur_starts: List[Rep[Any]] = r0n.toList.flatMap{t =>
-        dfa.transitions(t)(t).map{c =>
-          val cur_start = ghostVar(-1)
-          cur_starts_map += ((t,c) -> cur_start)
-          readVar(cur_start)
-        }
-      }
       def in_finals = foldThunks(unit(false)){(b,r) =>
         (if (dfa.finals(r)) (id==r) else unit(false)) || b(())}
       loop((valid_input(inp) &&
           ((unit(0) <= i) && (i <= n)) &&
           (cur==inp.to(i)) &&
         valid_input(inp.to(i))),
-        List[Any](readVar(cur)::readVar(i)::readVar(id)::readVar(m)::cur_starts: _*),
+        List[Any](readVar(cur),readVar(i),readVar(id),readVar(m)),
         cur.length){
       while (!cur.atEnd && m) {
         loop_invariant{cur.atEnd ==> (inp.length==i)}
         loop_invariant{(!cur.atEnd) ==> (inp.length!=i)}
         loop_invariant{foldThunks(unit(false)){(b,r) => id==r || b(())}}
-        r0n.foreach{t: Int => dfa.transitions(t)(t).foreach{c =>
-          val cur_start = cur_starts_map((t,c))
-          loop_invariant(unit(-1) <= cur_start && cur_start <= i)
-          loop_invariant(cur_start>=0 ==> (id==t))
-          loop_invariant((id==t) ==> cur_start>=0)
-          loop_invariant((cur_start==unit(-1)) ==> (id!=t))
-          loop_invariant((id!=t) ==> (cur_start==unit(-1)))
-        }}
 
         cur = cur.rest
         ghost{i = i+1}

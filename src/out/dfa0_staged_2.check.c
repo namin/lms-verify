@@ -11,10 +11,6 @@ int dfa(char  * x0) {
   int x3 = 0;
   //@ ghost int x4 = 0;
   char  *x5 = x0;
-  //@ ghost int x7 = -1;
-  int x8 = x7;
-  //@ ghost int x9 = -1;
-  int x10 = x9;
   /*@
   loop invariant (((((strlen(x0)>=0) &&
   \valid(x0+(0..strlen(x0)))) &&
@@ -26,56 +22,44 @@ int dfa(char  * x0) {
   loop invariant ((x5[0]=='\0') ==> (strlen(x0)==x4));
   loop invariant ((!(x5[0]=='\0')) ==> (strlen(x0)!=x4));
   loop invariant ((x3==3) || ((x3==2) || ((x3==1) || (x3==0))));
-  loop invariant ((-1<=x7) &&
-  (x7<=x4));
-  loop invariant ((x7>=0) ==> (x3==1));
-  loop invariant ((x3==1) ==> (x7>=0));
-  loop invariant ((x7==-1) ==> (x3!=1));
-  loop invariant ((x3!=1) ==> (x7==-1));
-  loop invariant ((-1<=x9) &&
-  (x9<=x4));
-  loop invariant ((x9>=0) ==> (x3==2));
-  loop invariant ((x3==2) ==> (x9>=0));
-  loop invariant ((x9==-1) ==> (x3!=2));
-  loop invariant ((x3!=2) ==> (x9==-1));
-  loop assigns x5, x4, x3, x2, x7, x9;
+  loop assigns x5, x4, x3, x2;
   loop variant strlen(x5);
   */
   for (;;) {
-    char  *x11 = x5;
-    char x12 = x11[0];
-    int x13 = x12 == '\0';
-    int x17;
-    if (x13) {
-      x17 = 0/*false*/;
+    char  *x7 = x5;
+    char x8 = x7[0];
+    int x9 = x8 == '\0';
+    int x13;
+    if (x9) {
+      x13 = 0/*false*/;
     } else {
-      int x15 = x2;
-      x17 = x15;
+      int x11 = x2;
+      x13 = x11;
     }
-    if (!x17) break;
-    char  *x105 = x5;
-    char  *x106 = x105+1;
-    x5 = x106;
+    if (!x13) break;
+    char  *x39 = x5;
+    char  *x40 = x39+1;
+    x5 = x40;
     /*@ghost x4 = (x4+1);*/
   }
-  char  *x152 = x5;
-  char x153 = x152[0];
-  int x154 = x153 == '\0';
-  int x157;
-  if (x154) {
-    int x155 = x2;
-    x157 = x155;
+  char  *x86 = x5;
+  char x87 = x86[0];
+  int x88 = x87 == '\0';
+  int x91;
+  if (x88) {
+    int x89 = x2;
+    x91 = x89;
   } else {
-    x157 = 0/*false*/;
+    x91 = 0/*false*/;
   }
-  int x161;
-  if (x157) {
-    int x158 = x3;
-    int x159 = x158 == 3;
-    x161 = x159;
+  int x95;
+  if (x91) {
+    int x92 = x3;
+    int x93 = x92 == 3;
+    x95 = x93;
   } else {
-    x161 = 0/*false*/;
+    x95 = 0/*false*/;
   }
   /*@assert ((x5[0]=='\0') || (!x2));*/
-  return x161;
+  return x95;
 }

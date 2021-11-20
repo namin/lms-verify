@@ -11,8 +11,6 @@ int dfa(char  * x0) {
   int x3 = 0;
   //@ ghost int x4 = 0;
   char  *x5 = x0;
-  //@ ghost int x7 = -1;
-  int x8 = x7;
   /*@
   loop invariant (((((strlen(x0)>=0) &&
   \valid(x0+(0..strlen(x0)))) &&
@@ -24,50 +22,44 @@ int dfa(char  * x0) {
   loop invariant ((x5[0]=='\0') ==> (strlen(x0)==x4));
   loop invariant ((!(x5[0]=='\0')) ==> (strlen(x0)!=x4));
   loop invariant ((x3==2) || ((x3==1) || (x3==0)));
-  loop invariant ((-1<=x7) &&
-  (x7<=x4));
-  loop invariant ((x7>=0) ==> (x3==1));
-  loop invariant ((x3==1) ==> (x7>=0));
-  loop invariant ((x7==-1) ==> (x3!=1));
-  loop invariant ((x3!=1) ==> (x7==-1));
-  loop assigns x5, x4, x3, x2, x7;
+  loop assigns x5, x4, x3, x2;
   loop variant strlen(x5);
   */
   for (;;) {
-    char  *x9 = x5;
-    char x10 = x9[0];
-    int x11 = x10 == '\0';
-    int x15;
-    if (x11) {
-      x15 = 0/*false*/;
+    char  *x7 = x5;
+    char x8 = x7[0];
+    int x9 = x8 == '\0';
+    int x13;
+    if (x9) {
+      x13 = 0/*false*/;
     } else {
-      int x13 = x2;
-      x15 = x13;
+      int x11 = x2;
+      x13 = x11;
     }
-    if (!x15) break;
-    char  *x70 = x5;
-    char  *x71 = x70+1;
-    x5 = x71;
+    if (!x13) break;
+    char  *x37 = x5;
+    char  *x38 = x37+1;
+    x5 = x38;
     /*@ghost x4 = (x4+1);*/
   }
-  char  *x117 = x5;
-  char x118 = x117[0];
-  int x119 = x118 == '\0';
-  int x122;
-  if (x119) {
-    int x120 = x2;
-    x122 = x120;
+  char  *x84 = x5;
+  char x85 = x84[0];
+  int x86 = x85 == '\0';
+  int x89;
+  if (x86) {
+    int x87 = x2;
+    x89 = x87;
   } else {
-    x122 = 0/*false*/;
+    x89 = 0/*false*/;
   }
-  int x126;
-  if (x122) {
-    int x123 = x3;
-    int x124 = x123 == 2;
-    x126 = x124;
+  int x93;
+  if (x89) {
+    int x90 = x3;
+    int x91 = x90 == 2;
+    x93 = x91;
   } else {
-    x126 = 0/*false*/;
+    x93 = 0/*false*/;
   }
   /*@assert ((x5[0]=='\0') || (!x2));*/
-  return x126;
+  return x93;
 }
