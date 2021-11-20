@@ -136,52 +136,6 @@ trait DfaLib extends NfaLib with CommonLib with LetrecLib {
   }
 }
 
-/**
-Adapted from
-https://github.com/devongovett/regexgen/blob/master/src/regex.js
-
-TODO: simplify regular expression.
-*/
-trait Dfa2ReLib extends DfaLib with Regexp/*from AutomataTests.scala*/ {
-  def union(re1: Option[RE], re2: Option[RE]): Option[RE] = (re1, re2) match {
-    case (Some(re1), Some(re2)) => Some(alt(re1, re2))
-    case (Some(re1), None) => Some(re1)
-    case (None, Some(re2)) => Some(re2)
-    case (None, None) => None
-  }
-
-  def dfa2re_backwards(dfa: Dfa): Vector[Option[RE]] = {
-    val rn = (0 until dfa.finals.size).toVector
-    (rn.map{r => _dfa2re(Dfa(rn.map{t => r==t}, dfa.transitions))}).map(_(0))
-  }
-  def dfa2re(dfa: Dfa): Vector[RE] = (_dfa2re(dfa)).map(_.get)
-  def _dfa2re(dfa: Dfa): Vector[Option[RE]] = {
-    val a: Array[Array[Option[RE]]] = dfa.transitions.toArray.map{ts => ts.toArray.map{cs => if (cs.isEmpty) None else {
-      val xs = cs.toList.map(c)
-      Some(many(alt)(xs.head, xs.tail: _*))
-    }}}
-    val b: Array[Option[RE]] = dfa.finals.toArray.map{b => if (b) Some(id) else None}
-
-    for (n <- dfa.finals.size - 1 to 0 by -1) {
-      a(n)(n).foreach{ ann =>
-        b(n) = b(n).map{bn => seq(star(ann), bn)}
-        for (j <- 0 until n) {
-          a(n)(j) = a(n)(j).map{anj => seq(star(ann), anj)}
-        }
-      }
-      for (i <- 0 until n) {
-        a(i)(n).foreach{ ain =>
-          b(i) = union(b(i), b(n).map{bn => seq(ain, bn)})
-          for (j <- 0 until n) {
-            a(i)(j) = union(a(i)(j), a(n)(j).map{anj => seq(ain, anj)})
-          }
-        }
-      }
-    }
-    b.toVector
-  }
-}
-
 trait Re2Str extends Regexp {
   type RE = String
 
@@ -233,96 +187,6 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
   type RU = (Rep[Input], Rep[Int], Rep[Int]) => Rep[Unit]
   type RL = (Rep[Input], Rep[Int], Rep[Int], Rep[Int]) => Rep[Unit]
   val never_match: RF = {(inp,i,n) => unit(false)}
-  def re_lemma(name: String, inp: Rep[Input], i: Rep[Int], n: Rep[Int], stop: Rep[Int]): Rep[Unit] =
-    toplevelApply[Unit]("lemma_"+name, list(inp, i, n, stop))
-  def re_pr(name: String)(inp: Rep[Input], i: Rep[Int], n: Rep[Int]): Rep[Boolean] =
-    toplevelApply[Boolean](name, list(inp, i, n))
-  def mkpr(name: String, a: RE, f: RF): RF = rec.get(name) match {
-    case Some(_) => {
-      val r: RF = {(inp,i,j) => toplevelApply[Boolean](name, list(inp,i,j))}
-      r
-    }
-    case None =>
-      val r: RF = unwrap3(toplevel(name, wrap3(f), spec=true, code=false))
-      if (name.startsWith("star_")) {
-        val Star(u) = a
-        val C(chr) = u //TODO: generalize?
-        val c_all: RU = unwrap3(toplevel("lemma_"+name+"_all", wrap3({(inp:Rep[Input],i:Rep[Int],j:Rep[Int]) =>
-          requires(valid_input(inp))
-          requires(0<=i && i<=j && j <= inp.length)
-          requires(r(inp, i, j))
-          ensures{_:Rep[Unit] => forall{m: Rep[Int] => (0<=i && i<=m && m<j) ==> (re2pr(u)(inp, m, m+1))}}
-          var x = i
-          loop(0 <= i && i <= x && j <= inp.length,
-            List[Any](x), j-x) {
-            while (x < j) {
-              loop_invariant(r(inp, x, j))
-              loop_invariant(forall{m: Rep[Int] => (i<=m && m < x) ==> (inp.to(m).first==chr)})
-              x = x+1
-            }
-          }
-        }),spec=false,code=true))
-        val c_from_all: RU = unwrap3(toplevel("lemma_"+name+"_from_all", wrap3({(inp:Rep[Input],i:Rep[Int],j:Rep[Int]) =>
-          requires(valid_input(inp))
-          requires(0<=i && i<=j && j <= inp.length)
-          requires{forall{m: Rep[Int] => (0<=i && i<=m && m<j) ==> (re2pr(u)(inp, m, m+1))}}
-          ensures{_:Rep[Unit] => r(inp, i, j)}
-          var x = j
-          loop(0 <= i && i <= x && j <= inp.length,
-            List[Any](x), x) {
-            while (i < x) {
-              loop_invariant(r(inp, x, j))
-              loop_invariant{forall{m: Rep[Int] => (0<=i && i<=m && m<j) ==> (re2pr(u)(inp, m, m+1))}}
-              x = x-1
-            }
-          }
-        }),spec=false,code=true))
-        val c_dec: RU = unwrap3(toplevel("lemma_"+name+"_dec", wrap3({(inp:Rep[Input],i:Rep[Int],j:Rep[Int]) =>
-          requires(valid_input(inp))
-          requires(0<=i && i<=j)
-          requires(i<j && j<=inp.length)
-          requires(r(inp, i, j))
-          ensures{_:Rep[Unit] => r(inp,i,j-1)}
-          ghost{c_all(inp,i,j)}
-          ghost{c_from_all(inp,i,j-1)}
-        }),spec=false,code=true))
-        val c: RL = unwrap4(toplevel("lemma_"+name, wrap4({(inp,start,i,j) =>
-          requires(valid_input(inp))
-          requires(0<=start && start<=i)
-          requires(0<=i && i<j)
-          requires(0<=j && j<=inp.length)
-          requires(r(inp, start, i))
-          requires(r(inp, i, j))
-          requires(i+1==j)
-          ensures{res: Rep[Unit] => r(inp, start, j)}
-          var x = i
-          loop(0 <= start && start <= x && x <= j && j <= inp.length,
-            List[Any](x), x) {
-            while (start < x) {
-              loop_invariant(r(inp, x, j))
-              loop_invariant(r(inp, start, x))
-              c_dec(inp, start, x)
-              _assert(start<x)
-              ghost{c_all(inp, start, x)}
-              _assert(re2pr(u)(inp, x-1, x))
-              _assert(r(inp, x, j))
-              _assert(r(inp, x-1, j))
-              x = x-1;
-            }
-          }
-        }), spec=false, code=true))
-      }
-      r
-  }
-  def key(r:RE): String = r match {
-    case C(c) => c.toString
-    case R(a, b) => a.toString+"_to_"+b.toString
-    case W => "w"
-    case Alt(x, y) => "_or"+key(x)+"_or_"+key(y)+"or_"
-    case Cat(x, y) => key(x)+key(y)
-    case I => "i"
-    case Star(x) => "_s"+key(x)+"s_"
-  }
   def re2pr(r: RE): RF = r match {
     case C(c) => {(inp,i,j) => c==inp(i) && j==i+1}
     case R(a, b) => {(inp,i,j) => a<=inp(i) && inp(i)<=b && j==i+1}
@@ -335,11 +199,11 @@ trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
       re2pr(x)(inp,i,m) && re2pr(y)(inp,m,j)}}}
     case I => {(inp,i,j) => i==j}
     case Star(x) => {
-      lazy val z: RF = { mkpr("star_"+key(x), r, { (inp,i,j) =>
+      lazy val z: RF = { (inp,i,j) =>
         len(x) match {
           case Some(lx) => (i==j) || (i<j && (re2pr(x)(inp,i,i+lx) && z(inp,i+lx,j)))
           case None => (i==j) || ((i<j) && (i until (j+1)).exists{m =>
-            re2pr(x)(inp,i,m) && z(inp,m,j)})}})}
+            re2pr(x)(inp,i,m) && z(inp,m,j)})}}
       z
     }
   }
@@ -374,67 +238,15 @@ trait NfaStagedLib extends NfaLib with DfaLib with LetrecLib with StagedLib {
   }
 }
 
-trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
+trait DfaStagedLib extends DfaLib with StagedLib with Re2Pr {
   def staged_dfa_accept(dfa: Dfa) = {
     val r0n = ((0 until dfa.finals.size):Range).toVector
     def foldThunks[B:Typ](b: =>Rep[B])(f: ((Unit=>Rep[B]),Int) => Rep[B]): Rep[B] = ((r0n.foldLeft[Unit=>Rep[B]]{(_:Unit) => b}{
       (bt:(Unit=>Rep[B]),r:Int) => (_:Unit) => f(bt,r)
     })(()))
-    val dfa_res = dfa2re(dfa)
-    val res = dfa_res.map(re2pr)
-    val fwd = r0n.map{r:Int => mkpr("re_"+r, dfa_res(r), res(r))}
-    val res_bwd = dfa2re_backwards(dfa)
-    val bwd = r0n.map{r => res_bwd(r).map{p => mkpr("re_bwd_"+r, p, re2pr(p))}.getOrElse{never_match}}
-    val re = fwd(0)
-    def sanity(r: Int, t: Int): String = "sanity_"+r+"_"+t
-    r0n.foreach{r =>
-      r0n.foreach{t =>
-          toplevel("lemma_"+sanity(r,t), wrap4({(inp: Rep[Input], i: Rep[Int], m: Rep[Int], j: Rep[Int]) =>
-            requires(valid_input(inp))
-            requires(inp.length<=Int.MaxValue)
-            requires(0<=i && i<=m && m<=j && j < inp.length)
-            requires(dfa.transitions(r)(t).foldLeft(unit(false)){
-              (b:Rep[Boolean],c:Char) => inp(j)==c || b})
-            if (r==t) {
-              dfa.transitions(r)(t).foreach{c =>
-                requires(re_pr("star_"+c)(inp, m, j))
-                requires(forall{x: Rep[Int] => m<=x ==> ((bwd(t)(inp, i, m) && re_pr("star_"+c)(inp, m, x)) ==> bwd(t)(inp, i, x))})
-                requires(bwd(t)(inp, i, m))
-              }
-            }
-            requires(bwd(r)(inp, i, j))
-            ensures{_:Rep[Unit] => bwd(t)(inp, i, j+1)}
-            if (r==t) {
-              dfa.transitions(r)(t).foreach{c =>
-                ensures{_:Rep[Unit] => re_pr("star_"+c)(inp, m, j+1)}
-                ghost{re_lemma("star_"+c, inp, m, j, j+1)}
-                _assert(forall{x: Rep[Int] => m<=x ==> ((bwd(t)(inp, i, m) && re_pr("star_"+c)(inp, m, x)) ==> bwd(t)(inp, i, x))})
-                _assert(m<=j+1 ==> ((bwd(t)(inp, i, m) && re_pr("star_"+c)(inp, m, j+1)) ==> bwd(t)(inp, i, j+1)))
-                _assert(bwd(t)(inp, i, m))
-              }
-            } else {
-              dfa.transitions(t)(t).foreach{c =>
-                requires(re_pr("star_"+c)(inp, j+1, j+1))
-                _assert(bwd(r)(inp, i, j))
-                _assert(dfa.transitions(r)(t).foldLeft(unit(false)){
-                  (b:Rep[Boolean],c:Char) => inp(j)==c || b})
-                _assert(re_pr("star_"+c)(inp, j+1, j+1))
-                requires(bwd(r)(inp, i, m))
-                _assert(bwd(r)(inp, i, m))
-                dfa.transitions(r)(r).foreach{c0 =>
-                  requires(re_pr("star_"+c0)(inp, m, j))
-                  _assert(re_pr("star_"+c0)(inp, m, j))
-                }
-              }
-            }
-          }),spec=false,code=true)}}
     toplevel("dfa", { inp: Rep[Array[Char]] =>
       requires(valid_input(inp))
       requires(inp.length<=Int.MaxValue) // to avoid overflow error in SPEC!
-      ensures{(res: Rep[Boolean]) =>
-        ((res ==> re(inp, 0, inp.length)) /*&&
-         (re(inp, 0, inp.length) ==> res)*/)
-      }
       var m = true
       var id = 0
       val i = ghostVar(0)
@@ -448,29 +260,6 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
           readVar(cur_start)
         }
       }
-      def tactic(r: Int, t: Int) = {
-        dfa.transitions(t)(t).foreach{c =>
-          val cur_start = cur_starts_map((t,c))
-          if (!(dfa.transitions(t)(r).contains(c))) {
-            ghost{cur_start = i+1}
-            _assert(re_pr("star_"+c)(inp, i+1, i+1))
-          } else {
-            _assert(cur_start>=0)
-            ghost{re_lemma("star_"+c, inp, cur_start, i, i+1)}
-            _assert(re_pr("star_"+c)(inp, cur_start, i+1))
-            ghost{re_lemma(sanity(r,t), inp, 0, cur_start, i)}
-          }
-        }
-        if (r != t) {
-          dfa.transitions(r)(r).foreach{c =>
-            val cur_start = cur_starts_map((r,c))
-            ghost{re_lemma(sanity(r,t), inp, 0, cur_start, i)}
-            ghost{cur_start = -1}
-          }
-          if (dfa.transitions(r)(r).isEmpty)
-            ghost{re_lemma(sanity(r,t), inp, 0, 0, i)}
-        }
-      }
       def in_finals = foldThunks(unit(false)){(b,r) =>
         (if (dfa.finals(r)) (id==r) else unit(false)) || b(())}
       loop((valid_input(inp) &&
@@ -480,15 +269,6 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
         List[Any](readVar(cur)::readVar(i)::readVar(id)::readVar(m)::cur_starts: _*),
         cur.length){
       while (!cur.atEnd && m) {
-        r0n.foreach{r: Int =>
-          loop_invariant{((id == r) && m) ==> (bwd(r)(inp, 0, i))}}
-        r0n.foreach{r: Int =>
-          loop_invariant{((id == r) && !m) ==> bwd(r)(inp, 0, i-1)}}
-        //loop_invariant(!re(inp, 0, i) ==> !re(inp, 0, inp.length))
-        loop_invariant{(in_finals && cur.atEnd && m) ==> re(inp, 0, i)}
-        //loop_invariant{(!in_finals) ==> !re(inp, 0, i)}
-        loop_invariant{((m) ==> (foldThunks(unit(false)){(b,r) => (((bwd(r)(inp, 0, i))) || b(()))}))}
-        //loop_invariant{((!m) ==> (foldThunks(unit(true)){(b,r) => ((!(bwd(r)(inp, 0, i))) && b(()))}))}
         loop_invariant{cur.atEnd ==> (inp.length==i)}
         loop_invariant{(!cur.atEnd) ==> (inp.length!=i)}
         loop_invariant{foldThunks(unit(false)){(b,r) => id==r || b(())}}
@@ -499,30 +279,8 @@ trait DfaStagedLib extends DfaLib with StagedLib with Dfa2ReLib with Re2Pr {
           loop_invariant((id==t) ==> cur_start>=0)
           loop_invariant((cur_start==unit(-1)) ==> (id!=t))
           loop_invariant((id!=t) ==> (cur_start==unit(-1)))
-          loop_invariant(forall{j: Rep[Int] => (cur_start>=0 && cur_start<=j) ==> ((bwd(t)(inp, 0, cur_start) && re_pr("star_"+c)(inp, cur_start, j)) ==> bwd(t)(inp, 0, j))})
-          loop_invariant((cur_start>=0) ==> bwd(t)(inp, 0, cur_start))
-          loop_invariant((cur_start>=0 && m) ==> re_pr("star_"+c)(inp, cur_start, i))
         }}
 
-        m = foldThunks(unit(false)){(b,r) =>
-          if (id == r) {
-            _assert((id == r) ==> bwd(r)(inp, 0, i))
-            _assert(bwd(r)(inp, 0, i))
-            foldThunks(unit(false)){(b,t) =>
-              val chars = dfa.transitions(r)(t)
-              if (chars.has(cur.first)) {
-                _assert(bwd(r)(inp, 0, i))
-                id = t
-                tactic(r,t)
-                _assert(bwd(t)(inp, 0, i+1))
-                if (dfa.finals(t)) {
-                  _assert(inp.to(i+1).atEnd ==> re(inp, 0, i+1))
-                }
-                unit(true)
-              } else b(())
-            }
-          } else b(())
-        }
         cur = cur.rest
         ghost{i = i+1}
       }}
@@ -578,12 +336,10 @@ trait NfaExamples extends NfaLib with CommonLib {
 }
 }
 
-import nfa0._
-
 class Dfa0Tests extends TestSuite {
   val under = "nfa2dfa_"
   test("1") {
-    trait Dfa1 extends DfaLib with NfaExamples with DfaExamples {
+    trait Dfa1 extends nfa0.DfaLib with nfa0.NfaExamples with nfa0.DfaExamples {
       val res = nfa2dfa(nfa1)
       println(res)
     }
@@ -592,7 +348,7 @@ class Dfa0Tests extends TestSuite {
     assert(ex.res == ex.dfa1)
   }
   test("3") {
-    trait Dfa3 extends DfaLib with NfaExamples with DfaExamples {
+    trait Dfa3 extends nfa0.DfaLib with nfa0.NfaExamples with nfa0.DfaExamples {
       val res = nfa2dfa(nfa3)
       println(res)
     }
@@ -602,58 +358,23 @@ class Dfa0Tests extends TestSuite {
   }
 }
 
-class Dfa2Re0Tests extends TestSuite {
-  val under = "dfa2re_"
-  trait Dfa2RePrinter extends Dfa2ReLib with Re2Str {
-    def print(dfa: Dfa) {
-      val n = dfa.finals.size
-      for ((h,p) <- list(
-        ("forward", dfa2re(dfa)),
-        ("backward", (dfa2re_backwards(dfa).map(_.get))))) {
-        println(h)
-        for (i <- 0 until n) {
-          println(i+": "+p(i))
-        }
-      }
-    }
-  }
-  test("1") {
-    trait Ex1 extends Dfa2RePrinter with DfaExamples {
-      print(dfa1)
-    }
-    checkOut("aapb", new Ex1 {}, "txt")
-  }
-  test("2") {
-    trait Ex2 extends Dfa2RePrinter with DfaExamples {
-      print(dfa2)
-    }
-    checkOut("2", new Ex2 {}, "txt")
-  }
-  test("3") {
-    trait Ex3 extends Dfa2RePrinter with DfaExamples {
-      print(dfa3)
-    }
-    checkOut("3", new Ex3 {}, "txt")
-  }
-}
-
 class StagedDfa0Tests extends TestSuite {
-  val under = "dfa_staged_"
+  val under = "dfa0_staged_"
   test("1") {
-    trait Dfa1 extends DfaStagedLib with NfaExamples with DfaExamples {
+    trait Dfa1 extends nfa0.DfaStagedLib with nfa0.NfaExamples with nfa0.DfaExamples {
       val machine = staged_dfa_accept(dfa1)
     }
     check("aapb", (new Dfa1 with Impl).code)
   }
   test("2") {
-    trait Dfa2 extends DfaStagedLib with NfaExamples with DfaExamples {
+    trait Dfa2 extends nfa0.DfaStagedLib with nfa0.NfaExamples with nfa0.DfaExamples {
       val machine = staged_dfa_accept(dfa2)
     }
     check("2", (new Dfa2 with Impl).code)
   }
   //TODO
   ignore("3") {
-    trait Dfa3 extends DfaStagedLib with NfaExamples with DfaExamples {
+    trait Dfa3 extends nfa0.DfaStagedLib with nfa0.NfaExamples with nfa0.DfaExamples {
       val machine = staged_dfa_accept(dfa3)
     }
     check("3", (new Dfa3 with Impl {
@@ -668,19 +389,19 @@ class StagedDfa0Tests extends TestSuite {
 class Nfa0Tests extends TestSuite {
   val under = "nfa_"
   test("1") {
-    trait Nfa1 extends NfaStagedLib with NfaExamples {
+    trait Nfa1 extends nfa0.NfaStagedLib with nfa0.NfaExamples {
       val machine = staged_accept(nfa1)
     }
     check("aapb", (new Nfa1 with Impl).code)
   }
   test("2") {
-    trait Nfa2 extends NfaStagedLib with NfaExamples {
+    trait Nfa2 extends nfa0.NfaStagedLib with nfa0.NfaExamples {
       val machine = staged_accept(nfa2)
     }
     check("aapb", (new Nfa2 with Impl).code)
   }
   test("3") {
-    trait Nfa3 extends NfaStagedLib with NfaExamples {
+    trait Nfa3 extends nfa0.NfaStagedLib with nfa0.NfaExamples {
       val machine = staged_accept(nfa3)
     }
     check("3", (new Nfa3 with Impl).code)
