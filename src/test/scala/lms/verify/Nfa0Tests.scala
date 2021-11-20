@@ -576,8 +576,11 @@ trait NfaExamples extends NfaLib with CommonLib {
     case 5 => Map(('D' -> set(5)))
   }})
 }
+}
 
-class DfaTests extends TestSuite {
+import nfa0._
+
+class Dfa0Tests extends TestSuite {
   val under = "nfa2dfa_"
   test("1") {
     trait Dfa1 extends DfaLib with NfaExamples with DfaExamples {
@@ -599,7 +602,7 @@ class DfaTests extends TestSuite {
   }
 }
 
-class Dfa2ReTests extends TestSuite {
+class Dfa2Re0Tests extends TestSuite {
   val under = "dfa2re_"
   trait Dfa2RePrinter extends Dfa2ReLib with Re2Str {
     def print(dfa: Dfa) {
@@ -634,7 +637,7 @@ class Dfa2ReTests extends TestSuite {
   }
 }
 
-class StagedDfaTests extends TestSuite {
+class StagedDfa0Tests extends TestSuite {
   val under = "dfa_staged_"
   test("1") {
     trait Dfa1 extends DfaStagedLib with NfaExamples with DfaExamples {
@@ -661,9 +664,7 @@ class StagedDfaTests extends TestSuite {
     }).code)
   }
 }
-}
 
-import nfa0._
 class Nfa0Tests extends TestSuite {
   val under = "nfa_"
   test("1") {
