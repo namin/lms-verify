@@ -136,79 +136,6 @@ trait DfaLib extends NfaLib with CommonLib with LetrecLib {
   }
 }
 
-trait Re2Str extends Regexp {
-  type RE = String
-
-  def c(c0: Char): RE = c0.toString
-  def in(a: Char, b: Char): RE = "["+a+"-"+b+"]"
-  def wildcard: RE = "."
-  def alt(x: RE, y: RE): RE = "("+x+"|"+y+")"
-  def seq(x: RE, y: RE): RE = x+y
-  val id: RE = "$"
-  def star(x: RE): RE = "("+x+")*"
-}
-
-trait Re2Ast extends Regexp {
-  abstract class RE
-  case class C(c0: Char) extends RE
-  case class R(a: Char, b: Char) extends RE
-  case object W extends RE
-  case class Alt(x: RE, y: RE) extends RE
-  case class Cat(x: RE, y: RE) extends RE
-  case object I extends RE
-  case class Star(x: RE) extends RE
-  def c(c0: Char): RE = C(c0)
-  def in(a: Char, b: Char): RE = R(a, b)
-  def wildcard: RE = W
-  def alt(x: RE, y: RE): RE = Alt(x, y)
-  def seq(x: RE, y: RE): RE = Cat(x, y)
-  val id: RE = I
-  def star(x: RE): RE = Star(x)
-
-  def len(r: RE): Option[Int] = r match {
-    case C(_) => Some(1)
-    case R(_,_) => Some(1)
-    case W => Some(1)
-    case Alt(x, y) => (len(x),len(y)) match {
-      case (Some(x),Some(y)) if x==y => Some(x)
-      case _ => None
-    }
-    case Cat(x, y) => (len(x),len(y)) match {
-      case (Some(x),Some(y)) => Some(x+y)
-      case _ => None
-    }
-    case I => Some(0)
-    case Star(_) => None
-  }
-}
-
-trait Re2Pr extends Re2Ast with StagedLib with LetrecLib {
-  type RF = (Rep[Input], Rep[Int], Rep[Int]) => Rep[Boolean]
-  type RU = (Rep[Input], Rep[Int], Rep[Int]) => Rep[Unit]
-  type RL = (Rep[Input], Rep[Int], Rep[Int], Rep[Int]) => Rep[Unit]
-  val never_match: RF = {(inp,i,n) => unit(false)}
-  def re2pr(r: RE): RF = r match {
-    case C(c) => {(inp,i,j) => c==inp(i) && j==i+1}
-    case R(a, b) => {(inp,i,j) => a<=inp(i) && inp(i)<=b && j==i+1}
-    case W => {(inp,i,j) => !inp.to(i).atEnd && j==i+1}
-    case Alt(x, y) => {(inp,i,j) => re2pr(x)(inp,i,j) || re2pr(y)(inp,i,j) }
-    case Cat(x, y) => (len(x),len(y)) match {
-      case (_,Some(ly)) => {(inp,i,j) => i<=j-ly && re2pr(x)(inp,i,j-ly) && re2pr(y)(inp,j-ly,j)}
-      case (Some(lx),_) => {(inp,i,j) => re2pr(x)(inp,i,i+lx) && i+lx<=j && re2pr(y)(inp,i+lx,j)}
-      case (None,None) => {(inp,i,j) => (i until (j+1)).exists{m =>
-      re2pr(x)(inp,i,m) && re2pr(y)(inp,m,j)}}}
-    case I => {(inp,i,j) => i==j}
-    case Star(x) => {
-      lazy val z: RF = { (inp,i,j) =>
-        len(x) match {
-          case Some(lx) => (i==j) || (i<j && (re2pr(x)(inp,i,i+lx) && z(inp,i+lx,j)))
-          case None => (i==j) || ((i<j) && (i until (j+1)).exists{m =>
-            re2pr(x)(inp,i,m) && z(inp,m,j)})}}
-      z
-    }
-  }
-}
-
 trait CommonLib {
   type CharSet = Set[Char]
   def set[A](xs: A*) = Set(xs: _*)
@@ -238,7 +165,7 @@ trait NfaStagedLib extends NfaLib with DfaLib with LetrecLib with StagedLib {
   }
 }
 
-trait DfaStagedLib extends DfaLib with StagedLib with Re2Pr {
+trait DfaStagedLib extends DfaLib with StagedLib {
   def staged_dfa_accept(dfa: Dfa) = {
     val r0n = ((0 until dfa.finals.size):Range).toVector
     def foldThunks[B:Typ](b: =>Rep[B])(f: ((Unit=>Rep[B]),Int) => Rep[B]): Rep[B] = ((r0n.foldLeft[Unit=>Rep[B]]{(_:Unit) => b}{
