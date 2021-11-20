@@ -1,5 +1,7 @@
 package lms.verify
 
+object nfa0 {
+
 trait NfaLib {
   type St = Int
   type StSet = Set[St]
@@ -659,8 +661,10 @@ class StagedDfaTests extends TestSuite {
     }).code)
   }
 }
+}
 
-class NfaTests extends TestSuite {
+import nfa0._
+class Nfa0Tests extends TestSuite {
   val under = "nfa_"
   test("1") {
     trait Nfa1 extends NfaStagedLib with NfaExamples {
