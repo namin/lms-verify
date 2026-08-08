@@ -27,6 +27,8 @@ trait StagedRegexpMatcher extends Dsl {
       true
     else if (regexp(restart)=='$' && restart+1==regexp.length)
       start==text.length
+    else if (restart+2 < regexp.length && regexp(restart+1)=='*' && regexp(restart+2)=='?')
+      matchstarquery(regexp(restart), regexp, restart+3, text, start)
     else if (restart+1 < regexp.length && regexp(restart+1)=='*')
       matchstar(regexp(restart), regexp, restart+2, text, start)
     else if (start < text.length && matchchar(regexp(restart), text(start)))
@@ -44,6 +46,18 @@ trait StagedRegexpMatcher extends Dsl {
       failed = !matchchar(c, text(sstart))
       sstart += 1
       found = matchhere(regexp, restart, text, sstart)
+    }}
+    !failed && found
+  }
+
+  def matchstarquery(c: Char, regexp: String, restart: Int, text: Rep[String], start: Rep[Int]): Rep[Boolean] = {
+    var sqstart = start
+    var found = matchhere(regexp, restart, text, sqstart)
+    var failed = false
+    loop (start <= sqstart && sqstart <= text.length, List[Any](sqstart, found, failed), text.length-sqstart){
+    while(!failed && !found && sqstart < text.length) {
+        failed = !matchchar(c, text(sqstart))
+        found = matchhere(regexp, restart, text, sqstart)
     }}
     !failed && found
   }
@@ -76,6 +90,8 @@ class RegexTests extends TestSuite {
   gen("a_end", "a$")
   gen("a", "a")
   gen("ab_dot_star_ab", "ab.*ab")
+  gen("ab_dot_star_query_ab","ab.*?ab")
+
 
 // exponential code size!!!
 /* cloc -by-file re_alpha_*.actual.c
@@ -99,7 +115,7 @@ SUM:                                  0          10260         114256
   var r = ""
   for (i <- 0 until 10) {
     val c = ('a'+i).toChar
-    r = r+c+c+"*"
+    r = r+c+c+"*"+"?"
     //gen("alpha_"+c, r)
   }
 }
